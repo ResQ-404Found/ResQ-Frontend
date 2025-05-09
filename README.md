@@ -2,9 +2,8 @@
 ### team 404Found
 
 ### 개발환경 설치
-```
 [Flutter 공식 설치 가이드 (Windows)](https://docs.flutter.dev/get-started/install/windows)
-
+```
 Flutter 설치
 1) 위 링크로 가서 Flutter SDK 다운로드
 2) 적당한 경로에 압축 해제 ( ex) C:\src\flutter)
