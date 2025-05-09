@@ -24,8 +24,9 @@ project-root/
 │   ├── main.dart     
 │   ├── routes.dart
 │   └── pages/
-│      ├── home_screen.dart
-│      └── login_screen.dart
+│      ├── initial_page.dart
+│      ├── login_page.dart
+│      └── signup_page.dart
 │
 ├── pubspec.yaml 
 ├── analysis_options.yaml
