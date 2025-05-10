@@ -11,6 +11,9 @@ Flutter 설치
 4) cmd에 flutter doctor 명령어 입력
 5) Android Studio 설치 및  Android SDK 설정
 
+패키지 설치
+flutter pub get
+
 에뮬레이터 실행
 flutter devices
 flutter run
