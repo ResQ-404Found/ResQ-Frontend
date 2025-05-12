@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
-import 'routes.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'initial_page.dart';
 
 void main() {
   runApp(MyApp());
 }
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await NaverMapSdk.instance.initialize(
+      clientId: '9185xrvnqq', // Get from Naver Cloud Platform
+    );
+  } catch (e) {
+    debugPrint("Naver Map initialization failed: $e");
+  }
 
 class MyApp extends StatelessWidget {
   @override
