@@ -1,10 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'main_page.dart';
 
-class InitialPage extends StatelessWidget {
-  const InitialPage({super.key});
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-@override
+  try {
+    await NaverMapSdk.instance.initialize(
+      clientId: '9185xrvnqq', // Get from Naver Cloud Platform
+    );
+  } catch (e) {
+    debugPrint("Naver Map initialization failed: $e");
+  }
+
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
-  }}
+    return MaterialApp(
+      title: 'ResQ App',
+      debugShowCheckedModeBanner: false,
+      home: const MainPage(),
+    );
+  }
+}
