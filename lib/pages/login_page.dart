@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+// import 'package:shared_preferences/shared_preferences.dart'; // 토큰필요없다고 하지만 혹시나해서
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,25 +20,32 @@ class _LoginPageState extends State<LoginPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('아이디', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text(
+          '아이디',
+          style: TextStyle(
+              color: Colors.black87, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 10),
         Container(
-          height: 60,
+          alignment: Alignment.centerLeft,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
             boxShadow: const [
-              BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
+              BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))
             ],
           ),
+          height: 60,
           child: TextField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
+            style: const TextStyle(color: Colors.black87),
             decoration: const InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.only(top: 14),
-              prefixIcon: Icon(Icons.account_circle_rounded),
+              prefixIcon: Icon(Icons.account_circle_rounded, color: Colors.black87),
               hintText: '아이디',
+              hintStyle: TextStyle(color: Colors.black38),
             ),
           ),
         ),
@@ -47,27 +57,68 @@ class _LoginPageState extends State<LoginPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('비밀번호', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text(
+          '비밀번호',
+          style: TextStyle(
+              color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 10),
         Container(
-          height: 60,
+          alignment: Alignment.centerLeft,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
             boxShadow: const [
-              BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
+              BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))
             ],
           ),
+          height: 60,
           child: TextField(
             controller: _passwordController,
             obscureText: true,
+            style: const TextStyle(color: Colors.black),
             decoration: const InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.only(top: 14),
-              prefixIcon: Icon(Icons.lock),
+              prefixIcon: Icon(Icons.lock, color: Colors.black87),
               hintText: '비밀번호',
+              hintStyle: TextStyle(color: Colors.black38),
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildForgotPassBtn() {
+    return Container(
+      alignment: Alignment.centerRight,
+      child: TextButton(
+        onPressed: () => print("비밀번호 재설정"),
+        child: const Text(
+          '비밀번호 기억 못 하시나요?',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  Widget buildRememberCb() {
+    return Row(
+      children: [
+        Checkbox(
+          value: isRememberMe,
+          checkColor: Colors.black,
+          activeColor: Colors.white,
+          onChanged: (value) {
+            setState(() {
+              isRememberMe = value ?? false;
+            });
+          },
+        ),
+        const Text(
+          '저장하겠습니까?',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
       ],
     );
@@ -78,8 +129,66 @@ class _LoginPageState extends State<LoginPage> {
       padding: const EdgeInsets.symmetric(vertical: 25),
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.pushReplacementNamed(context, '/main');
+        onPressed: () async {
+          final loginId = _emailController.text.trim();
+          final password = _passwordController.text;
+
+          if (loginId.isEmpty || password.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('아이디와 비밀번호를 모두 입력해주세요')),
+            );
+            return;
+          }
+
+          // 이거 예시 데이터 테스트
+          if (loginId == 'test' && password == '1234') {
+            Navigator.pushReplacementNamed(context, '/main');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('로그인 실패: 아이디 또는 비밀번호가 틀렸습니다')),
+            );
+          }
+
+          // 실제 백엔드 연결 코드!!!
+          /*
+          final uri = Uri.parse('http://주소.com/users/signin');
+
+          try {
+            final response = await http.post(
+              uri,
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'login_id': loginId,
+                'password': password,
+              }),
+            );
+
+            if (response.statusCode == 200) {
+              final data = jsonDecode(response.body)['data'];
+              final accessToken = data['accessToken'];
+              final refreshToken = data['refreshToken'];
+
+              // (선택) shared_preferences로 저장
+              // final prefs = await SharedPreferences.getInstance();
+              // await prefs.setString('accessToken', accessToken);
+
+              Navigator.pushReplacementNamed(context, '/main'); // 로그인 성공 안 보야주고 바로 홈 화면으로 이동
+            } else if (response.statusCode == 401) {
+              final error = jsonDecode(response.body)['error'];
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('로그인 실패: 아이디 또는 비밀번호가 틀렸습니다')),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('서버 오류: ${response.statusCode}')),
+              );
+            }
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('네트워크 오류: $e')),
+            );
+          }
+          */
         },
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.all(15),
@@ -89,7 +198,34 @@ class _LoginPageState extends State<LoginPage> {
         ),
         child: const Text(
           '로그인',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  Widget buildSignUpBtn() {
+    return GestureDetector(
+      onTap: () => print("회원가입 클릭됨"),
+      child: RichText(
+        text: const TextSpan(
+          children: [
+            TextSpan(
+              text: '가입한 적이 없으신가요? ',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500),
+            ),
+            TextSpan(
+              text: '회원가입',
+              style: TextStyle(
+                  color: Colors.blueAccent,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
       ),
     );
@@ -106,16 +242,26 @@ class _LoginPageState extends State<LoginPage> {
             width: double.infinity,
             color: Colors.white,
             child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 120),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('로그인', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
+                  const Text(
+                    '로그인',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 50),
                   buildEmail(),
                   const SizedBox(height: 20),
                   buildPassword(),
+                  buildForgotPassBtn(),
+                  buildRememberCb(),
                   buildLoginBtn(),
+                  buildSignUpBtn(),
                 ],
               ),
             ),
@@ -125,7 +271,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
-//test updated
-// test git push -u origin feat#3
-
