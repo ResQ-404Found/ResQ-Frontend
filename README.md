@@ -27,7 +27,8 @@ project-root/
 │   ├── main.dart     
 │   ├── routes.dart
 │   └── pages/
-│      ├── initial_page.dart
+│      ├── community_main_page.dart
+│      ├── news_page.dart
 │      ├── login_page.dart
 │      └── signup_page.dart
 │
