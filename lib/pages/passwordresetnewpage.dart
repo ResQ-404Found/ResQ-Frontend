@@ -5,7 +5,7 @@ import 'dart:convert';
 class PasswordResetNewPage extends StatefulWidget {
   final String token;
 
-  const PasswordResetNewPage({super.key, required this.token});
+  const PasswordResetNewPage({super.key, required this.token}); // required 파라미터로 반드시 토큰을 받아야 페이지가 작동
 
   @override
   State<PasswordResetNewPage> createState() => _PasswordResetNewPageState();
@@ -71,7 +71,7 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
-          children: [
+          children: [ // 비밀번호는 obscureText: true로 가려서 입력 , 한 번 더 입력하는 확인 필드도 동일
             const TextFieldTitle(text: "새 비밀번호"),
             TextField(
               obscureText: true,
@@ -133,3 +133,13 @@ class TextFieldTitle extends StatelessWidget {
     );
   }
 }
+
+/* 전채흐름 요약 
+
+1. 사용자 이메일 인증 토큰과 함께 진입
+2. 새 비밀번호 입력 + 재입력
+3. 비밀번호 재설정 버튼 클릭
+4. 서버에 POST 요청 (Bearer 토큰 포함)
+5. 성공 → 초기화면 이동] or [실패 → 오류 메시지]
+
+*/

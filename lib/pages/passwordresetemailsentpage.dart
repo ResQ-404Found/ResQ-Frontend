@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class PasswordResetEmailSentPage extends StatelessWidget {
   final String email;
 
-  const PasswordResetEmailSentPage({super.key, required this.email});
+  const PasswordResetEmailSentPage({super.key, required this.email}); // 전달받은 이메일 주소를 보여주기 위해 required 파라미터로 받음
 
   @override
   Widget build(BuildContext context) {
@@ -49,3 +49,11 @@ class PasswordResetEmailSentPage extends StatelessWidget {
     );
   }
 }
+
+/* 전체 흐름 요약 
+
+1. 입력된 이메일 주소 표시
+2. 메일 발송됨” 안내 문구
+3. 확인 버튼 → 이전 화면으로 이동
+
+*/

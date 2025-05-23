@@ -77,6 +77,7 @@ class _PasswordResetEmailPageState extends State<PasswordResetEmailPage> {
               ),
               const SizedBox(height: 32),
 
+              // 취소: 현재 화면 닫기 (Navigator.pop) , 비밀번호 재설정하기: 아래 로직 실행
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -136,3 +137,11 @@ class _PasswordResetEmailPageState extends State<PasswordResetEmailPage> {
     );
   }
 }
+
+/* 전체 흐름 요약 
+1. 이메일 입력
+2. 비밀번호 재설정하기
+3. 서버에 POST 요청
+4. 성공 → 전송 완료 페이지 이동
+    실패 → 오류 메시지 표시
+*/
