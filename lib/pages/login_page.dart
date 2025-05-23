@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-// import 'package:shared_preferences/shared_preferences.dart'; // 토큰필요없다고 하지만 혹시나해서
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -94,7 +93,9 @@ class _LoginPageState extends State<LoginPage> {
     return Container(
       alignment: Alignment.centerRight,
       child: TextButton(
-        onPressed: () => print("비밀번호 재설정"),
+        onPressed: () {
+          Navigator.pushNamed(context, '/reset-password');
+        },
         child: const Text(
           '비밀번호 기억 못 하시나요?',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
@@ -140,23 +141,14 @@ class _LoginPageState extends State<LoginPage> {
             return;
           }
 
-          // 이거 예시 데이터 테스트
-          if (loginId == 'test' && password == '1234') {
-            Navigator.pushReplacementNamed(context, '/main');
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('로그인 실패: 아이디 또는 비밀번호가 틀렸습니다')),
-            );
-          }
-
-          // 실제 백엔드 연결 코드!!!
-          /*
-          final uri = Uri.parse('http://주소.com/users/signin');
+          final url = Uri.parse('http://54.79.229.221:8000/api/users/signin');
 
           try {
             final response = await http.post(
-              uri,
-              headers: {'Content-Type': 'application/json'},
+              url,
+              headers: {
+                'accept' : 'application/json',
+                'Content-Type': 'application/json'},
               body: jsonEncode({
                 'login_id': loginId,
                 'password': password,
@@ -164,34 +156,33 @@ class _LoginPageState extends State<LoginPage> {
             );
 
             if (response.statusCode == 200) {
-              final data = jsonDecode(response.body)['data'];
-              final accessToken = data['accessToken'];
-              final refreshToken = data['refreshToken'];
+              final json = jsonDecode(response.body);
+              final accessToken = json['data']['accessToken'];
+              final refreshToken = json['data']['refreshToken'];
 
-              // (선택) shared_preferences로 저장
-              // final prefs = await SharedPreferences.getInstance();
-              // await prefs.setString('accessToken', accessToken);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('로그인 성공')),
+              );
 
-              Navigator.pushReplacementNamed(context, '/main'); // 로그인 성공 안 보야주고 바로 홈 화면으로 이동
+              Navigator.pushReplacementNamed(context, '/main');
             } else if (response.statusCode == 401) {
-              final error = jsonDecode(response.body)['error'];
+              final error = jsonDecode(response.body);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('로그인 실패: 아이디 또는 비밀번호가 틀렸습니다')),
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('서버 오류: ${response.statusCode}')),
+                SnackBar(content: Text('서버 오류: {response.statusCode}')),
               );
             }
           } catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('네트워크 오류: $e')),
+              SnackBar(content: Text('네트워크 오류: {e}')),
             );
           }
-          */
         },
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.all(15),
+          padding: const EdgeInsets.all(12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           backgroundColor: Colors.white,
           elevation: 5,
@@ -207,7 +198,9 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget buildSignUpBtn() {
     return GestureDetector(
-      onTap: () => print("회원가입 클릭됨"),
+      onTap: () {
+        Navigator.pushNamed(context, '/singup');
+      },
       child: RichText(
         text: const TextSpan(
           children: [
