@@ -1,8 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:go_router/go_router.dart';
+import 'package:app_links/app_links.dart';
 import 'dart:convert';
 
 import 'passwordresetemailsentpage.dart';
+import 'passwordresetnewpage.dart';
+
+final GoRouter _router = GoRouter(
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (_, __) => const PasswordResetEmailPage(),
+    ),
+    GoRoute(
+      path: '/reset-password',
+      builder: (context, state) {
+        final token = state.uri.queryParameters['token'];
+        if (token == null) {
+          return const Scaffold(
+            body: Center(child: Text('유효하지 않은 링크입니다.')),
+          );
+        }
+        return PasswordResetNewPage(token: token);
+      },
+    ),
+  ],
+);
+
+class PasswordResetPage extends StatefulWidget {
+  const PasswordResetPage({super.key, required String token});
+
+  @override
+  State<PasswordResetPage> createState() => _PasswordResetPageState();
+}
+
+class _PasswordResetPageState extends State<PasswordResetPage> {
+  final AppLinks _appLinks = AppLinks();
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinkListener();
+  }
+
+  void _initDeepLinkListener() async {
+    _appLinks.uriLinkStream.listen((uri) {
+      if (uri != null) {
+        _router.go(uri.toString());
+      }
+    }, onError: (err) {
+      debugPrint('딥링크 에러: $err');
+    });
+
+    final initialUri = await _appLinks.getInitialAppLink();
+    if (initialUri != null) {
+      _router.go(initialUri.toString());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      routerConfig: _router,
+    );
+  }
+}
 
 class PasswordResetEmailPage extends StatefulWidget {
   const PasswordResetEmailPage({super.key});
@@ -77,7 +140,6 @@ class _PasswordResetEmailPageState extends State<PasswordResetEmailPage> {
               ),
               const SizedBox(height: 32),
 
-              // 취소: 현재 화면 닫기 (Navigator.pop) , 비밀번호 재설정하기: 아래 로직 실행
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -138,10 +200,15 @@ class _PasswordResetEmailPageState extends State<PasswordResetEmailPage> {
   }
 }
 
-/* 전체 흐름 요약 
-1. 이메일 입력
-2. 비밀번호 재설정하기
-3. 서버에 POST 요청
-4. 성공 → 전송 완료 페이지 이동
-    실패 → 오류 메시지 표시
-*/
+class PasswordResetNewPage extends StatelessWidget {
+  final String token;
+  const PasswordResetNewPage({super.key, required this.token});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('비밀번호 재설정')),
+      body: Center(child: Text('토큰: $token')),
+    );
+  }
+}
