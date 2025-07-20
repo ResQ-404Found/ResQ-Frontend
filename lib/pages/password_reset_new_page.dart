@@ -20,6 +20,8 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
   bool isLoading = false;
+  bool showPassword = false;
+  bool showConfirmPassword = false;
 
   Future<void> resetPassword() async {
     final newPassword = _passwordController.text.trim();
@@ -72,105 +74,131 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F4FF),
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
-        title: const Text("새 비밀번호 설정", style: TextStyle(color: Colors.black87)),
+        title: const Text("새 비밀번호 설정", style: TextStyle(color: Colors.black87,fontSize: 18)),
         backgroundColor: Colors.white,
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
               "안전한 비밀번호를 입력해주세요 🔐",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "비밀번호는 8자 이상이며, 영문과 숫자의 조합이 좋습니다.",
-              style: TextStyle(fontSize: 14, color: Colors.black54),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 32),
+
+// 🔐 새 비밀번호 입력 박스
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+              width: 340,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0, 6)),
-                ],
-              ),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: "새 비밀번호",
-                      hintText: "8자 이상 입력",
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.deepPurple),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: _confirmController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: "비밀번호 확인",
-                      hintText: "동일한 비밀번호를 입력하세요",
-                      prefixIcon: const Icon(Icons.lock_reset),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.deepPurple),
-                      ),
-                    ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.red.withOpacity(0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isLoading ? null : resetPassword,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlueAccent,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+              child: TextField(
+                controller: _passwordController,
+                obscureText: !showPassword,
+                decoration: InputDecoration(
+                  hintText: "새 비밀번호 (8자 이상)",
+                  hintStyle: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 14),
+                  prefixIcon: const Icon(Icons.lock_outline, color: Colors.black87),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      showPassword ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        showPassword = !showPassword;
+                      });
+                    },
                   ),
-                ),
-                child: isLoading
-                    ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                )
-                    : const Text(
-                  "비밀번호 변경하기",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+
+
+            const SizedBox(height: 10),
+
+// 🔒 비밀번호 확인 박스
+            Container(
+              width: 340,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.red.withOpacity(0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _confirmController,
+                obscureText: !showConfirmPassword,
+                decoration: InputDecoration(
+                  hintText: "비밀번호 확인",
+                  hintStyle: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 14),
+                  prefixIcon: const Icon(Icons.lock_person_outlined, color: Colors.black87),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      showConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        showConfirmPassword = !showConfirmPassword;
+                      });
+                    },
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                ),
+              ),
+            ),
+
+
+
+            const SizedBox(height: 30),
             Center(
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  "← 이전 단계로 돌아가기",
-                  style: TextStyle(color: Colors.deepPurple),
+              child: SizedBox(
+                width: 240,
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : resetPassword,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                      : const Text(
+                    "비밀번호 변경하기",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

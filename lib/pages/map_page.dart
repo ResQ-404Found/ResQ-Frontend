@@ -264,7 +264,9 @@ class _MapPageState extends State<MapPage> {
               IconButton(
                 icon: Icon(Icons.chat),
                 iconSize: 32,
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushNamed(context, '/chatbot');
+                },
               ),
               IconButton(
                 icon: Icon(Icons.groups, color: Colors.grey[400]),

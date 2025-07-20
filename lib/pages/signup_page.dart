@@ -29,6 +29,10 @@ class SignUpPageState extends State<SignUpPage> {
   bool signUpCompleted = false;
   bool showLoginIdField = false;
 
+  bool isSendingEmail = false;
+  bool isVerifyingCode = false;
+  bool isSubmitting = false;
+
   final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
   @override
@@ -43,6 +47,7 @@ class SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> sendEmailVerification(String email) async {
+    setState(() => isSendingEmail = true);
     final url = Uri.parse('http://54.253.211.96:8000/api/request-verification-email');
     final body = jsonEncode({"email": email});
 
@@ -69,10 +74,13 @@ class SignUpPageState extends State<SignUpPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('오류 발생: $e')));
+    } finally {
+      setState(() => isSendingEmail = false);
     }
   }
 
   Future<bool> verifyCode(String email, String code) async {
+    setState(() => isVerifyingCode = true);
     final url = Uri.parse('http://54.253.211.96:8000/api/verify-email-code');
     final body = jsonEncode({"email": email, "code": code});
 
@@ -90,6 +98,8 @@ class SignUpPageState extends State<SignUpPage> {
       return false;
     } catch (_) {
       return false;
+    } finally {
+      setState(() => isVerifyingCode = false);
     }
   }
 
@@ -119,6 +129,20 @@ class SignUpPageState extends State<SignUpPage> {
     }
   }
 
+  Widget buildLoadingButton({required bool isLoading, required String text, required VoidCallback onPressed}) {
+    return ElevatedButton(
+      onPressed: isLoading ? null : onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isLoading ? Colors.white : Colors.red,
+        foregroundColor: Colors.grey,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: isLoading
+          ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
+          : Text(text, style: TextStyle(color: isLoading ? Colors.grey : Colors.white)),
+    );
+  }
+
   Widget buildValidatedInput({
     required TextEditingController controller,
     required String hintText,
@@ -137,8 +161,14 @@ class SignUpPageState extends State<SignUpPage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.red.withOpacity(0.2),
+
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+
                 ],
               ),
               child: TextField(
@@ -232,7 +262,9 @@ class SignUpPageState extends State<SignUpPage> {
                           const SizedBox(width: 10),
                           SizedBox(
                             height: 48,
-                            child: ElevatedButton(
+                            child: buildLoadingButton(
+                              isLoading: isSendingEmail,
+                              text: '인증',
                               onPressed: () {
                                 final enteredEmail = emailController.text.trim();
                                 if (enteredEmail.isEmpty || !enteredEmail.contains('@')) {
@@ -243,12 +275,6 @@ class SignUpPageState extends State<SignUpPage> {
                                 }
                                 sendEmailVerification(enteredEmail);
                               },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: codeSent ? Colors.white : Colors.red,
-                                foregroundColor: Colors.grey,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              ),
-                              child: Text('인증', style: TextStyle(color: codeSent ? Colors.grey : Colors.white)),
                             ),
                           ),
                         ],
@@ -268,7 +294,9 @@ class SignUpPageState extends State<SignUpPage> {
                             const SizedBox(width: 10),
                             SizedBox(
                               height: 48,
-                              child: ElevatedButton(
+                              child: buildLoadingButton(
+                                isLoading: isVerifyingCode,
+                                text: '확인',
                                 onPressed: () async {
                                   final enteredCode = codeController.text.trim();
                                   final enteredEmail = emailController.text.trim();
@@ -293,12 +321,6 @@ class SignUpPageState extends State<SignUpPage> {
                                     );
                                   }
                                 },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: codeVerified ? Colors.white : Colors.red,
-                                  foregroundColor: Colors.grey,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                ),
-                                child: Text('확인', style: TextStyle(color: codeVerified ? Colors.grey : Colors.white)),
                               ),
                             ),
                           ],
@@ -317,7 +339,9 @@ class SignUpPageState extends State<SignUpPage> {
                     SizedBox(
                       height: 48,
                       width: double.infinity,
-                      child: ElevatedButton(
+                      child: buildLoadingButton(
+                        isLoading: isSubmitting,
+                        text: showLoginIdField ? '회원가입' : '다음',
                         onPressed: () async {
                           if (!showLoginIdField) {
                             if (formKey.currentState!.validate()) {
@@ -333,6 +357,7 @@ class SignUpPageState extends State<SignUpPage> {
                           }
 
                           if (formKey.currentState!.validate()) {
+                            setState(() => isSubmitting = true);
                             final url = Uri.parse('http://54.253.211.96:8000/api/users/signup');
                             final body = jsonEncode({
                               'login_id': loginIdController.text.trim(),
@@ -383,22 +408,11 @@ class SignUpPageState extends State<SignUpPage> {
                               }
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('오류 발생: $e')));
+                            } finally {
+                              setState(() => isSubmitting = false);
                             }
                           }
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: signUpCompleted ? Colors.white : Colors.red,
-                          foregroundColor: Colors.grey,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                        ),
-                        child: Text(
-                          showLoginIdField ? '회원가입' : '다음',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: signUpCompleted ? Colors.grey : Colors.white,
-                          ),
-                        ),
                       ),
                     ),
 
