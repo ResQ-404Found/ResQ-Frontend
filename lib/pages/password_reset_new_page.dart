@@ -77,8 +77,7 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
       backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
         title: const Text("새 비밀번호 설정", style: TextStyle(color: Colors.black87,fontSize: 18)),
-        backgroundColor: Colors.white,
-        elevation: 1,
+        backgroundColor: Color(0xFFFAFAFA),
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: SingleChildScrollView(
