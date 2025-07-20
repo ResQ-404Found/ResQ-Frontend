@@ -56,9 +56,8 @@ class _PasswordResetVerifyPageState extends State<PasswordResetVerifyPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        title: const Text("인증코드 입력", style: TextStyle(color: Colors.black87)),
+        backgroundColor: Color(0xFFFAFAFA),
+        title: const Text("인증코드 입력", style: TextStyle(color: Colors.black87,fontSize: 18)),
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: SingleChildScrollView(

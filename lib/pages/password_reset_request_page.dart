@@ -57,8 +57,7 @@ class _PasswordResetRequestPageState extends State<PasswordResetRequestPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
+        backgroundColor: Color(0xFFFAFAFA),
         title: const Text("비밀번호 재설정", style: TextStyle(color: Colors.black87,fontSize: 18)),
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
@@ -84,7 +83,6 @@ class _PasswordResetRequestPageState extends State<PasswordResetRequestPage> {
                   boxShadow: [
                     BoxShadow(
                       color:  Colors.red.withOpacity(0.15),
-
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
