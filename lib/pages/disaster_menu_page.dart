@@ -35,6 +35,9 @@ class DisasterMenuPage extends StatelessWidget {
                 if (item['title'] == '대처 방법') {
                   Navigator.pushNamed(context, '/disasterlist');
                 }
+                if (item['title'] == '체크리스트') {
+                  Navigator.pushNamed(context, '/checklist');
+                }
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
