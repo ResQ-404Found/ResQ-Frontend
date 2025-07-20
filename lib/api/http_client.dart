@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class HttpClient {
-  static const String baseUrl = 'http://54.252.128.243:8000/api';
+  static const String baseUrl = 'http://54.253.211.96:8000/api';
 
   static Future<Map<String, dynamic>> patchUserUpdate({
     required String token,
