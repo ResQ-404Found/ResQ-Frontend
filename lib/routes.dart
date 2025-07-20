@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:inter/pages/disastertype_filtering_page.dart';
-import 'package:inter/pages/region_category_page.dart';
+import 'pages/disastertype_filtering_page.dart';
+import 'pages/region_category_page.dart';
 import 'pages/signup_page.dart';
 import 'pages/login_page.dart';
 import 'pages/map_page.dart';
