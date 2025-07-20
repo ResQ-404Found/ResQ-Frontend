@@ -6,11 +6,25 @@ class DisasterDetailPage extends StatelessWidget {
 
   const DisasterDetailPage({super.key, required this.disaster});
 
-  // 🔥 긴급단계 배너 - 문자열 그대로 출력
+  Color _getLevelColor(String level) {
+    switch (level) {
+      case '심각':
+        return Colors.red.shade700;
+      case '경계':
+        return Colors.orange.shade600;
+      case '주의':
+        return Colors.amber.shade600;
+      case '관심':
+        return Colors.green.shade600;
+      default:
+        return Colors.indigo;
+    }
+  }
+
   Widget _buildDisasterLevelBanner(String level) {
     return Container(
       width: double.infinity,
-      color: Colors.indigo, // 좀 더 안정적인 색감
+      color: _getLevelColor(level),
       padding: const EdgeInsets.symmetric(vertical: 20),
       child: Center(
         child: Text(
@@ -21,7 +35,6 @@ class DisasterDetailPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
           ),
-          textAlign: TextAlign.center,
         ),
       ),
     );
@@ -76,21 +89,26 @@ class DisasterDetailPage extends StatelessWidget {
                 Text(disaster.startTime, style: const TextStyle(color: Colors.black87)),
               ],
             ),
+
             const SizedBox(height: 20),
             const Divider(thickness: 1),
 
             // 📢 재난 문자
-            const SizedBox(height: 12),
-            const Text('재난 문자', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            const Text('📢 재난 문자',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
+
             if (message.trim().isEmpty)
-              const Text('📭 재난 문자가 없습니다.', style: TextStyle(color: Colors.grey))
+              const Text('📭 재난 문자가 없습니다.',
+                  style: TextStyle(color: Colors.grey))
             else
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Color(0xFFF5F7FA),
+                  color: const Color(0xFFF5F7FA),
+                  border: Border.all(color: Colors.grey.shade300),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -102,21 +120,36 @@ class DisasterDetailPage extends StatelessWidget {
             const SizedBox(height: 28),
 
             // 🧯 대처 방법 이동 버튼
-            const Text('대처 방법', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('📌 대처 방법',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () => Navigator.pushNamed(context, '/disasterlist'),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+
+            InkWell(
+              onTap: () {
+                if (routeName.isNotEmpty) {
+                  Navigator.pushNamed(context, routeName);
+                } else {
+                  Navigator.pushNamed(context, '/disasterlist');
+                }
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Ink(
                 decoration: BoxDecoration(
-                  color: Color(0xFFF1F4FF), // 살짝 강조
-                  border: Border.all(color: Colors.indigo.shade100),
+                  color: const Color(0xFFE8F0FF),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.indigo.shade200),
                 ),
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                 child: Row(
                   children: const [
-                    Text('> 자세히 보러 가기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                    Spacer(),
+                    Icon(Icons.info_outline, size: 18, color: Colors.indigo),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '자세히 보러 가기',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                    ),
                     Icon(Icons.arrow_forward_ios, size: 14, color: Colors.indigo),
                   ],
                 ),
@@ -125,7 +158,6 @@ class DisasterDetailPage extends StatelessWidget {
 
             const SizedBox(height: 32),
 
-            // 🕓 마지막 업데이트
             const Center(
               child: Text(
                 '마지막 업데이트: 1시간 전',
