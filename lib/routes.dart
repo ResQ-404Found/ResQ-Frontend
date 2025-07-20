@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:inter/pages/disastertype_filtering_page.dart';
+import 'package:inter/pages/region_category_page.dart';
 import 'pages/signup_page.dart';
 import 'pages/login_page.dart';
 import 'pages/map_page.dart';
@@ -39,6 +41,8 @@ final Map<String, WidgetBuilder> routes = {
   '/typhoon': (context) => const TyphoonPage(),
   '/earthquake': (context) => const EarthquakePage(),
   '/coldwave': (context) => const ColdwavePage(),
+  '/region-filter': (context) => RegionCategoryPage(),
+  '/type-filter': (context) => NotificationSettingsPage(),
   '/disasterlist': (context) => const DisasterListPage(),
   '/password_reset_request' : (context) => const PasswordResetRequestPage(),
   '/password_reset_verify': (context) {

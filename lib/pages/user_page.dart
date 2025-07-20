@@ -200,8 +200,12 @@ final currentController = TextEditingController();
     ),
   );  }
 
-  void _onFilterSetting() {
-    print('재난 문자 필터링 설정 클릭됨');
+  void _onRegionFilterSetting() {
+    Navigator.pushNamed(context, '/region-filter');
+  }
+
+  void _onTypeFilterSetting() {
+    Navigator.pushNamed(context, '/type-filter');
   }
 
   void _onLogout() async {
@@ -319,8 +323,8 @@ final currentController = TextEditingController();
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
               const SizedBox(height: 8),
-              _buildToggleRow('재난 문자 필터링 여부', true),
-              _buildActionRow('재난 문자 필터링 설정', onTap: _onFilterSetting),
+              _buildActionRow('지역 알림 설정', onTap: _onRegionFilterSetting),
+              _buildActionRow('재난 유형 알림 설정', onTap: _onTypeFilterSetting),
               const SizedBox(height: 12),
               const Divider(thickness: 1),
               const SizedBox(height: 12),
