@@ -4,7 +4,6 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'disaster_detail_page.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 
 
 const String kakaoRestApiKey = 'KakaoAK 6c70d9ab4ca17bdfa047539c7d8ec0a8';
@@ -89,29 +88,6 @@ class _MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      final title = message.notification?.title ?? 'No title';
-      final body = message.notification?.body ?? 'No body';
-
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text(title),
-          content: Text(body),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    });
-
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('📲 [Notification tapped]');
-    });
   }
 
   Future<void> _getAndMoveToCurrentLocation() async {
@@ -285,6 +261,7 @@ class _MapPageState extends State<MapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -316,7 +293,53 @@ class _MapPageState extends State<MapPage> {
           ],
         ),
       ),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        elevation: 10,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: Icon(Icons.home, color: Colors.grey[400]),
+                iconSize: 32,
+                onPressed: () {
+                  Navigator.pushNamed(context, '/map');
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.chat),
+                iconSize: 32,
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: Icon(Icons.groups, color: Colors.grey[400]),
+                iconSize: 32,
+                onPressed: () {
+                  Navigator.pushNamed(context, '/community');
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.emergency_share, color: Colors.grey[400]),
+                iconSize: 32,
+                onPressed: () {
+                  Navigator.pushNamed(context, '/disastermenu');
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.person, color: Colors.grey[400]),
+                iconSize: 32,
+                onPressed: () {
+                  Navigator.pushNamed(context, '/user');
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+
   }
 
 
@@ -335,7 +358,7 @@ class _MapPageState extends State<MapPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              _currentAddress ?? '📍 주소 불러오는 중...',
+              _currentAddress ?? '주소 불러오는 중...',
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
@@ -585,6 +608,8 @@ class _MapPageState extends State<MapPage> {
       ),
     );
   }
+
+
 }
 
 
