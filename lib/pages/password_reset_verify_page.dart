@@ -54,7 +54,7 @@ class _PasswordResetVerifyPageState extends State<PasswordResetVerifyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F1FF),
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
@@ -62,56 +62,61 @@ class _PasswordResetVerifyPageState extends State<PasswordResetVerifyPage> {
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            const Text("메일로 전송된 인증코드를 입력해주세요.", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Text("📧 ${widget.email}", style: const TextStyle(fontSize: 14, color: Colors.deepPurple)),
-            const SizedBox(height: 32),
+            const Text(
+              "메일로 전송된 인증코드를 입력해주세요",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.all(20),
+              width: 340,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.red.withOpacity(0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: TextField(
                 controller: _codeController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: "인증코드",
+                decoration: const InputDecoration(
                   hintText: "6자리 숫자 입력",
-                  prefixIcon: const Icon(Icons.verified_user_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.deepPurple),
-                  ),
+                  hintStyle: TextStyle(color: Color(0xFFB0B0B0), fontSize: 14),
+                  prefixIcon: Icon(Icons.verified_user_outlined, color: Colors.grey),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 ),
               ),
             ),
             const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isLoading ? null : verifyCode,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlueAccent,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+            Center(
+              child: SizedBox(
+                width: 240,
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : verifyCode,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  ),
+                  child: isLoading
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text(
+                    "인증 확인",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
                 ),
-                child: isLoading
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text("인증 확인", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("← 이전 단계로 돌아가기", style: TextStyle(color: Colors.deepPurple)),
-            )
           ],
         ),
       ),
