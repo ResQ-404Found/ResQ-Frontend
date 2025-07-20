@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:firebase_messaging/firebase_messaging.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -25,17 +24,9 @@ class SignUpPageState extends State<SignUpPage> {
   @override
   void initState() {
     super.initState();
-    _initFcmToken();
   }
 
-  Future<void> _initFcmToken() async {
-    try {
-      fcmToken = await FirebaseMessaging.instance.getToken();
-      print('📲 FCM Token: $fcmToken');
-    } catch (e) {
-      print('❌ Failed to get FCM token: $e');
-    }
-  }
+
 
   @override
   void dispose() {

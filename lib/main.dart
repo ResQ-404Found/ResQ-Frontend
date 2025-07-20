@@ -1,17 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:inter/pages/firebase_options.dart';
 
 import 'routes.dart';
 import 'pages/disaster_detail_page.dart';
 import 'pages/map_page.dart';
 
-/// ✅ Handles background FCM messages
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,14 +15,6 @@ void main() async {
     clientId: 'p9nizolo1p',
     onAuthFailed: (e) => debugPrint('NaverMap Auth Failed: $e'),
   );
-
-  // ✅ Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // ✅ Set background message handler
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(const MyApp());
 }
@@ -46,26 +31,6 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    // ✅ Foreground message listener
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.notification != null) {
-        final title = message.notification!.title ?? 'No Title';
-        final body = message.notification!.body ?? 'No Body';
-
-
-        // Show snackbar as notification UI
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('🔔 $title\n$body')),
-          );
-        });
-      }
-    });
-
-    // ✅ Notification tapped listener
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      // You can navigate to a specific page here if needed
-    });
   }
 
   @override
