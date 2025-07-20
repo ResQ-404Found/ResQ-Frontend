@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
+// ... 생략된 import 부분은 동일
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -145,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
         decoration: const InputDecoration(
           border: InputBorder.none,
           contentPadding: EdgeInsets.only(top: 12),
-          prefixIcon: Icon(Icons.account_circle_rounded, color: Colors.black87),
+          prefixIcon: Icon(Icons.account_circle_rounded, color: Colors.grey),
           hintText: '아이디',
           hintStyle: TextStyle(color: Colors.black38),
         ),
@@ -170,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
         decoration: InputDecoration(
           border: InputBorder.none,
           contentPadding: const EdgeInsets.only(top: 12),
-          prefixIcon: const Icon(Icons.lock, color: Colors.black87),
+          prefixIcon: const Icon(Icons.lock, color: Colors.grey),
           hintText: '비밀번호',
           hintStyle: const TextStyle(color: Colors.black38),
           suffixIcon: IconButton(
@@ -189,42 +190,20 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget buildRememberAndForgotRow() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Checkbox(
-                value: isRememberMe,
-                checkColor: Colors.black,
-                activeColor: Colors.white,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: const VisualDensity(horizontal: -2.0, vertical: -4.0),
-                onChanged: (value) {
-                  setState(() {
-                    isRememberMe = value ?? false;
-                  });
-                },
-              ),
-              const Text(
-                '저장하시겠습니까?',
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-              ),
-            ],
+  Widget buildForgotPasswordButton() {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: TextButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/password_reset_request');
+        },
+        child: const Text(
+          '비밀번호 찾기',
+          style: TextStyle(
+            color: Colors.grey,
+            fontWeight: FontWeight.bold,
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/password-reset');
-            },
-            child: const Text(
-              '비밀번호 찾기',
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -240,7 +219,7 @@ class _LoginPageState extends State<LoginPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          backgroundColor: Colors.black,
+          backgroundColor: Colors.red,
           elevation: 5,
         ),
         child: const Text(
@@ -282,14 +261,14 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 120),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 80),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
                 '로그인',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.red),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 20),
@@ -300,9 +279,23 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 8),
                     buildPassword(),
                     const SizedBox(height: 3),
-                    buildRememberAndForgotRow(),
+                    buildForgotPasswordButton(),
                     buildLoginBtn(),
                     buildSignUpBtn(),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacementNamed(context, '/map');
+                      },
+                      child: const Text(
+                        '비회원 로그인',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -313,3 +306,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+

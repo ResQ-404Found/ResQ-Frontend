@@ -47,6 +47,7 @@ class DisasterListPage extends StatelessWidget {
           );
         },
       ),
+
     );
   }
 }

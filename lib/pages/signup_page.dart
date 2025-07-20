@@ -170,243 +170,288 @@ class SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
-      body: SingleChildScrollView(
-        physics: const NeverScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 120, left: 32, right: 32),
-          child: Form(
-            key: formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                const Text("회원가입", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 40),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 120, left: 32, right: 32),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    const Text("회원가입", style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900,color: Colors.red)),
+                    const SizedBox(height: 40),
 
-                if (!showLoginIdField) ...[
-                  buildValidatedInput(
-                    controller: loginIdController,
-                    hintText: '아이디',
-                    validator: (value) => (value == null || value.isEmpty) ? '아이디를 입력하세요' : null,
-                  ),
-                  buildValidatedInput(
-                    controller: passwordController,
-                    hintText: '비밀번호',
-                    obscureText: !showPassword,
-                    validator: (value) => (value == null || value.isEmpty) ? '비밀번호를 입력하세요' : null,
-                    suffixIcon: IconButton(
-                      icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off),
-                      onPressed: () => setState(() => showPassword = !showPassword),
-                    ),
-                  ),
-                  buildValidatedInput(
-                    controller: confirmPasswordController,
-                    hintText: '비밀번호 확인',
-                    obscureText: !showConfirmPassword,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return '비밀번호 확인을 입력하세요';
-                      if (value != passwordController.text) return '비밀번호가 일치하지 않습니다';
-                      return null;
-                    },
-                    suffixIcon: IconButton(
-                      icon: Icon(showConfirmPassword ? Icons.visibility : Icons.visibility_off),
-                      onPressed: () => setState(() => showConfirmPassword = !showConfirmPassword),
-                    ),
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: buildValidatedInput(
-                          controller: emailController,
-                          hintText: '이메일',
-                          validator: (value) {
-                            if (value == null || value.isEmpty) return '이메일을 입력하세요';
-                            if (!value.contains('@')) return '올바른 이메일 형식이 아닙니다';
-                            return null;
-                          },
+                    if (!showLoginIdField) ...[
+                      buildValidatedInput(
+                        controller: loginIdController,
+                        hintText: '아이디',
+                        validator: (value) => (value == null || value.isEmpty) ? '아이디를 입력하세요' : null,
+                      ),
+                      buildValidatedInput(
+                        controller: passwordController,
+                        hintText: '비밀번호',
+                        obscureText: !showPassword,
+                        validator: (value) => (value == null || value.isEmpty) ? '비밀번호를 입력하세요' : null,
+                        suffixIcon: IconButton(
+                          icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off,color: Colors.grey,),
+                          onPressed: () => setState(() => showPassword = !showPassword),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      SizedBox(
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            final enteredEmail = emailController.text.trim();
-                            if (enteredEmail.isEmpty || !enteredEmail.contains('@')) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('올바른 이메일을 입력하세요')),
-                              );
-                              return;
-                            }
-                            sendEmailVerification(enteredEmail);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: codeSent ? Colors.white : Colors.black,
-                            foregroundColor: Colors.grey,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      buildValidatedInput(
+                        controller: confirmPasswordController,
+                        hintText: '비밀번호 확인',
+                        obscureText: !showConfirmPassword,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return '비밀번호 확인을 입력하세요';
+                          if (value != passwordController.text) return '비밀번호가 일치하지 않습니다';
+                          return null;
+                        },
+                        suffixIcon: IconButton(
+                          icon: Icon(showConfirmPassword ? Icons.visibility : Icons.visibility_off,color: Colors.grey),
+                          onPressed: () => setState(() => showConfirmPassword = !showConfirmPassword),
+                        ),
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: buildValidatedInput(
+                              controller: emailController,
+                              hintText: '이메일',
+                              validator: (value) {
+                                if (value == null || value.isEmpty) return '이메일을 입력하세요';
+                                if (!value.contains('@')) return '올바른 이메일 형식이 아닙니다';
+                                return null;
+                              },
+                            ),
                           ),
-                          child: Text('인증', style: TextStyle(color: codeSent ? Colors.grey : Colors.white)),
-                        ),
+                          const SizedBox(width: 10),
+                          SizedBox(
+                            height: 48,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                final enteredEmail = emailController.text.trim();
+                                if (enteredEmail.isEmpty || !enteredEmail.contains('@')) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('올바른 이메일을 입력하세요')),
+                                  );
+                                  return;
+                                }
+                                sendEmailVerification(enteredEmail);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: codeSent ? Colors.white : Colors.red,
+                                foregroundColor: Colors.grey,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              child: Text('인증', style: TextStyle(color: codeSent ? Colors.grey : Colors.white)),
+                            ),
+                          ),
+                        ],
                       ),
+                      if (codeSent)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: buildValidatedInput(
+                                controller: codeController,
+                                hintText: '인증 코드 입력',
+                                validator: (value) => (value == null || value.isEmpty) ? '인증 코드를 입력하세요' : null,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            SizedBox(
+                              height: 48,
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  final enteredCode = codeController.text.trim();
+                                  final enteredEmail = emailController.text.trim();
+                                  if (enteredCode.isEmpty || enteredEmail.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('이메일과 인증 코드를 모두 입력하세요')),
+                                    );
+                                    return;
+                                  }
+                                  final success = await verifyCode(enteredEmail, enteredCode);
+                                  if (success) {
+                                    setState(() {
+                                      emailVerified = true;
+                                      codeVerified = true;
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('이메일 인증에 성공했습니다')),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('인증 코드가 올바르지 않습니다')),
+                                    );
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: codeVerified ? Colors.white : Colors.red,
+                                  foregroundColor: Colors.grey,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                child: Text('확인', style: TextStyle(color: codeVerified ? Colors.grey : Colors.white)),
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
-                  ),
 
-                  if (codeSent)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: buildValidatedInput(
-                            controller: codeController,
-                            hintText: '인증 코드 입력',
-                            validator: (value) => (value == null || value.isEmpty) ? '인증 코드를 입력하세요' : null,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        SizedBox(
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              final enteredCode = codeController.text.trim();
-                              final enteredEmail = emailController.text.trim();
+                    if (showLoginIdField)
+                      buildValidatedInput(
+                        controller: usernameController,
+                        hintText: '닉네임',
+                        validator: (value) => (value == null || value.isEmpty) ? '닉네임을 입력하세요' : null,
+                      ),
 
-                              if (enteredCode.isEmpty || enteredEmail.isEmpty) {
+                    const SizedBox(height: 10),
+
+                    SizedBox(
+                      height: 48,
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (!showLoginIdField) {
+                            if (formKey.currentState!.validate()) {
+                              if (!emailVerified) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('이메일과 인증 코드를 모두 입력하세요')),
+                                  const SnackBar(content: Text('이메일 인증을 완료해주세요')),
                                 );
                                 return;
                               }
-
-                              final success = await verifyCode(enteredEmail, enteredCode);
-                              if (success) {
-                                setState(() {
-                                  emailVerified = true;
-                                  codeVerified = true;
-                                });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('이메일 인증에 성공했습니다')),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('인증 코드가 올바르지 않습니다')),
-                                );
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: codeVerified ? Colors.white : Colors.black,
-                              foregroundColor: Colors.grey,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                            child: Text('확인', style: TextStyle(color: codeVerified ? Colors.grey : Colors.white)),
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
-
-                if (showLoginIdField)
-                  buildValidatedInput(
-                    controller: usernameController,
-                    hintText: '닉네임',
-                    validator: (value) => (value == null || value.isEmpty) ? '닉네임을 입력하세요' : null,
-                  ),
-
-                const SizedBox(height: 10),
-
-                SizedBox(
-                  height: 48,
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      if (!showLoginIdField) {
-                        if (formKey.currentState!.validate()) {
-                          if (!emailVerified) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('이메일 인증을 완료해주세요')),
-                            );
+                              setState(() => showLoginIdField = true);
+                            }
                             return;
                           }
-                          setState(() => showLoginIdField = true);
-                        }
-                        return;
-                      }
 
-                      if (formKey.currentState!.validate()) {
-                        final url = Uri.parse('http://54.253.211.96:8000/api/users/signup');
-                        final body = jsonEncode({
-                          'login_id': loginIdController.text.trim(),
-                          'username': usernameController.text.trim(),
-                          'email': emailController.text.trim(),
-                          'password': passwordController.text.trim(),
-                        });
+                          if (formKey.currentState!.validate()) {
+                            final url = Uri.parse('http://54.253.211.96:8000/api/users/signup');
+                            final body = jsonEncode({
+                              'login_id': loginIdController.text.trim(),
+                              'username': usernameController.text.trim(),
+                              'email': emailController.text.trim(),
+                              'password': passwordController.text.trim(),
+                            });
 
-                        try {
-                          final response = await http.post(
-                            url,
-                            headers: {'Content-Type': 'application/json'},
-                            body: body,
-                          );
+                            try {
+                              final response = await http.post(
+                                url,
+                                headers: {'Content-Type': 'application/json'},
+                                body: body,
+                              );
 
-                          if (response.statusCode == 200 || response.statusCode == 201) {
-                            final data = jsonDecode(response.body);
-                            final accessToken = data['data']['access_token'];
-                            final refreshToken = data['data']['refresh_token'];
+                              if (response.statusCode == 200 || response.statusCode == 201) {
+                                final data = jsonDecode(response.body);
+                                final accessToken = data['data']['access_token'];
+                                final refreshToken = data['data']['refresh_token'];
 
-                            if (accessToken != null && refreshToken != null) {
-                              await secureStorage.write(key: 'access_token', value: accessToken);
-                              await secureStorage.write(key: 'refresh_token', value: refreshToken);
+                                if (accessToken != null && refreshToken != null) {
+                                  await secureStorage.write(key: 'access_token', value: accessToken);
+                                  await secureStorage.write(key: 'refresh_token', value: refreshToken);
 
-                              final fcmToken = await getFcmToken();
-                              if (fcmToken != null) {
-                                await sendFcmTokenToServer(fcmToken, accessToken);
+                                  final fcmToken = await getFcmToken();
+                                  if (fcmToken != null) {
+                                    await sendFcmTokenToServer(fcmToken, accessToken);
+                                  }
+
+                                  setState(() => signUpCompleted = true);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('회원가입에 성공했습니다')),
+                                  );
+                                  Navigator.pushReplacementNamed(context, '/map');
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('토큰 저장 실패')),
+                                  );
+                                }
+                              } else {
+                                final data = jsonDecode(response.body);
+                                final detail = data['detail'];
+                                String errorMessage = '회원가입 실패';
+                                if (detail is List && detail.isNotEmpty && detail.first is Map && detail.first.containsKey('msg')) {
+                                  errorMessage = detail.map((e) => e['msg'].toString()).join('\n');
+                                }
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
                               }
-                              print("fcm_token: $fcmToken");
-
-                              setState(() => signUpCompleted = true);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('회원가입에 성공했습니다')),
-                              );
-                              Navigator.pushReplacementNamed(context, '/map');
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('토큰 저장 실패')),
-                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('오류 발생: $e')));
                             }
-                          } else {
-                            final data = jsonDecode(response.body);
-                            final detail = data['detail'];
-                            String errorMessage = '회원가입 실패';
-                            if (detail is List && detail.isNotEmpty && detail.first is Map && detail.first.containsKey('msg')) {
-                              errorMessage = detail.map((e) => e['msg'].toString()).join('\n');
-                            }
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
                           }
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('오류 발생: $e')));
-                        }
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: signUpCompleted ? Colors.white : Colors.black,
-                      foregroundColor: Colors.grey,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    ),
-                    child: Text(
-                      showLoginIdField ? '회원가입' : '다음',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: signUpCompleted ? Colors.grey : Colors.white,
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: signUpCompleted ? Colors.white : Colors.red,
+                          foregroundColor: Colors.grey,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        ),
+                        child: Text(
+                          showLoginIdField ? '회원가입' : '다음',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: signUpCompleted ? Colors.grey : Colors.white,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+
+                    const SizedBox(height: 20),
+
+// 로그인 유도 텍스트
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacementNamed(context, '/login');
+                      },
+                      child: RichText(
+                        text: const TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '이미 계정이 있으신가요?  ',
+                              style: TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.w500),
+                            ),
+                            TextSpan(
+                              text: '로그인',
+                              style: TextStyle(color: Colors.red, fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacementNamed(context, '/map');
+                      },
+                      child: const Text(
+                        '비회원 로그인',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+
+
+
+                    const SizedBox(height: 60),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+
+
+        ],
       ),
     );
   }

@@ -246,6 +246,51 @@ class _MapPageState extends State<MapPage> {
           ],
         ),
       ),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        elevation: 10,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: Icon(Icons.home, color: Colors.grey[400]),
+                iconSize: 32,
+                onPressed: () {
+                  Navigator.pushNamed(context, '/map');
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.chat),
+                iconSize: 32,
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: Icon(Icons.groups, color: Colors.grey[400]),
+                iconSize: 32,
+                onPressed: () {
+                  Navigator.pushNamed(context, '/community');
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.emergency_share, color: Colors.grey[400]),
+                iconSize: 32,
+                onPressed: () {
+                  Navigator.pushNamed(context, '/disastermenu');
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.person, color: Colors.grey[400]),
+                iconSize: 32,
+                onPressed: () {
+                  Navigator.pushNamed(context, '/user');
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

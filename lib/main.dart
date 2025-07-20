@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'routes.dart';
 import 'pages/disaster_detail_page.dart';
 import 'pages/map_page.dart';
+import 'pages/initial_page.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 
@@ -110,8 +111,11 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'My App',
-      initialRoute: '/login',
-      routes: routes,
+      initialRoute: '/initial',
+      routes: {
+        ...routes,
+        '/initial': (context) => const InitialPage(),
+      },
       onGenerateRoute: (settings) {
         if (settings.name == '/disasterDetail') {
           final disaster = settings.arguments as Disaster;
