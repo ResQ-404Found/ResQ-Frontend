@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'disaster_detail_page.dart';
-
 
 const String kakaoRestApiKey = 'KakaoAK 6c70d9ab4ca17bdfa047539c7d8ec0a8';
 
@@ -80,10 +78,8 @@ class _MapPageState extends State<MapPage> {
   List<Disaster> _disasterList = [];
   bool _showDisasterSheet = false;
   bool _hasDisasterMessage = false;
-
-  String? _sido;
-  String? _sigungu;
-  String? _eupmyeondong;
+  String? _sido, _sigungu, _eupmyeondong;
+  String _selectedMenu = ''; // '', 'shelter', 'disaster'
 
   @override
   void initState() {
@@ -110,20 +106,16 @@ class _MapPageState extends State<MapPage> {
         ),
       );
 
-      final marker = NMarker(
-        id: 'user_location',
-        position: userLatLng,
-      );
+      final marker = NMarker(id: 'user_location', position: userLatLng);
       _controller!.addOverlay(marker);
     }
 
     await _getAddress(position);
+    await _fetchDisasters();
   }
 
   Future<void> _getAddress(Position position) async {
-    final url = 'https://dapi.kakao.com/v2/local/geo/coord2address.json'
-        '?x=${position.longitude}&y=${position.latitude}';
-
+    final url = 'https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${position.longitude}&y=${position.latitude}';
     final response = await http.get(Uri.parse(url), headers: {'Authorization': kakaoRestApiKey});
 
     if (response.statusCode == 200) {
@@ -140,122 +132,78 @@ class _MapPageState extends State<MapPage> {
           _sigungu = documents[0]['address']?['region_2depth_name'];
           _eupmyeondong = documents[0]['address']?['region_3depth_name'];
         });
-
-        debugPrint('📍 현재 주소: $_currentAddress ($_sido $_sigungu $_eupmyeondong)');
       }
-    } else {
-      debugPrint('❌ 주소 요청 실패: ${response.statusCode}');
     }
   }
 
   Future<void> _fetchNearbyShelters(Position position) async {
-    final url = Uri.parse(
-      'http://54.253.211.96:8000/api/shelters/nearby'
-          '?latitude=${position.latitude}&longitude=${position.longitude}&limit=10',
-    );
+    final url = Uri.parse('http://54.253.211.96:8000/api/shelters/nearby?latitude=${position.latitude}&longitude=${position.longitude}&limit=10');
+    final response = await http.get(url, headers: {'accept': 'application/json'});
 
-    try {
-      final response = await http.get(url, headers: {'accept': 'application/json'});
+    if (response.statusCode == 200) {
+      final jsonBody = json.decode(utf8.decode(response.bodyBytes));
+      final List<dynamic> data = jsonBody is List ? jsonBody : jsonBody['data'];
 
-      if (response.statusCode == 200) {
-        final jsonBody = json.decode(utf8.decode(response.bodyBytes));
-        final List<dynamic> data = jsonBody is List ? jsonBody : jsonBody['data'];
+      _shelterMarkers.clear();
 
-        _shelterMarkers.clear();
-
-        for (var item in data) {
-          final shelter = Shelter.fromJson(item);
-          final marker = NMarker(
-            id: 'shelter_${shelter.latitude}_${shelter.longitude}',
-            position: NLatLng(shelter.latitude, shelter.longitude),
-            caption: NOverlayCaption(text: shelter.name),
-          );
-
-          marker.setOnTapListener((NMarker m) {
-            setState(() {
-              _selectedShelter = (_selectedShelter?.name == shelter.name) ? null : shelter;
-            });
+      for (var item in data) {
+        final shelter = Shelter.fromJson(item);
+        final marker = NMarker(
+          id: 'shelter_${shelter.latitude}_${shelter.longitude}',
+          position: NLatLng(shelter.latitude, shelter.longitude),
+          caption: NOverlayCaption(text: shelter.name),
+        );
+        marker.setOnTapListener((m) {
+          setState(() {
+            _selectedShelter = (_selectedShelter?.name == shelter.name) ? null : shelter;
           });
-
-          _shelterMarkers.add(marker);
-        }
-
-        if (_controller != null) {
-          await _controller!.clearOverlays();
-          await _controller!.addOverlayAll(_shelterMarkers.map((m) => m as NAddableOverlay).toSet());
-          await _zoomToFitAllMarkers();
-        }
-      } else {
-        debugPrint('❌ 대피소 요청 실패: ${response.statusCode}');
+        });
+        _shelterMarkers.add(marker);
       }
-    } catch (e) {
-      debugPrint('❌ 예외 발생: $e');
+
+      if (_controller != null) {
+        await _controller!.clearOverlays();
+        await _controller!.addOverlayAll(_shelterMarkers.map((m) => m as NAddableOverlay).toSet());
+        await _zoomToFitAllMarkers();
+      }
+    }
+  }
+
+  Future<void> _fetchDisasters() async {
+    if (_sido == null || _sigungu == null || _eupmyeondong == null) return;
+    final queryUri = Uri.parse('http://54.253.211.96:8000/api/disasters?sido=$_sido&sigungu=$_sigungu&eupmyeondong=$_eupmyeondong&active_only=true');
+    final response = await http.get(queryUri, headers: {'accept': 'application/json'});
+
+    if (response.statusCode == 200) {
+      final jsonBody = json.decode(utf8.decode(response.bodyBytes));
+      final summary = jsonBody['data'][0]['summary'] as Map<String, dynamic>;
+      final total = summary.values.fold<int>(0, (sum, val) => sum + (val as int));
+      final List<dynamic> data = jsonBody['data'][0]['disasters'];
+
+      setState(() {
+        _disasterList = data.map((e) => Disaster.fromJson(e)).toList();
+        _hasDisasterMessage = total > 0;
+        _showDisasterSheet = true;
+      });
     }
   }
 
   Future<void> _zoomToFitAllMarkers() async {
     if (_shelterMarkers.isEmpty || _controller == null) return;
-
     final bounds = _calculateBounds(_shelterMarkers.map((m) => m.position).toList());
-
-    await _controller!.updateCamera(
-      NCameraUpdate.fitBounds(bounds, padding: EdgeInsets.all(80)),
-    );
+    await _controller!.updateCamera(NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80)));
   }
 
   NLatLngBounds _calculateBounds(List<NLatLng> positions) {
-    double minLat = positions.first.latitude;
-    double maxLat = positions.first.latitude;
-    double minLng = positions.first.longitude;
-    double maxLng = positions.first.longitude;
-
+    double minLat = positions.first.latitude, maxLat = positions.first.latitude;
+    double minLng = positions.first.longitude, maxLng = positions.first.longitude;
     for (var p in positions) {
       if (p.latitude < minLat) minLat = p.latitude;
       if (p.latitude > maxLat) maxLat = p.latitude;
       if (p.longitude < minLng) minLng = p.longitude;
       if (p.longitude > maxLng) maxLng = p.longitude;
     }
-
-    return NLatLngBounds(
-      southWest: NLatLng(minLat, minLng),
-      northEast: NLatLng(maxLat, maxLng),
-    );
-  }
-
-  Future<void> _fetchDisasters() async {
-    if (_sido == null || _sigungu == null || _eupmyeondong == null) {
-      debugPrint('❌ 주소 정보 없음. 재난 정보를 가져올 수 없습니다.');
-      return;
-    }
-
-    final queryUri = Uri.parse(
-      'http://54.253.211.96:8000/api/disasters'
-          '?sido=$_sido&sigungu=$_sigungu&eupmyeondong=$_eupmyeondong&active_only=true',
-    );
-
-    try {
-      final response = await http.get(queryUri, headers: {'accept': 'application/json'});
-      if (response.statusCode == 200) {
-        final jsonBody = json.decode(utf8.decode(response.bodyBytes));
-
-        final summary = jsonBody['data'][0]['summary'] as Map<String, dynamic>;
-        final total = summary.values.fold<int>(0, (sum, val) => sum + (val as int));
-
-        final List<dynamic> data = jsonBody['data'][0]['disasters'];
-
-        setState(() {
-          _disasterList = data.map((e) => Disaster.fromJson(e)).toList();
-          _hasDisasterMessage = total > 0;
-          _showDisasterSheet = true;
-        });
-
-        debugPrint("✅ 재난 정보 ${_disasterList.length}개 불러옴");
-      } else {
-        debugPrint('❌ 재난정보 요청 실패: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('❌ 재난정보 예외 발생: $e');
-    }
+    return NLatLngBounds(southWest: NLatLng(minLat, minLng), northEast: NLatLng(maxLat, maxLng));
   }
 
   @override
@@ -276,72 +224,30 @@ class _MapPageState extends State<MapPage> {
                       mapType: NMapType.basic,
                       locationButtonEnable: false,
                       initialCameraPosition: NCameraPosition(
-                        target: NLatLng(35.2313, 129.0825),
-                        zoom: 12,
-                      ),
+                          target: NLatLng(35.2313, 129.0825), zoom: 12),
                     ),
                     onMapReady: (controller) async {
                       _controller = controller;
                       await _getAndMoveToCurrentLocation();
                     },
+                    onMapTapped: (point, latLng) {
+                      setState(() {
+                        _showDisasterSheet = false;
+                        _selectedMenu = '';
+                      });
+                    },
                   ),
                   if (_selectedShelter != null) _buildShelterDetailSheet(),
-                  if (_showDisasterSheet) _buildDisasterInfoSheet(),
+                  if (_selectedMenu == 'disaster' && _showDisasterSheet)
+                    _buildDisasterInfoSheet(),
                 ],
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.white,
-        elevation: 10,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: Icon(Icons.home, color: Colors.grey[400]),
-                iconSize: 32,
-                onPressed: () {
-                  Navigator.pushNamed(context, '/map');
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.chat),
-                iconSize: 32,
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: Icon(Icons.groups, color: Colors.grey[400]),
-                iconSize: 32,
-                onPressed: () {
-                  Navigator.pushNamed(context, '/community');
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.emergency_share, color: Colors.grey[400]),
-                iconSize: 32,
-                onPressed: () {
-                  Navigator.pushNamed(context, '/disastermenu');
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.person, color: Colors.grey[400]),
-                iconSize: 32,
-                onPressed: () {
-                  Navigator.pushNamed(context, '/user');
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
     );
-
   }
-
 
   Widget _buildLocationBox() {
     return Container(
@@ -378,21 +284,35 @@ class _MapPageState extends State<MapPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
+          // ✅ 대피소 버튼
           Expanded(
             child: ElevatedButton.icon(
-              icon: const Icon(Icons.home_work_outlined),
+              icon: const Icon(Icons.favorite_border),
               label: const Text('대피소'),
               onPressed: () async {
                 setState(() {
-                  _showDisasterSheet = false;
-                  _selectedShelter = null;
+                  if (_selectedMenu == 'shelter') {
+                    _selectedMenu = '';
+                    _selectedShelter = null;
+                    _shelterMarkers.clear();
+                    _controller?.clearOverlays();
+                  } else {
+                    _selectedMenu = 'shelter';
+                    _selectedShelter = null;
+                    _showDisasterSheet = false;
+                  }
                 });
-                Position pos = await Geolocator.getCurrentPosition();
-                await _fetchNearbyShelters(pos);
+
+                if (_selectedMenu == 'shelter') {
+                  Position pos = await Geolocator.getCurrentPosition();
+                  await _fetchNearbyShelters(pos);
+                }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black87,
+                backgroundColor: _selectedMenu == 'shelter'
+                    ? Colors.cyanAccent
+                    : Colors.white,
+                foregroundColor: Colors.black,
                 elevation: 1,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
@@ -402,21 +322,35 @@ class _MapPageState extends State<MapPage> {
               ),
             ),
           ),
+
           const SizedBox(width: 10),
+
+          // ✅ 재난정보 버튼
           Expanded(
             child: ElevatedButton.icon(
-              icon: const Icon(Icons.warning_amber_outlined),
-              label: const Text('재난 정보'),
+              icon: const Icon(Icons.person),
+              label: const Text('재난정보'),
               onPressed: () async {
                 setState(() {
-                  _showDisasterSheet = false;
-                  _selectedShelter = null;
+                  if (_selectedMenu == 'disaster') {
+                    _selectedMenu = '';
+                    _showDisasterSheet = false;
+                  } else {
+                    _selectedMenu = 'disaster';
+                    _selectedShelter = null;
+                    _showDisasterSheet = true;
+                  }
                 });
-                await _fetchDisasters();
+
+                if (_selectedMenu == 'disaster') {
+                  await _fetchDisasters();
+                }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black87,
+                backgroundColor: _selectedMenu == 'disaster'
+                    ? Colors.cyanAccent
+                    : Colors.white,
+                foregroundColor: Colors.black,
                 elevation: 1,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
@@ -608,8 +542,4 @@ class _MapPageState extends State<MapPage> {
       ),
     );
   }
-
-
 }
-
-

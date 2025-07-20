@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '/api/http_client.dart'; // getUserProfile 메서드가 정의되어 있어야 함
+import '/api/http_client.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
