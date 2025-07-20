@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "855521104340",
-    "project_id": "testfcm-28430",
-    "storage_bucket": "testfcm-28430.firebasestorage.app"
+    "project_number": "669231403722",
+    "project_id": "resq-85fd9",
+    "storage_bucket": "resq-85fd9.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:855521104340:android:61c02781c2d3186e4e8641",
+        "mobilesdk_app_id": "1:669231403722:android:bbf8c4a1326cc880d75a33",
         "android_client_info": {
           "package_name": "com.example.resq_frontend"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAO7_7Vt4i3Ztngpr4eP7lSMA8pfaIr84I"
+          "current_key": "AIzaSyBqjSI6LwhZJ8d4QezztS9SYsKcYKYFGwM"
         }
       ],
       "services": {
