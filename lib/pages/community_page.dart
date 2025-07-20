@@ -19,7 +19,7 @@ class CommunityMainPageState extends State<CommunityMainPage> {
   }
 
   Future<void> fetchPosts() async {
-    final url = Uri.parse('http://54.252.128.243:8000/api/posts');
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts');
     try {
       final response = await http.get(url);
       print('응답 상태 코드: \${response.statusCode}');

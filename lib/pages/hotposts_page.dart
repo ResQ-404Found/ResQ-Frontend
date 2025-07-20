@@ -19,7 +19,7 @@ class _HotPostsPageState extends State<HotPostsPage> {
   }
 
   Future<void> fetchPosts() async {
-    final url = Uri.parse('http://54.252.128.243:8000/api/posts'); // 필요한 경우 hot posts용 API로 바꿔도 됨
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts'); // 필요한 경우 hot posts용 API로 바꿔도 됨
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
