@@ -181,7 +181,7 @@ class SignUpPageState extends State<SignUpPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    const Text("회원가입", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                    const Text("회원가입", style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900,color: Colors.red)),
                     const SizedBox(height: 40),
 
                     if (!showLoginIdField) ...[
@@ -196,7 +196,7 @@ class SignUpPageState extends State<SignUpPage> {
                         obscureText: !showPassword,
                         validator: (value) => (value == null || value.isEmpty) ? '비밀번호를 입력하세요' : null,
                         suffixIcon: IconButton(
-                          icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off),
+                          icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off,color: Colors.grey,),
                           onPressed: () => setState(() => showPassword = !showPassword),
                         ),
                       ),
@@ -210,7 +210,7 @@ class SignUpPageState extends State<SignUpPage> {
                           return null;
                         },
                         suffixIcon: IconButton(
-                          icon: Icon(showConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                          icon: Icon(showConfirmPassword ? Icons.visibility : Icons.visibility_off,color: Colors.grey),
                           onPressed: () => setState(() => showConfirmPassword = !showConfirmPassword),
                         ),
                       ),
@@ -244,7 +244,7 @@ class SignUpPageState extends State<SignUpPage> {
                                 sendEmailVerification(enteredEmail);
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: codeSent ? Colors.white : Colors.black,
+                                backgroundColor: codeSent ? Colors.white : Colors.red,
                                 foregroundColor: Colors.grey,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
@@ -294,7 +294,7 @@ class SignUpPageState extends State<SignUpPage> {
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: codeVerified ? Colors.white : Colors.black,
+                                  backgroundColor: codeVerified ? Colors.white : Colors.red,
                                   foregroundColor: Colors.grey,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
@@ -387,7 +387,7 @@ class SignUpPageState extends State<SignUpPage> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: signUpCompleted ? Colors.white : Colors.black,
+                          backgroundColor: signUpCompleted ? Colors.white : Colors.red,
                           foregroundColor: Colors.grey,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                         ),

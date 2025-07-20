@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
+// ... 생략된 import 부분은 동일
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -145,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
         decoration: const InputDecoration(
           border: InputBorder.none,
           contentPadding: EdgeInsets.only(top: 12),
-          prefixIcon: Icon(Icons.account_circle_rounded, color: Colors.black87),
+          prefixIcon: Icon(Icons.account_circle_rounded, color: Colors.grey),
           hintText: '아이디',
           hintStyle: TextStyle(color: Colors.black38),
         ),
@@ -170,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
         decoration: InputDecoration(
           border: InputBorder.none,
           contentPadding: const EdgeInsets.only(top: 12),
-          prefixIcon: const Icon(Icons.lock, color: Colors.black87),
+          prefixIcon: const Icon(Icons.lock, color: Colors.grey),
           hintText: '비밀번호',
           hintStyle: const TextStyle(color: Colors.black38),
           suffixIcon: IconButton(
@@ -218,7 +219,7 @@ class _LoginPageState extends State<LoginPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          backgroundColor: Colors.black,
+          backgroundColor: Colors.red,
           elevation: 5,
         ),
         child: const Text(
@@ -267,7 +268,7 @@ class _LoginPageState extends State<LoginPage> {
               const Text(
                 '로그인',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.red),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 20),
@@ -292,7 +293,6 @@ class _LoginPageState extends State<LoginPage> {
                           color: Colors.grey,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-
                         ),
                       ),
                     ),
@@ -306,3 +306,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
