@@ -194,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
       alignment: Alignment.centerRight,
       child: TextButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/password-reset');
+          Navigator.pushNamed(context, '/password_reset_request');
         },
         child: const Text(
           '비밀번호 찾기',
