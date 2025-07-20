@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+
 class DisasterMenuPage extends StatelessWidget {
   const DisasterMenuPage({super.key});
 
@@ -31,7 +32,9 @@ class DisasterMenuPage extends StatelessWidget {
             return InkWell(
               borderRadius: BorderRadius.circular(15),
               onTap: () {
-                // TODO: 각 메뉴별 페이지로 이동
+                if (item['title'] == '대처 방법') {
+                  Navigator.pushNamed(context, '/disasterlist');
+                }
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
