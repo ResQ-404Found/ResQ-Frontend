@@ -2,34 +2,92 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:inter/pages/firebase_options.dart';
-
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'routes.dart';
 import 'pages/disaster_detail_page.dart';
 import 'pages/map_page.dart';
+import 'pages/initial_page.dart';
 
-/// ✅ Handles background FCM messages
+import 'package:permission_handler/permission_handler.dart';
+
+Future<void> requestNotificationPermission() async {
+  final status = await Permission.notification.status;
+  if (!status.isGranted) {
+    final result = await Permission.notification.request();
+    print("🔔 알림 권한 요청 결과: $result");
+  }
+}
+
+// 🔔 로컬 알림 플러그인 초기화
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
+
+// 🔔 알림 채널 정의
+const AndroidNotificationChannel channel = AndroidNotificationChannel(
+  'default_channel_id', // AndroidManifest.xml과 일치
+  '기본 채널',
+  description: '기본 알림 채널입니다.',
+  importance: Importance.high,
+);
+
+@pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+  print("📩 백그라운드 메시지 수신: ${message.notification?.title}");
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  await requestNotificationPermission();
+  // ✅ 백그라운드 핸들러 등록
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
+  // ✅ 알림 채널 생성
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+      AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
+  // ✅ 로컬 알림 초기화
+  await flutterLocalNotificationsPlugin.initialize(
+    const InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    ),
+  );
+
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print("🔔 알림 수신: ${message.notification?.title} / ${message.notification?.body}");
+    RemoteNotification? notification = message.notification;
+    AndroidNotification? android = message.notification?.android;
+
+    if (notification != null && android != null) {
+      print("🧪 알림 표시 시도!");
+      flutterLocalNotificationsPlugin.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'default_channel_id',
+            '기본 채널',
+            channelDescription: '기본 알림 채널입니다.',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+        ),
+      );
+    } else {
+      print("❌ 알림이 없거나 android 설정이 null입니다");
+    }
+  });
   // ✅ Initialize Naver Map
   final naverMap = FlutterNaverMap();
   await naverMap.init(
     clientId: 'p9nizolo1p',
     onAuthFailed: (e) => debugPrint('NaverMap Auth Failed: $e'),
   );
-
-  // ✅ Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // ✅ Set background message handler
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(const MyApp());
 }
@@ -46,26 +104,6 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    // ✅ Foreground message listener
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.notification != null) {
-        final title = message.notification!.title ?? 'No Title';
-        final body = message.notification!.body ?? 'No Body';
-
-
-        // Show snackbar as notification UI
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('🔔 $title\n$body')),
-          );
-        });
-      }
-    });
-
-    // ✅ Notification tapped listener
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      // You can navigate to a specific page here if needed
-    });
   }
 
   @override
@@ -73,8 +111,11 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'My App',
-      initialRoute: '/login',
-      routes: routes,
+      initialRoute: '/initial',
+      routes: {
+        ...routes,
+        '/initial': (context) => const InitialPage(),
+      },
       onGenerateRoute: (settings) {
         if (settings.name == '/disasterDetail') {
           final disaster = settings.arguments as Disaster;

@@ -20,8 +20,10 @@ import 'pages/disaster_list_page.dart';
 import 'pages/password_reset_new_page.dart';
 import 'pages/password_reset_request_page.dart';
 import 'pages/password_reset_verify_page.dart';
+import 'pages/initial_page.dart';
 
 final Map<String, WidgetBuilder> routes = {
+  '/initial': (context) => const InitialPage(),
   '/login': (context) => LoginPage(),
   '/signup': (context) => SignUpPage(),
   '/map': (context) => MapPage(),
