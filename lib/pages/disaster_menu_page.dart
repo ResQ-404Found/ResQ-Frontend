@@ -6,120 +6,152 @@ class DisasterMenuPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final menuItems = [
-      {'title': '전체 재난 정보', 'icon': Icons.warning_amber_rounded},
-      {'title': '대처 방법', 'icon': Icons.security},
-      {'title': '체크리스트', 'icon': Icons.check_box},
-      {'title': '후원', 'icon': Icons.volunteer_activism},
-      {'title': '뉴스', 'icon': Icons.article},
-      {'title': 'QUIZ', 'icon': Icons.quiz},
+      {
+        'title': '재난 정보',
+        'subtitle': '실시간 재난 현황 확인',
+        'icon': Icons.warning_amber_rounded,
+        'color': Colors.redAccent,
+      },
+      {
+        'title': '대처 방법',
+        'subtitle': '상황별 대응 가이드',
+        'icon': Icons.security,
+        'color': Colors.orangeAccent,
+      },
+      {
+        'title': '체크리스트',
+        'subtitle': '재난 대비 점검 항목',
+        'icon': Icons.check_box,
+        'color': Colors.teal,
+      },
+      {
+        'title': '뉴스',
+        'subtitle': '재난 관련 최신 소식',
+        'icon': Icons.article,
+        'color': Colors.blueAccent,
+      },
+      {
+        'title': '후원',
+        'subtitle': '재난 구호를 위한 기부',
+        'icon': Icons.volunteer_activism,
+        'color': Colors.purpleAccent,
+      },
     ];
 
     return Scaffold(
-      backgroundColor: Color(0xFFFAFAFA),
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80), // AppBar 높이 설정
+        preferredSize: const Size.fromHeight(80),
         child: Container(
-          decoration: BoxDecoration(
-            color: Color(0xFFFAFAFA), // AppBar 배경색
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(20),  // 좌측 하단 모서리 둥글게
-              bottomRight: Radius.circular(20), // 우측 하단 모서리 둥글게
+          padding: const EdgeInsets.only(top: 44),
+          alignment: Alignment.center,
+          child: const Text(
+            '재난 대응 메뉴',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0xb55d53).withOpacity(0.2), // 그림자 색
-                blurRadius: 10, // 그림자 퍼짐 정도
-                offset: Offset(0, 4), // 그림자 위치 (아래쪽으로 4)
-              ),
-            ],
-          ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            title: Align(
-              alignment: Alignment.center, // 중앙 정렬
-              child: const Text(
-                '재난 대응 메뉴',
-                style: TextStyle(
-                  color: Color(0xff000000), // 텍스트 색상 변경
-                  fontWeight: FontWeight.bold, // 텍스트 볼드
-                ),
-              ),
-            ),
-            centerTitle: false, // 기존의 centerTitle은 false로 설정
-            toolbarHeight: 80, // AppBar 높이
-            elevation: 0, // 기본 그림자 제거
-            leading: null, // 화살표 없애기
-            automaticallyImplyLeading: false, // 기본 왼쪽 화살표 없애기
           ),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-        child: ListView.separated(
-          itemCount: menuItems.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
-          itemBuilder: (context, index) {
-            final item = menuItems[index];
-            return InkWell(
-              borderRadius: BorderRadius.circular(15),
-              onTap: () {
-                if (item['title'] == '대처 방법') {
-                  Navigator.pushNamed(context, '/disasterlist');
-                }
-                if (item['title'] == '체크리스트') {
-                  Navigator.pushNamed(context, '/checklist');
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  color: Colors.white,
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 6,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Icon(item['icon'] as IconData, size: 28, color: Colors.redAccent),
-                    const SizedBox(width: 16),
-                    Text(
-                      item['title'] as String,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.separated(
+                itemCount: menuItems.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 20),
+                itemBuilder: (context, index) {
+                  final item = menuItems[index];
+                  final isFirst = index == 0;
+                  return GestureDetector(
+                    onTap: () {
+                      if (item['title'] == '대처 방법') {
+                        Navigator.pushNamed(context, '/disasterlist');
+                      } else if (item['title'] == '체크리스트') {
+                        Navigator.pushNamed(context, '/checklist');
+                      }
+                    },
+                    child: Container(
+                      height: 100,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: item['color'] as Color,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              item['icon'] as IconData,
+                              color: Colors.white,
+                              size: isFirst ? 34 : 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item['title'] as String,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  item['subtitle'] as String,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right, color: Colors.grey),
+                        ],
                       ),
                     ),
-                    const Spacer(),
-                    const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
-
-      // 하단 바
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white, // 배경색
+          color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1), // 그림자 색
-              blurRadius: 10, // 퍼짐 정도
-              offset: Offset(0, -2), // 위쪽으로 살짝 그림자
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
             ),
           ],
         ),
         child: BottomNavigationBar(
-          backgroundColor: Colors.transparent, // Container에서 색 처리했으므로 투명
-          elevation: 0, // 내부 elevation 제거
+          backgroundColor: Colors.transparent,
+          elevation: 0,
           type: BottomNavigationBarType.fixed,
           currentIndex: 3,
           onTap: (index) {
@@ -140,31 +172,46 @@ class DisasterMenuPage extends StatelessWidget {
                 break;
             }
           },
-          selectedItemColor: Colors.redAccent, // 선택된 아이콘 색
-          unselectedItemColor: Colors.grey[300], // 비선택 아이콘 색
+          selectedItemColor: Colors.redAccent,
+          unselectedItemColor: Colors.grey[300],
           showSelectedLabels: false,
           showUnselectedLabels: false,
-          selectedIconTheme: IconThemeData(size: 30),
-          unselectedIconTheme: IconThemeData(size: 30),
+          selectedIconTheme: const IconThemeData(size: 30),
+          unselectedIconTheme: const IconThemeData(size: 30),
           items: const [
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.place),
+              ),
               label: '지도',
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.chat),
+              ),
               label: '채팅',
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.groups),
+              ),
               label: '커뮤니티',
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.dashboard),
+              ),
               label: '재난메뉴',
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.favorite_border),
+              ),
               label: '마이',
             ),
           ],
