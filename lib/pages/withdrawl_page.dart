@@ -7,7 +7,7 @@ class WithdrawalConfirmationPage extends StatelessWidget {
   const WithdrawalConfirmationPage({super.key});
 
   Future<void> _deactivateUser(BuildContext context) async {
-    const String apiUrl = 'http://54.253.211.96:8000/api/users/me/deactivate';
+    const String apiUrl = 'http://54.253.211.96:8000/api/users/delete';
     const storage = FlutterSecureStorage();
 
     final token = await storage.read(key: 'accessToken');
