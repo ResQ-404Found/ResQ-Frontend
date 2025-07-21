@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class DisasterMenuPage extends StatelessWidget {
   const DisasterMenuPage({super.key});
 
@@ -16,11 +15,43 @@ class DisasterMenuPage extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: const Text('재난 대응 메뉴'),
-        centerTitle: true,
-        backgroundColor: Colors.teal,
+      backgroundColor: Color(0xFFFAFAFA),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(80), // AppBar 높이 설정
+        child: Container(
+          decoration: BoxDecoration(
+            color: Color(0xFFFAFAFA), // AppBar 배경색
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(20),  // 좌측 하단 모서리 둥글게
+              bottomRight: Radius.circular(20), // 우측 하단 모서리 둥글게
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0xb55d53).withOpacity(0.2), // 그림자 색
+                blurRadius: 10, // 그림자 퍼짐 정도
+                offset: Offset(0, 4), // 그림자 위치 (아래쪽으로 4)
+              ),
+            ],
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            title: Align(
+              alignment: Alignment.center, // 중앙 정렬
+              child: const Text(
+                '재난 대응 메뉴',
+                style: TextStyle(
+                  color: Color(0xff000000), // 텍스트 색상 변경
+                  fontWeight: FontWeight.bold, // 텍스트 볼드
+                ),
+              ),
+            ),
+            centerTitle: false, // 기존의 centerTitle은 false로 설정
+            toolbarHeight: 80, // AppBar 높이
+            elevation: 0, // 기본 그림자 제거
+            leading: null, // 화살표 없애기
+            automaticallyImplyLeading: false, // 기본 왼쪽 화살표 없애기
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
@@ -54,7 +85,7 @@ class DisasterMenuPage extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(item['icon'] as IconData, size: 28, color: Colors.teal),
+                    Icon(item['icon'] as IconData, size: 28, color: Colors.redAccent),
                     const SizedBox(width: 16),
                     Text(
                       item['title'] as String,
@@ -71,6 +102,72 @@ class DisasterMenuPage extends StatelessWidget {
               ),
             );
           },
+        ),
+      ),
+
+      // 하단 바
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white, // 배경색
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1), // 그림자 색
+              blurRadius: 10, // 퍼짐 정도
+              offset: Offset(0, -2), // 위쪽으로 살짝 그림자
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.transparent, // Container에서 색 처리했으므로 투명
+          elevation: 0, // 내부 elevation 제거
+          type: BottomNavigationBarType.fixed,
+          currentIndex: 3,
+          onTap: (index) {
+            switch (index) {
+              case 0:
+                Navigator.pushNamed(context, '/map');
+                break;
+              case 1:
+                Navigator.pushNamed(context, '/chatbot');
+                break;
+              case 2:
+                Navigator.pushNamed(context, '/community');
+                break;
+              case 3:
+                break;
+              case 4:
+                Navigator.pushNamed(context, '/user');
+                break;
+            }
+          },
+          selectedItemColor: Colors.redAccent, // 선택된 아이콘 색
+          unselectedItemColor: Colors.grey[300], // 비선택 아이콘 색
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          selectedIconTheme: IconThemeData(size: 30),
+          unselectedIconTheme: IconThemeData(size: 30),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)),
+              label: '지도',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)),
+              label: '채팅',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)),
+              label: '커뮤니티',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)),
+              label: '재난메뉴',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)),
+              label: '마이',
+            ),
+          ],
         ),
       ),
     );
