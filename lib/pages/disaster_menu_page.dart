@@ -14,7 +14,7 @@ class DisasterMenuPage extends StatelessWidget {
         'color': Colors.redAccent,
       },
       {
-        'title': '대처 방법',
+        'title': '대피 방법',
         'subtitle': '상황별 대응 가이드',
         'icon': Icons.security,
         'color': Colors.orangeAccent,
@@ -69,11 +69,11 @@ class DisasterMenuPage extends StatelessWidget {
                   final isFirst = index == 0;
                   return GestureDetector(
                     onTap: () {
-                      if (item['title'] == '대처 방법') {
+                      if (item['title'] == '대피 방법') {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => DisasterGuidePage(initialIndex: 0), // 화재
+                            builder: (_) => DisasterGuidePage(initialIndex: 0),
                           ),
                         );
                       }
