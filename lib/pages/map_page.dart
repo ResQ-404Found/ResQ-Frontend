@@ -299,37 +299,99 @@ class _MapPageState extends State<MapPage> {
             _buildLocationButtons(),
             _buildStatusBanner(),
             Expanded(
-              child: Stack(
-                children: [
-                  NaverMap(
-                    options: const NaverMapViewOptions(
-                      mapType: NMapType.basic,
-                      locationButtonEnable: false,
-                      initialCameraPosition: NCameraPosition(
-                          target: NLatLng(35.2313, 129.0825), zoom: 12),
-                    ),
-                    onMapReady: (controller) async {
-                      _controller = controller;
-                      await _getAndMoveToCurrentLocation();
-                    },
-                    onMapTapped: (point, latLng) {
-                      setState(() {
-                        _showDisasterSheet = false;
-                        _selectedMenu = '';
-                        _selectedHospital = null;
-                        _selectedShelter = null;
-                      });
-                    },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Stack(
+                    children: [
+                      NaverMap(
+                        options: const NaverMapViewOptions(
+                          mapType: NMapType.basic,
+                          locationButtonEnable: false,
+                          initialCameraPosition: NCameraPosition(
+                            target: NLatLng(35.2313, 129.0825),
+                            zoom: 12,
+                          ),
+                        ),
+                        onMapReady: (controller) async {
+                          _controller = controller;
+                          await _getAndMoveToCurrentLocation();
+                        },
+                        onMapTapped: (point, latLng) {
+                          setState(() {
+                            _showDisasterSheet = false;
+                            _selectedMenu = '';
+                            _selectedHospital = null;
+                            _selectedShelter = null;
+                          });
+                        },
+                      ),
+                      if (_selectedShelter != null) _buildShelterDetailSheet(),
+                      if (_selectedMenu == 'disaster' && _showDisasterSheet) _buildDisasterInfoSheet(),
+                      if (_selectedHospital != null) _buildHospitalDetailSheet(),
+                      Positioned(
+                        bottom: 16,
+                        right: 16,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 6)],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.add, color: Colors.black),
+                                onPressed: () async {
+                                  if (_controller != null) {
+                                    final pos = await _controller!.getCameraPosition();
+                                    final zoom = pos.zoom + 1;
+                                    await _controller!.updateCamera(
+                                      NCameraUpdate.fromCameraPosition(
+                                        NCameraPosition(target: pos.target, zoom: zoom),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                              Container(
+                                width: 36,
+                                height: 1,
+                                color: Colors.grey[300], // 구분선 색상
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.remove, color: Colors.black),
+                                onPressed: () async {
+                                  if (_controller != null) {
+                                    final pos = await _controller!.getCameraPosition();
+                                    final zoom = pos.zoom - 1;
+                                    await _controller!.updateCamera(
+                                      NCameraUpdate.fromCameraPosition(
+                                        NCameraPosition(target: pos.target, zoom: zoom),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+
+                    ],
                   ),
-                  if (_selectedShelter != null) _buildShelterDetailSheet(),
-                  if (_selectedMenu == 'disaster' && _showDisasterSheet)
-                    _buildDisasterInfoSheet(),
-                  if (_selectedHospital != null) _buildHospitalDetailSheet(),
-                ],
+
+                ),
               ),
+
             ),
+
           ],
         ),
+
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -400,188 +462,170 @@ class _MapPageState extends State<MapPage> {
 
   Widget _buildLocationBox() {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.location_on, color: Colors.redAccent),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              _currentAddress ?? '주소 불러오는 중...',
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+        ),
+        child:Row(
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(left: 2), // 📍 아이콘 약간 오른쪽
+              child: Icon(Icons.location_on, color: Colors.redAccent,size:30),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.my_location, color: Colors.grey),
-            onPressed: () async {
-              await _getAndMoveToCurrentLocation();
-            },
-          )
-        ],
-      ),
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Text(
+                  _currentAddress ?? '주소 불러오는 중...',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500,color:Colors.grey),
+                ),
+              ),
+            ),
+
+            IconButton(
+              icon: const Icon(Icons.my_location, color: Colors.grey),
+              onPressed: () async {
+                await _getAndMoveToCurrentLocation();
+              },
+            ),
+          ],
+        )
+
     );
   }
 
   Widget _buildLocationButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    final List<Map<String, dynamic>> buttons = [
+      {'label': '대피소', 'icon': Icons.favorite_border, 'value': 'shelter'},
+      {'label': '재난정보', 'icon': Icons.warning_amber, 'value': 'disaster'},
+      {'label': '병원', 'icon': Icons.local_hospital, 'value': 'hospital'},
+    ];
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      height: 48,
       child: Row(
-        children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.favorite_border),
-              label: const Text('대피소'),
-              onPressed: () async {
-                setState(() {
-                  if (_selectedMenu == 'shelter') {
-                    _selectedMenu = '';
-                    _selectedShelter = null;
-                    _shelterMarkers.clear();
-                    _controller?.clearOverlays();
-                  } else {
-                    _selectedMenu = 'shelter';
-                    _selectedShelter = null;
-                    _selectedHospital = null;
-                    _showDisasterSheet = false;
-                  }
-                });
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: buttons.map((b) {
+          final selected = _selectedMenu == b['value'];
 
-                if (_selectedMenu == 'shelter') {
+          return Expanded(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              child: GestureDetector(
+                onTap: () async {
+                  setState(() {
+                    if (_selectedMenu == b['value']) {
+                      _selectedMenu = '';
+                      _selectedHospital = null;
+                      _selectedShelter = null;
+                      _showDisasterSheet = false;
+                    } else {
+                      _selectedMenu = b['value'] as String;
+                      _selectedHospital = null;
+                      _selectedShelter = null;
+                      _showDisasterSheet = b['value'] == 'disaster';
+                    }
+                  });
+
                   Position pos = await Geolocator.getCurrentPosition();
-                  await _fetchNearbyShelters(pos);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _selectedMenu == 'shelter'
-                    ? Colors.cyanAccent
-                    : Colors.white,
-                foregroundColor: Colors.black,
-                elevation: 1,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: Colors.black12),
+                  if (_selectedMenu == 'shelter') await _fetchNearbyShelters(pos);
+                  if (_selectedMenu == 'hospital') await _fetchNearbyHospitals(pos);
+                  if (_selectedMenu == 'disaster') await _fetchDisasters();
+                },
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: selected ? Colors.red.shade400 : Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: selected ? Colors.red : Colors.grey.shade300,
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      if (selected)
+                        const BoxShadow(
+                          color: Colors.black26,
+                          offset: Offset(0, 2),
+                          blurRadius: 4,
+                        )
+                    ],
+                  ),
+
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(b['icon'] as IconData,
+                            color: selected ? Colors.white : Colors.black),
+                        const SizedBox(width: 6),
+                        Text(
+                          b['label'] as String,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: selected ? Colors.white : Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.person),
-              label: const Text('재난정보'),
-              onPressed: () async {
-                setState(() {
-                  if (_selectedMenu == 'disaster') {
-                    _selectedMenu = '';
-                    _showDisasterSheet = false;
-                  } else {
-                    _selectedMenu = 'disaster';
-                    _selectedShelter = null;
-                    _selectedHospital = null;
-                    _showDisasterSheet = true;
-                  }
-                });
-
-                if (_selectedMenu == 'disaster') {
-                  await _fetchDisasters();
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _selectedMenu == 'disaster'
-                    ? Colors.cyanAccent
-                    : Colors.white,
-                foregroundColor: Colors.black,
-                elevation: 1,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: Colors.black12),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.local_hospital),
-              label: const Text('병원'),
-              onPressed: () async {
-                setState(() {
-                  if (_selectedMenu == 'hospital') {
-                    _selectedMenu = '';
-                    _selectedHospital = null;
-                    _hospitalMarkers.clear();
-                    _controller?.clearOverlays();
-                  } else {
-                    _selectedMenu = 'hospital';
-                    _selectedHospital = null;
-                    _selectedShelter = null;
-                    _showDisasterSheet = false;
-                  }
-                });
-
-                if (_selectedMenu == 'hospital') {
-                  Position pos = await Geolocator.getCurrentPosition();
-                  await _fetchNearbyHospitals(pos);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _selectedMenu == 'hospital'
-                    ? Colors.cyanAccent
-                    : Colors.white,
-                foregroundColor: Colors.black,
-                elevation: 1,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: Colors.black12),
-                ),
-              ),
-            ),
-          ),
-        ],
+          );
+        }).toList(),
       ),
     );
   }
+
 
   Widget _buildStatusBanner() {
     String text;
     Color bgColor;
 
+    late Icon leadingIcon;
+
     if (_hasDisasterMessage) {
-      text = '⚠️ 재난 문자가 있습니다. 확인하세요';
+      text = '재난 문자가 있습니다. 확인하세요';
       bgColor = Colors.redAccent;
+      leadingIcon = const Icon(Icons.warning_amber_rounded, color: Colors.white,size: 22);
     } else {
-      text = '✅ 재난 문자가 없습니다.';
+      text = '재난 문자가 없습니다.';
       bgColor = Colors.green;
+      leadingIcon = const Icon(Icons.check_circle_rounded, color: Colors.white,size: 22);
     }
 
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
       ),
-      child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          leadingIcon,
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
+        ],
       ),
+
     );
   }
 
@@ -658,13 +702,22 @@ class _MapPageState extends State<MapPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '📢 재난정보',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.warning_amber_rounded, color: Colors.red, size:26),
+                SizedBox(width: 6),
+                Text(
+                  '재난정보',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+              ],
             ),
+
             const SizedBox(height: 12),
             Expanded(
               child: ListView.separated(
@@ -792,3 +845,4 @@ class _MapPageState extends State<MapPage> {
     );
   }
 }
+
