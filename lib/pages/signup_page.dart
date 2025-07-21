@@ -165,11 +165,9 @@ class SignUpPageState extends State<SignUpPage> {
                 boxShadow: [
                   BoxShadow(
                     color: Colors.red.withOpacity(0.2),
-
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
-
                 ],
               ),
               child: TextField(
@@ -264,7 +262,6 @@ class SignUpPageState extends State<SignUpPage> {
                               },
                               prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),  // 아이콘 추가
                             ),
-
                           ),
                           const SizedBox(width: 10),
                           SizedBox(
@@ -426,7 +423,6 @@ class SignUpPageState extends State<SignUpPage> {
 
                     const SizedBox(height: 20),
 
-// 로그인 유도 텍스트
                     GestureDetector(
                       onTap: () {
                         Navigator.pushReplacementNamed(context, '/login');
@@ -463,16 +459,12 @@ class SignUpPageState extends State<SignUpPage> {
                       ),
                     ),
 
-
-
                     const SizedBox(height: 60),
                   ],
                 ),
               ),
             ),
           ),
-
-
         ],
       ),
     );
