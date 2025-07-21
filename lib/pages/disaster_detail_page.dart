@@ -8,16 +8,8 @@ class DisasterDetailPage extends StatelessWidget {
 
   Color _getLevelColor(String level) {
     switch (level) {
-      case '심각':
-        return Colors.red.shade700;
-      case '경계':
-        return Colors.orange.shade600;
-      case '주의':
-        return Colors.amber.shade600;
-      case '관심':
-        return Colors.green.shade600;
       default:
-        return Colors.indigo;
+        return Colors.red.shade700;
     }
   }
 
