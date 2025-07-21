@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class HotPostsPage extends StatefulWidget {
   const HotPostsPage({super.key});
@@ -11,22 +12,91 @@ class HotPostsPage extends StatefulWidget {
 
 class _HotPostsPageState extends State<HotPostsPage> {
   List<dynamic> posts = [];
+  List<bool> isLikedList = [];
+  List<int> likeCountList = [];
+  List<String> timeAgoList = [];
+
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
+  String? accessToken;
+
+  final Map<int, String> regionNames = {
+    1: '서울특별시',
+    2559: '부산광역시',
+    2784: '대구광역시',
+    3011: '인천광역시',
+    3235: '광주광역시',
+    3481: '대전광역시',
+    3664: '울산광역시',
+    3759: '세종특별자치시',
+    3793: '경기도',
+    5660: '강원도',
+    6129: '충청북도',
+    6580: '충청남도',
+    7376: '전라북도',
+    8143: '전라남도',
+    9073: '경상북도',
+    10404: '경상남도',
+    11977: '제주도',
+  };
 
   @override
   void initState() {
     super.initState();
-    fetchPosts();
+    loadTokenAndPosts();
+  }
+
+  Future<void> loadTokenAndPosts() async {
+    accessToken = await storage.read(key: 'accessToken');
+    await fetchPosts();
+  }
+
+  String formatTimeAgo(String timestamp) {
+    final created = DateTime.parse(timestamp).toLocal();
+    final now = DateTime.now();
+    final difference = now.difference(created);
+
+    if (difference.inMinutes < 1) return '방금 전';
+    if (difference.inMinutes < 60) return '${difference.inMinutes}분 전';
+    if (difference.inHours < 24) return '${difference.inHours}시간 전';
+
+    final yesterday = now.subtract(const Duration(days: 1));
+    if (created.day == yesterday.day &&
+        created.month == yesterday.month &&
+        created.year == yesterday.year) {
+      return '어제';
+    }
+
+    if (created.year == now.year) {
+      return '${created.month}월 ${created.day}일';
+    }
+
+    return '${created.year}년 ${created.month}월 ${created.day}일';
   }
 
   Future<void> fetchPosts() async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts'); // 필요한 경우 hot posts용 API로 바꿔도 됨
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts?sort=like_count');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        setState(() {
-          posts = data;
-        });
+        posts = data;
+        likeCountList = posts.map<int>((post) => post['like_count'] ?? 0).toList();
+        timeAgoList = posts.map<String>((post) {
+          final createdAt = post['created_at'] ?? DateTime.now().toIso8601String();
+          return formatTimeAgo(createdAt);
+        }).toList();
+        isLikedList = List.filled(posts.length, false); // 초기화
+
+        setState(() {}); // 로딩용
+
+        // 각 게시글 좋아요 상태 확인
+        for (int i = 0; i < posts.length; i++) {
+          final postId = posts[i]['id'];
+          final liked = await fetchLikeStatus(postId);
+          setState(() {
+            isLikedList[i] = liked;
+          });
+        }
       } else {
         print('게시글 불러오기 실패: ${response.statusCode}');
       }
@@ -35,11 +105,62 @@ class _HotPostsPageState extends State<HotPostsPage> {
     }
   }
 
+  Future<bool> fetchLikeStatus(int postId) async {
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like/status');
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $accessToken'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['data']['liked'] ?? false;
+      } else {
+        print('좋아요 상태 확인 실패: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('좋아요 상태 요청 중 오류 발생: $e');
+      return false;
+    }
+  }
+
+  Future<void> toggleLike(int index) async {
+    final postId = posts[index]['id'];
+    final isLiked = isLikedList[index];
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like');
+
+    try {
+      final response =
+      isLiked
+          ? await http.delete(
+        url,
+        headers: {'Authorization': 'Bearer $accessToken'},
+      )
+          : await http.post(
+        url,
+        headers: {'Authorization': 'Bearer $accessToken'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          isLikedList[index] = !isLiked;
+          likeCountList[index] =
+              data['data']['like_count'] ?? likeCountList[index];
+        });
+      } else {
+        print('좋아요 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('좋아요 중 오류 발생: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -57,12 +178,6 @@ class _HotPostsPageState extends State<HotPostsPage> {
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.tune, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(2.0),
           child: Divider(
@@ -74,28 +189,37 @@ class _HotPostsPageState extends State<HotPostsPage> {
           ),
         ),
       ),
-
-      body: ListView.builder(
+      body:
+      (posts.isEmpty || isLikedList.length != posts.length)
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
         itemCount: posts.length,
         itemBuilder: (context, index) {
           final post = posts[index];
+          final regionName = regionNames[post['region_id']] ?? '정보 없음';
           return GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => Scaffold(
+                  builder:
+                      (_) => Scaffold(
                     appBar: AppBar(
                       title: const Text('상세 페이지'),
                       backgroundColor: Colors.white,
-                      iconTheme: const IconThemeData(color: Colors.black87),
+                      iconTheme: const IconThemeData(
+                        color: Colors.black87,
+                      ),
                       titleTextStyle: const TextStyle(
                         color: Colors.black87,
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                       ),
                       leading: IconButton(
-                        icon: const Icon(Icons.chevron_left, size: 35),
+                        icon: const Icon(
+                          Icons.chevron_left,
+                          size: 35,
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                       elevation: 0,
@@ -106,87 +230,21 @@ class _HotPostsPageState extends State<HotPostsPage> {
               );
             },
             child: PostCard(
-              username: '작성자 ${post['user_id']}',
-              timeAgo: post['created_at'] ?? '',
+              username: '${post['author']?['nickname'] ?? '알 수 없음'}',
+              timeAgo: timeAgoList[index],
               description: post['content'] ?? '',
-              location: '지역 ${post['region_id']}',
-              likes: post['like_count'] ?? 0,
+              location: regionName,
+              likes: likeCountList[index],
               comments: post['view_count'] ?? 0,
+              isLiked: isLikedList[index],
+              onLikePressed: () => toggleLike(index),
             ),
           );
         },
       ),
-
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white, // 배경색
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1), // 그림자 색
-              blurRadius: 10, // 퍼짐 정도
-              offset: Offset(0, -2), // 위쪽으로 살짝 그림자
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent, // Container에서 색 처리했으므로 투명
-          elevation: 0, // 내부 elevation 제거
-          type: BottomNavigationBarType.fixed,
-          currentIndex: 2,
-          onTap: (index) {
-            switch (index) {
-              case 0:
-                Navigator.pushNamed(context, '/map');
-                break;
-              case 1:
-                Navigator.pushNamed(context, '/chatbot');
-                break;
-              case 2:
-                Navigator.pushNamed(context, '/community');
-                break;
-              case 3:
-                Navigator.pushNamed(context, '/disastermenu');
-                break;
-              case 4:
-                Navigator.pushNamed(context, '/user');
-                break;
-            }
-          },
-          selectedItemColor: Colors.redAccent, // 선택된 아이콘 색
-          unselectedItemColor: Colors.grey[300], // 비선택 아이콘 색
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          selectedIconTheme: IconThemeData(size: 30),
-          unselectedIconTheme: IconThemeData(size: 30),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)),
-              label: '지도',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)),
-              label: '채팅',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)),
-              label: '커뮤니티',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)),
-              label: '재난메뉴',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)),
-              label: '마이',
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
-
-// PostCard 클래스는 그대로 사용
 
 class PostCard extends StatelessWidget {
   final String username;
@@ -195,6 +253,8 @@ class PostCard extends StatelessWidget {
   final String location;
   final int likes;
   final int comments;
+  final bool isLiked;
+  final VoidCallback onLikePressed;
 
   const PostCard({
     super.key,
@@ -204,6 +264,8 @@ class PostCard extends StatelessWidget {
     required this.location,
     required this.likes,
     required this.comments,
+    required this.isLiked,
+    required this.onLikePressed,
   });
 
   @override
@@ -227,7 +289,6 @@ class PostCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 유저명 + 시간 + 위치
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -284,7 +345,14 @@ class PostCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.favorite_border, size: 25),
+                    GestureDetector(
+                      onTap: onLikePressed,
+                      child: Icon(
+                        isLiked ? Icons.favorite : Icons.favorite_border,
+                        size: 25,
+                        color: isLiked ? Colors.red : Colors.black,
+                      ),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '$likes',
