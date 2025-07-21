@@ -135,16 +135,14 @@ class _ChatbotPageState extends State<ChatbotPage> {
                       Row(
                         children: const [
                           CircleAvatar(
-                            backgroundColor: Colors.red,
                             radius: 16,
-                            child: Text(
-                              '',
-                              style: TextStyle(color: Colors.white),
-                            ),
+                            backgroundImage: AssetImage('lib/asset/chatbot_profile.png'),
+                            backgroundColor: Colors.transparent,
                           ),
+
                           SizedBox(width: 8),
                           Text(
-                            '이름',
+                            '재난 전문 챗봇',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,

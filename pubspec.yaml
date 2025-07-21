@@ -82,6 +82,7 @@ flutter:
     - lib/asset/user_marker.png
     - lib/asset/hospital_marker.png
     - lib/asset/shelter_marker.png
+    - lib/asset/chatbot_profile.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
