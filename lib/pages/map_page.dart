@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 const String kakaoRestApiKey = 'KakaoAK 6c70d9ab4ca17bdfa047539c7d8ec0a8';
 
@@ -58,6 +59,39 @@ class Disaster {
   }
 }
 
+class Hospital {
+  final int id;
+  final String name;
+  final String address;
+  final double latitude;
+  final double longitude;
+  final double distance;
+
+
+  Hospital({
+    required this.id,
+    required this.name,
+    required this.address,
+    required this.latitude,
+    required this.longitude,
+    required this.distance,
+
+  });
+
+  factory Hospital.fromJson(Map<String, dynamic> json) {
+    return Hospital(
+      id: json['id'],
+      name: json['facility_name'],
+      address: json['road_address'],
+      latitude: json['latitude'],
+      longitude: json['longitude'],
+      distance: json['distance_km'],
+
+    );
+  }
+}
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NaverMapSdk.instance.initialize(clientId: 'l66gqrjxx3');
@@ -80,6 +114,8 @@ class _MapPageState extends State<MapPage> {
   bool _hasDisasterMessage = false;
   String? _sido, _sigungu, _eupmyeondong;
   String _selectedMenu = ''; // '', 'shelter', 'disaster'
+  Hospital? _selectedHospital;
+  final List<NMarker> _hospitalMarkers = [];
 
   @override
   void initState() {
@@ -106,8 +142,13 @@ class _MapPageState extends State<MapPage> {
         ),
       );
 
-      final marker = NMarker(id: 'user_location', position: userLatLng);
-      _controller!.addOverlay(marker);
+      final userMarker = NMarker(
+        id: 'user_location',
+        position: userLatLng,
+        icon: NOverlayImage.fromAssetImage('lib/asset/user_marker.png'),
+
+      );
+      _controller!.addOverlay(userMarker);
     }
 
     await _getAddress(position);
@@ -151,6 +192,7 @@ class _MapPageState extends State<MapPage> {
         final marker = NMarker(
           id: 'shelter_${shelter.latitude}_${shelter.longitude}',
           position: NLatLng(shelter.latitude, shelter.longitude),
+          icon: NOverlayImage.fromAssetImage('lib/asset/shelter_marker.png'),
           caption: NOverlayCaption(text: shelter.name),
         );
         marker.setOnTapListener((m) {
@@ -188,9 +230,49 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
+  Future<void> _fetchNearbyHospitals(Position position) async {
+    final url = Uri.parse('http://54.253.211.96:8000/api/hospital/nearby?latitude=${position.latitude}&longitude=${position.longitude}&limit=10');
+    final response = await http.get(url, headers: {'accept': 'application/json'});
+
+    if (response.statusCode == 200) {
+      final jsonBody = json.decode(utf8.decode(response.bodyBytes));
+      final List<dynamic> data = jsonBody is List ? jsonBody : jsonBody['data'];
+
+      _hospitalMarkers.clear();
+
+      for (var item in data) {
+        final hospital = Hospital.fromJson(item);
+        final marker = NMarker(
+          id: 'hospital_${hospital.latitude}_${hospital.longitude}',
+          position: NLatLng(hospital.latitude, hospital.longitude),
+          icon: NOverlayImage.fromAssetImage('lib/asset/hospital_marker.png'),
+          caption: NOverlayCaption(text: hospital.name),
+        );
+        marker.setOnTapListener((m) {
+          setState(() {
+            _selectedHospital = (_selectedHospital?.name == hospital.name) ? null : hospital;
+          });
+        });
+        _hospitalMarkers.add(marker);
+      }
+
+      if (_controller != null) {
+        await _controller!.clearOverlays();
+        await _controller!.addOverlayAll(_hospitalMarkers.map((m) => m as NAddableOverlay).toSet()); // ✅ hospitalMarkers로 바꿈
+        await _zoomToFitMarkers(_hospitalMarkers);
+      }
+    }
+  }
+
   Future<void> _zoomToFitAllMarkers() async {
     if (_shelterMarkers.isEmpty || _controller == null) return;
     final bounds = _calculateBounds(_shelterMarkers.map((m) => m.position).toList());
+    await _controller!.updateCamera(NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80)));
+  }
+
+  Future<void> _zoomToFitMarkers(List<NMarker> markers) async {
+    if (markers.isEmpty || _controller == null) return;
+    final bounds = _calculateBounds(markers.map((m) => m.position).toList());
     await _controller!.updateCamera(NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80)));
   }
 
@@ -234,12 +316,15 @@ class _MapPageState extends State<MapPage> {
                       setState(() {
                         _showDisasterSheet = false;
                         _selectedMenu = '';
+                        _selectedHospital = null;
+                        _selectedShelter = null;
                       });
                     },
                   ),
                   if (_selectedShelter != null) _buildShelterDetailSheet(),
                   if (_selectedMenu == 'disaster' && _showDisasterSheet)
                     _buildDisasterInfoSheet(),
+                  if (_selectedHospital != null) _buildHospitalDetailSheet(),
                 ],
               ),
             ),
@@ -329,7 +414,6 @@ class _MapPageState extends State<MapPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          // ✅ 대피소 버튼
           Expanded(
             child: ElevatedButton.icon(
               icon: const Icon(Icons.favorite_border),
@@ -344,6 +428,7 @@ class _MapPageState extends State<MapPage> {
                   } else {
                     _selectedMenu = 'shelter';
                     _selectedShelter = null;
+                    _selectedHospital = null;
                     _showDisasterSheet = false;
                   }
                 });
@@ -370,7 +455,6 @@ class _MapPageState extends State<MapPage> {
 
           const SizedBox(width: 10),
 
-          // ✅ 재난정보 버튼
           Expanded(
             child: ElevatedButton.icon(
               icon: const Icon(Icons.person),
@@ -383,6 +467,7 @@ class _MapPageState extends State<MapPage> {
                   } else {
                     _selectedMenu = 'disaster';
                     _selectedShelter = null;
+                    _selectedHospital = null;
                     _showDisasterSheet = true;
                   }
                 });
@@ -393,6 +478,44 @@ class _MapPageState extends State<MapPage> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _selectedMenu == 'disaster'
+                    ? Colors.cyanAccent
+                    : Colors.white,
+                foregroundColor: Colors.black,
+                elevation: 1,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: Colors.black12),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.local_hospital),
+              label: const Text('병원'),
+              onPressed: () async {
+                setState(() {
+                  if (_selectedMenu == 'hospital') {
+                    _selectedMenu = '';
+                    _selectedHospital = null;
+                    _hospitalMarkers.clear();
+                    _controller?.clearOverlays();
+                  } else {
+                    _selectedMenu = 'hospital';
+                    _selectedHospital = null;
+                    _selectedShelter = null;
+                    _showDisasterSheet = false;
+                  }
+                });
+
+                if (_selectedMenu == 'hospital') {
+                  Position pos = await Geolocator.getCurrentPosition();
+                  await _fetchNearbyHospitals(pos);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _selectedMenu == 'hospital'
                     ? Colors.cyanAccent
                     : Colors.white,
                 foregroundColor: Colors.black,
@@ -443,8 +566,6 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-
-
   Widget _buildShelterDetailSheet() {
     final shelter = _selectedShelter!;
     return Positioned(
@@ -461,21 +582,37 @@ class _MapPageState extends State<MapPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('대피소 상세 정보', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              '대피소 상세 정보',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             _infoRow('이름', shelter.name),
             _infoRow('주소', shelter.address),
             _infoRow('거리', '${(shelter.distance * 1000).toStringAsFixed(0)}m'),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () async {
+                final lat = shelter.latitude;
+                final lng = shelter.longitude;
+                final name = Uri.encodeComponent(shelter.name);
+                final url = 'nmap://route/public?dlat=$lat&dlng=$lng&dname=$name&appname=com.pan.resq';
+
+                if (await canLaunchUrl(Uri.parse(url))) {
+                  await launchUrl(Uri.parse(url));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('네이버지도 앱이 설치되어 있지 않습니다.')),
+                  );
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 minimumSize: const Size(double.infinity, 48),
               ),
               child: const Text('길찾기 안내', style: TextStyle(color: Colors.white)),
-            )
+            ),
           ],
         ),
       ),
@@ -484,11 +621,9 @@ class _MapPageState extends State<MapPage> {
 
   Widget _buildDisasterInfoSheet() {
     final grouped = <String, List<Disaster>>{};
-
     for (final d in _disasterList) {
       grouped.putIfAbsent(d.type, () => []).add(d);
     }
-
     return Positioned(
       bottom: 0,
       left: 0,
@@ -569,6 +704,56 @@ class _MapPageState extends State<MapPage> {
                   );
                 },
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHospitalDetailSheet() {
+    final hospital = _selectedHospital!;
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('병원 상세 정보', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            _infoRow('이름', hospital.name),
+            _infoRow('주소', hospital.address),
+            _infoRow('거리', '${(hospital.distance * 1000).toStringAsFixed(0)}m'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () async {
+                final lat = hospital.latitude;
+                final lng = hospital.longitude;
+                final name = Uri.encodeComponent(hospital.name);
+                final url = 'nmap://route/public?dlat=$lat&dlng=$lng&dname=$name&appname=com.pan.resq';
+
+                if (await canLaunchUrl(Uri.parse(url))) {
+                  await launchUrl(Uri.parse(url));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('네이버지도 앱이 설치되어 있지 않습니다.')),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                minimumSize: const Size(double.infinity, 48),
+              ),
+              child: const Text('길찾기 안내', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
