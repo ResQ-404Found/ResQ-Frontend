@@ -3,10 +3,9 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '/api/http_client.dart';
-import '/pages/password_reset_new_page.dart'; // 직접 push 방식이므로 import 필요
 import 'package:resq_frontend/pages/login_user_changePWD_page.dart'; // 경로를 프로젝트의 정확한 위치로 맞춰야 함
 import 'package:resq_frontend/pages/change_nickname_page.dart'; // 경로 확인
-
+import 'package:resq_frontend/pages/withdrawl_page.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
@@ -101,9 +100,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void _onDeleteAccount() {
-    Navigator.pushNamed(context, '/withdraw');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const WithdrawalConfirmationPage(),
+      ),
+    );
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

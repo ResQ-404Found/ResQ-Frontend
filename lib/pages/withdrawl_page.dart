@@ -29,7 +29,6 @@ class WithdrawalConfirmationPage extends StatelessWidget {
       );
 
       if (response.statusCode == 200) {
-        // 탈퇴 성공
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('탈퇴 완료되었습니다'), duration: Duration(seconds: 2)),
         );
@@ -56,60 +55,118 @@ class WithdrawalConfirmationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              '탈퇴하기',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              '정말 탈퇴하시겠습니까?',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 40),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: () => _deactivateUser(context),
-                  child: const Text(
-                    '예',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 40),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    '아니오',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
+      backgroundColor: const Color(0xFFFF3535), // 전체 배경을 빨간색으로 설정
+      body: Padding(
+        padding: const EdgeInsets.only(top: 0), // 위쪽 여백 추가 (조정 가능)
+        child: Center(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 24), // 좌우 마진 추가하여 너비 제한
+            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24), // 안쪽 여백 조정 (이미지에 맞게 상하단 여백 증가)
+            decoration: BoxDecoration(
+              color: Colors.white, // 내부 배경은 흰색
+              borderRadius: BorderRadius.circular(20), // 둥근 모서리 (이미지에 맞게 더 둥글게)
+              boxShadow: [ // 흰색 네모에 살짝 그림자 추가
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 5), // 그림자의 위치 설정
                 ),
               ],
             ),
-          ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // 세로 크기를 최소화
+              mainAxisAlignment: MainAxisAlignment.start, // 위쪽에 배치
+              children: [
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Colors.red.shade100,
+                  child: Icon(
+                    Icons.person_off_rounded,
+                    color: Colors.red.shade600,
+                    size: 50,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  '정말 탈퇴하시겠습니까?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '탈퇴 시 모든 포인트는 삭제됩니다.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  '이 작업은 되돌릴 수 없습니다.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF3535),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () => _deactivateUser(context),
+                      child: const Text(
+                        '예, 탈퇴하겠습니다',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.grey.shade600,
+                        side: BorderSide(color: Colors.grey.shade300, width: 1),
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        '아니오, 계속 이용하겠습니다',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
