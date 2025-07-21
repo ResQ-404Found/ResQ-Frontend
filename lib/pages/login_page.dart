@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
-// ... 생략된 import 부분은 동일
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,14 +13,27 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool isRememberMe = false;
   bool showPassword = false;
+  bool isLoading = false;
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final FocusNode _emailFocus = FocusNode();
+  final FocusNode _passwordFocus = FocusNode();
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
     _tryAutoLogin();
+  }
+
+  @override
+  void dispose() {
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   Future<void> _tryAutoLogin() async {
@@ -92,6 +104,8 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
+    setState(() => isLoading = true);
+
     try {
       final res = await http.post(
         Uri.parse('http://54.253.211.96:8000/api/users/signin'),
@@ -107,7 +121,6 @@ class _LoginPageState extends State<LoginPage> {
         await _secureStorage.write(key: 'accessToken', value: accessToken);
         await _secureStorage.write(key: 'refreshToken', value: refreshToken);
 
-        print("✅ 로그인 성공");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('로그인 성공')),
         );
@@ -126,6 +139,8 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('네트워크 오류: $e')),
       );
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
@@ -135,11 +150,17 @@ class _LoginPageState extends State<LoginPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
+        boxShadow: [
+          BoxShadow(
+            color:  Colors.red.withOpacity(0.15),
+
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: TextField(
+        focusNode: _emailFocus,
         controller: _emailController,
         keyboardType: TextInputType.emailAddress,
         style: const TextStyle(color: Colors.black87),
@@ -150,6 +171,7 @@ class _LoginPageState extends State<LoginPage> {
           hintText: '아이디',
           hintStyle: TextStyle(color: Colors.black38),
         ),
+        onChanged: (_) => setState(() {}),
       ),
     );
   }
@@ -160,11 +182,17 @@ class _LoginPageState extends State<LoginPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
+        boxShadow: [
+          BoxShadow(
+            color:  Colors.red.withOpacity(0.15),
+
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: TextField(
+        focusNode: _passwordFocus,
         controller: _passwordController,
         obscureText: !showPassword,
         style: const TextStyle(color: Colors.black),
@@ -186,6 +214,7 @@ class _LoginPageState extends State<LoginPage> {
             },
           ),
         ),
+        onChanged: (_) => setState(() {}),
       ),
     );
   }
@@ -213,7 +242,7 @@ class _LoginPageState extends State<LoginPage> {
       padding: const EdgeInsets.only(top: 16),
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _login,
+        onPressed: isLoading ? null : _login,
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.all(12),
           shape: RoundedRectangleBorder(
@@ -222,7 +251,16 @@ class _LoginPageState extends State<LoginPage> {
           backgroundColor: Colors.red,
           elevation: 5,
         ),
-        child: const Text(
+        child: isLoading
+            ? const SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 2,
+          ),
+        )
+            : const Text(
           '로그인',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
@@ -306,4 +344,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
