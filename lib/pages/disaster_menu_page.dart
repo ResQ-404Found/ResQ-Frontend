@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'disaster_guide_page.dart';
 
 class DisasterMenuPage extends StatelessWidget {
   const DisasterMenuPage({super.key});
@@ -69,10 +70,14 @@ class DisasterMenuPage extends StatelessWidget {
                   return GestureDetector(
                     onTap: () {
                       if (item['title'] == '대처 방법') {
-                        Navigator.pushNamed(context, '/disasterlist');
-                      } else if (item['title'] == '체크리스트') {
-                        Navigator.pushNamed(context, '/checklist');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DisasterGuidePage(initialIndex: 0), // 화재
+                          ),
+                        );
                       }
+
                     },
                     child: Container(
                       height: 100,
