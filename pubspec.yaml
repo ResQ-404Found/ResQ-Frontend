@@ -78,6 +78,7 @@ flutter:
   uses-material-design: true
   assets:
     - lib/asset/글자없는로고.png
+    - lib/asset/sample_profile.jpg
     - lib/asset/user_marker.png
     - lib/asset/hospital_marker.png
     - lib/asset/shelter_marker.png

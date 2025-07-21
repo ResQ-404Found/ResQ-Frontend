@@ -149,6 +149,7 @@ class SignUpPageState extends State<SignUpPage> {
     required String? Function(String?) validator,
     bool obscureText = false,
     Widget? suffixIcon,
+    Widget? prefixIcon,
   }) {
     return FormField<String>(
       validator: validator,
@@ -181,6 +182,7 @@ class SignUpPageState extends State<SignUpPage> {
                   hintText: hintText,
                   hintStyle: const TextStyle(color: Colors.grey),
                   suffixIcon: suffixIcon,
+                  prefixIcon: prefixIcon,
                 ),
               ),
             ),
@@ -219,6 +221,7 @@ class SignUpPageState extends State<SignUpPage> {
                         controller: loginIdController,
                         hintText: '아이디',
                         validator: (value) => (value == null || value.isEmpty) ? '아이디를 입력하세요' : null,
+                        prefixIcon: const Icon(Icons.account_circle_rounded, color: Colors.grey),
                       ),
                       buildValidatedInput(
                         controller: passwordController,
@@ -226,9 +229,10 @@ class SignUpPageState extends State<SignUpPage> {
                         obscureText: !showPassword,
                         validator: (value) => (value == null || value.isEmpty) ? '비밀번호를 입력하세요' : null,
                         suffixIcon: IconButton(
-                          icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off,color: Colors.grey,),
+                          icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
                           onPressed: () => setState(() => showPassword = !showPassword),
                         ),
+                        prefixIcon: const Icon(Icons.lock, color: Colors.grey),
                       ),
                       buildValidatedInput(
                         controller: confirmPasswordController,
@@ -240,9 +244,10 @@ class SignUpPageState extends State<SignUpPage> {
                           return null;
                         },
                         suffixIcon: IconButton(
-                          icon: Icon(showConfirmPassword ? Icons.visibility : Icons.visibility_off,color: Colors.grey),
+                          icon: Icon(showConfirmPassword ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
                           onPressed: () => setState(() => showConfirmPassword = !showConfirmPassword),
                         ),
+                        prefixIcon: const Icon(Icons.lock_person_outlined, color: Colors.grey),
                       ),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,7 +262,9 @@ class SignUpPageState extends State<SignUpPage> {
                                 if (!value.contains('@')) return '올바른 이메일 형식이 아닙니다';
                                 return null;
                               },
+                              prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),  // 아이콘 추가
                             ),
+
                           ),
                           const SizedBox(width: 10),
                           SizedBox(
@@ -285,10 +292,11 @@ class SignUpPageState extends State<SignUpPage> {
                           children: [
                             Expanded(
                               flex: 3,
-                              child: buildValidatedInput(
+                              child:  buildValidatedInput(
                                 controller: codeController,
                                 hintText: '인증 코드 입력',
                                 validator: (value) => (value == null || value.isEmpty) ? '인증 코드를 입력하세요' : null,
+                                prefixIcon: const Icon(Icons.verified_user_outlined, color: Colors.grey),
                               ),
                             ),
                             const SizedBox(width: 10),

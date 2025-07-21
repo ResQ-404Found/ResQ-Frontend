@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '/api/http_client.dart';
+import '/pages/password_reset_new_page.dart'; // 직접 push 방식이므로 import 필요
+import 'package:resq_frontend/pages/login_user_changePWD_page.dart'; // 경로를 프로젝트의 정확한 위치로 맞춰야 함
+
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
@@ -60,145 +63,72 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void _onChangeNickname() {
-  final TextEditingController nicknameController = TextEditingController();
+    final TextEditingController nicknameController = TextEditingController();
 
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('닉네임 변경'),
-      content: TextField(
-        controller: nicknameController,
-        decoration: const InputDecoration(
-          hintText: '새 닉네임 입력',
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('취소'),
-        ),
-        TextButton(
-          onPressed: () async {
-            String newNickname = nicknameController.text.trim();
-            if (newNickname.isEmpty) return;
-
-            const storage = FlutterSecureStorage();
-            final token = await storage.read(key: 'accessToken');
-
-            if (token == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('로그인이 필요합니다')),
-              );
-              return;
-            }
-
-            final response = await HttpClient.patchUserUpdate(
-              token: token,
-              data: {"username": newNickname},
-            );
-
-            Navigator.pop(context);
-
-            if (response['success']) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('닉네임이 변경되었습니다')),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(response['message'] ?? '닉네임 변경 실패')),
-              );
-            }
-          },
-          child: const Text('확인'),
-        ),
-      ],
-    ),
-  );  }
-
-  void _onChangePassword() {
-final currentController = TextEditingController();
-  final newController = TextEditingController();
-  final confirmController = TextEditingController();
-
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('비밀번호 변경'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: currentController,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: '현재 비밀번호'),
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('닉네임 변경'),
+        content: TextField(
+          controller: nicknameController,
+          decoration: const InputDecoration(
+            hintText: '새 닉네임 입력',
           ),
-          TextField(
-            controller: newController,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: '새 비밀번호'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('취소'),
           ),
-          TextField(
-            controller: confirmController,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: '새 비밀번호 확인'),
+          TextButton(
+            onPressed: () async {
+              String newNickname = nicknameController.text.trim();
+              if (newNickname.isEmpty) return;
+
+              const storage = FlutterSecureStorage();
+              final token = await storage.read(key: 'accessToken');
+
+              if (token == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('로그인이 필요합니다')),
+                );
+                return;
+              }
+
+              final response = await HttpClient.patchUserUpdate(
+                token: token,
+                data: {"username": newNickname},
+              );
+
+              Navigator.pop(context);
+
+              if (response['success']) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('닉네임이 변경되었습니다')),
+                );
+                fetchUserInfo(); // 변경 후 정보 다시 로드
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(response['message'] ?? '닉네임 변경 실패')),
+                );
+              }
+            },
+            child: const Text('확인'),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('취소'),
-        ),
-        TextButton(
-          onPressed: () async {
-            final current = currentController.text;
-            final newPass = newController.text;
-            final confirm = confirmController.text;
+    );
+  }
 
-            if (newPass != confirm) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('새 비밀번호가 일치하지 않습니다')),
-              );
-              return;
-            }
 
-            const storage = FlutterSecureStorage();
-            final token = await storage.read(key: 'accessToken');
-
-            if (token == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('로그인이 필요합니다')),
-              );
-              return;
-            }
-
-            final response = await HttpClient.patchUserUpdate(
-              token: token,
-              data: {
-                "password": {
-                  "current_password": current,
-                  "new_password": newPass,
-                }
-              },
-            );
-
-            Navigator.pop(context);
-
-            if (response['success']) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('비밀번호가 변경되었습니다')),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(response['message'] ?? '비밀번호 변경 실패')),
-              );
-            }
-          },
-          child: const Text('변경'),
-        ),
-      ],
-    ),
-  );  }
+  void _onChangePassword() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LoginUserChangePWDPage(),
+      ),
+    );
+  }
 
   void _onRegionFilterSetting() {
     Navigator.pushNamed(context, '/region-filter');
@@ -260,9 +190,8 @@ final currentController = TextEditingController();
                           backgroundImage: _profileImage != null
                               ? FileImage(_profileImage!)
                               : (profileImageUrl.isNotEmpty
-                                  ? NetworkImage(profileImageUrl)
-                                  : const AssetImage('assets/sample_profile.jpg'))
-                                  as ImageProvider,
+                              ? NetworkImage(profileImageUrl)
+                              : const AssetImage('assets/sample_profile.jpg')) as ImageProvider,
                         ),
                         Positioned(
                           bottom: 0,
@@ -339,70 +268,73 @@ final currentController = TextEditingController();
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white, // 배경색
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1), // 그림자 색
-              blurRadius: 10, // 퍼짐 정도
-              offset: Offset(0, -2), // 위쪽으로 살짝 그림자
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent, // Container에서 색 처리했으므로 투명
-          elevation: 0, // 내부 elevation 제거
-          type: BottomNavigationBarType.fixed,
-          currentIndex: 4,
-          onTap: (index) {
-            switch (index) {
-              case 0:
-                Navigator.pushNamed(context, '/map');
-                break;
-              case 1:
-                Navigator.pushNamed(context, '/chatbot');
-                break;
-              case 2:
-                Navigator.pushNamed(context, '/community');
-                break;
-              case 3:
-                Navigator.pushNamed(context, '/disastermenu');
-                break;
-              case 4:
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
 
-                break;
-            }
-          },
-          selectedItemColor: Colors.redAccent, // 선택된 아이콘 색
-          unselectedItemColor: Colors.grey[300], // 비선택 아이콘 색
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          selectedIconTheme: IconThemeData(size: 30),
-          unselectedIconTheme: IconThemeData(size: 30),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)),
-              label: '지도',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)),
-              label: '채팅',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)),
-              label: '커뮤니티',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)),
-              label: '재난메뉴',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)),
-              label: '마이',
-            ),
-          ],
-        ),
+  Widget _buildBottomNavigationBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        type: BottomNavigationBarType.fixed,
+        currentIndex: 4,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/map');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/chatbot');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/community');
+              break;
+            case 3:
+              Navigator.pushNamed(context, '/disastermenu');
+              break;
+            case 4:
+              break;
+          }
+        },
+        selectedItemColor: Colors.redAccent,
+        unselectedItemColor: Colors.grey[300],
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        selectedIconTheme: const IconThemeData(size: 30),
+        unselectedIconTheme: const IconThemeData(size: 30),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)),
+            label: '지도',
+          ),
+          BottomNavigationBarItem(
+            icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)),
+            label: '채팅',
+          ),
+          BottomNavigationBarItem(
+            icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)),
+            label: '커뮤니티',
+          ),
+          BottomNavigationBarItem(
+            icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)),
+            label: '재난메뉴',
+          ),
+          BottomNavigationBarItem(
+            icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)),
+            label: '마이',
+          ),
+        ],
       ),
     );
   }
@@ -438,23 +370,6 @@ final currentController = TextEditingController();
             ),
           ),
           const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToggleRow(String title, bool initialValue) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: const TextStyle(fontSize: 15)),
-          Switch(
-            value: initialValue,
-            onChanged: (value) {},
-            activeColor: Colors.green,
-          ),
         ],
       ),
     );
