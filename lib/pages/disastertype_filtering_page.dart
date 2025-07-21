@@ -117,32 +117,104 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('재난 문자 설정'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0.5,
+      // 앱 바를 감싸는 Container에 바깥쪽 그림자 추가
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(90), // 앱 바 크기 줄이기
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white, // 앱 바의 배경을 흰색으로 설정
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5), // 그림자의 색상
+                spreadRadius: 1, // 그림자의 크기
+                blurRadius: 6, // 흐림 정도
+                offset: const Offset(0, 4), // 그림자의 위치 (아래쪽)
+              ),
+            ],
+          ),
+          child: AppBar(
+            leading: Padding(
+              padding: const EdgeInsets.only(top: 27), // 화살표 위치 조정
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+            backgroundColor: Colors.white, // 앱 바의 배경을 흰색으로 설정
+            foregroundColor: Colors.black,
+            elevation: 0,  // 내부 그림자 제거
+            flexibleSpace: Padding(
+              padding: const EdgeInsets.only(top: 22.0), // 텍스트와 아이콘을 동일하게 맞추기 위한 위쪽 여백 추가
+              child: Align(
+                alignment: Alignment.center,
+                child: Container(
+                  margin: const EdgeInsets.only(top: 3), // 글자 위치 조금만 올리기
+                  child: Text(
+                    '재난 문자 설정',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
+      backgroundColor: Colors.white, // 배경을 흰색으로 설정
       body: settings.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-        itemCount: settings.length,
-        itemBuilder: (context, index) {
-          final item = settings[index];
-          return ListTile(
-            title: Text(item.type, style: const TextStyle(fontSize: 18)),
-            trailing: Switch(
-              value: item.enabled,
-              onChanged: (bool newValue) {
-                setState(() {
-                  item.enabled = newValue;
-                });
-                toggleDisasterType(item);
-              },
+          : Container(
+        margin: const EdgeInsets.symmetric(vertical: 30.0, horizontal: 15.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.grey[400]!, width: 0.5),
+          borderRadius: BorderRadius.circular(8.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 2,
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
-          );
-        },
+          ],
+        ),
+        child: ListView.separated(
+          shrinkWrap: true, // <- 이거 추가!
+          physics: const NeverScrollableScrollPhysics(), // 만약 안에서만 스크롤 막고 싶다면 추가
+          itemCount: settings.length,
+          separatorBuilder: (context, index) => Divider(
+            color: Colors.grey.withOpacity(0.4),
+            thickness: 1,
+            indent: 16,
+            endIndent: 16,
+          ),
+          itemBuilder: (context, index) {
+            final item = settings[index];
+            return ListTile(
+              title: Padding(
+                  padding: EdgeInsets.only(left: 8.0, top: 8.0, bottom: (index == settings.length - 1) ? 20.0 : 0.0),
+                child: Text(item.type, style: const TextStyle(fontSize: 18)),
+              ),
+
+
+              trailing: Switch(
+                value: item.enabled,
+                onChanged: (bool newValue) {
+                  setState(() {
+                    item.enabled = newValue;
+                  });
+                  toggleDisasterType(item);
+                },
+                activeColor: Colors.red,
+                inactiveTrackColor: Colors.grey[400],
+                inactiveThumbColor: Colors.grey[700],
+              ),
+            );
+          },
+        ),
       ),
+
     );
   }
 }
