@@ -325,9 +325,6 @@ class _ChecklistPageState extends State<ChecklistPage> {
               ),
             ],
           ),
-          const SizedBox(height: 16),  // 첫 번째 박스와 두 번째 박스 사이에 공백 추가
-          // 공백 추가 후, 다른 내용이나 박스를 추가할 수 있습니다.
-          const SizedBox(height: 16),  // 아래쪽 공백
         ],
       ),
     );
