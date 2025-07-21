@@ -21,21 +21,30 @@ class DisasterDetailPage extends StatelessWidget {
     }
   }
 
+
   Widget _buildDisasterLevelBanner(String level) {
     return Container(
       width: double.infinity,
-      color: _getLevelColor(level),
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Center(
-        child: Text(
-          level,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+      decoration: BoxDecoration(
+        color: _getLevelColor(level),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 28),
+          const SizedBox(width: 10),
+          Text(
+            '재난 경보: $level',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.1,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -75,97 +84,102 @@ class DisasterDetailPage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDisasterLevelBanner(disaster.disasterLevel),
-            const SizedBox(height: 24),
+            // build 내부 중 일부만 발췌 (다음처럼 교체)
+            children: [
+              _buildDisasterLevelBanner(disaster.disasterLevel),
+              const SizedBox(height: 24),
 
-            // 🕒 발생 시각
-            Row(
-              children: [
-                const Icon(Icons.schedule, size: 20, color: Colors.indigo),
-                const SizedBox(width: 8),
-                const Text('발생 시각', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 10),
-                Text(disaster.startTime, style: const TextStyle(color: Colors.black87)),
-              ],
-            ),
+              // 🕒 발생 시각
+              Row(
+                children: [
+                  const Icon(Icons.schedule_rounded, size: 20, color: Colors.indigo),
+                  const SizedBox(width: 8),
+                  const Text('발생 시각', style: TextStyle(fontWeight: FontWeight.w500)),
+                  const SizedBox(width: 10),
+                  Text(
+                    disaster.startTime,
+                    style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
 
-            const SizedBox(height: 20),
-            const Divider(thickness: 1),
+              const SizedBox(height: 20),
+              const Divider(thickness: 1),
 
-            // 📢 재난 문자
-            const SizedBox(height: 16),
-            const Text('📢 재난 문자',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
+              // 📢 재난 문자
+              const SizedBox(height: 16),
+              const Text('📢 재난 문자',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 10),
 
-            if (message.trim().isEmpty)
-              const Text('📭 재난 문자가 없습니다.',
-                  style: TextStyle(color: Colors.grey))
-            else
-              Container(
+              if (message.trim().isEmpty)
+                const Text('📭 재난 문자가 없습니다.', style: TextStyle(color: Colors.grey))
+              else
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F4FF),
+                    border: Border.all(color: Colors.indigo.shade100),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    message,
+                    style: const TextStyle(fontSize: 15, height: 1.6, color: Colors.black87),
+                  ),
+                ),
+
+              const SizedBox(height: 28),
+
+              // 🧯 대처 방법 버튼
+              const Text('📌 대처 방법',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 12),
+
+              SizedBox(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F7FA),
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  message,
-                  style: const TextStyle(fontSize: 14, height: 1.6),
-                ),
-              ),
-
-            const SizedBox(height: 28),
-
-            // 🧯 대처 방법 이동 버튼
-            const Text('📌 대처 방법',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-
-            InkWell(
-              onTap: () {
-                if (routeName.isNotEmpty) {
-                  Navigator.pushNamed(context, routeName);
-                } else {
-                  Navigator.pushNamed(context, '/disasterlist');
-                }
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Ink(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F0FF),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.indigo.shade200),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                child: Row(
-                  children: const [
-                    Icon(Icons.info_outline, size: 18, color: Colors.indigo),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '자세히 보러 가기',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                      ),
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.info_outline, color: Colors.black87),
+                  label: const Text(
+                    '자세히 보러 가기',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black87),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: BorderSide(color: Colors.grey.shade400),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    Icon(Icons.arrow_forward_ios, size: 14, color: Colors.indigo),
-                  ],
+                  ),
+                  onPressed: () {
+                    if (routeName.isNotEmpty) {
+                      Navigator.pushNamed(context, routeName);
+                    } else {
+                      Navigator.pushNamed(context, '/disasterlist');
+                    }
+                  },
                 ),
               ),
-            ),
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-            const Center(
-              child: Text(
-                '마지막 업데이트: 1시간 전',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: Text(
+                    '⏰ 마지막 업데이트: 1시간 전',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-          ],
+              const SizedBox(height: 8),
+            ],
         ),
       ),
     );

@@ -10,6 +10,14 @@ import 'pages/initial_page.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 
+final mockDisaster = Disaster(
+  region: '부산광역시',
+  type: '태풍',
+  disasterLevel: '경계',
+  startTime: '2025-07-21 14:30',
+  info: '태풍 카눈이 부산에 접근 중입니다. 해안가 접근을 삼가시고 실내에 머무르시기 바랍니다. 시설물 피해 및 침수 주의 바랍니다.',
+);
+
 Future<void> requestNotificationPermission() async {
   final status = await Permission.notification.status;
   if (!status.isGranted) {
