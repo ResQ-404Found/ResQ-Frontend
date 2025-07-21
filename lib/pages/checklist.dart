@@ -10,33 +10,34 @@ class ChecklistPage extends StatefulWidget {
 class _ChecklistPageState extends State<ChecklistPage> {
   final List<ChecklistSection> sections = [
     ChecklistSection(
-      title: 'I. 손에 들고 가야 할 것 (Go Bag)',
+      title: '가방에 챙길 것',
       icon: Icons.backpack,
       items: [
-        "생수 (1인당 하루 3L, 최소 3일분) ⭐",
-        "간편식 (라면, 통조림, 에너지바) ⭐",
-        "손전등 및 여분 건전지 ⭐",
+        "⭐ 생수 (1인당 하루 3L, 최소 3일분)",
+        "⭐ 간편식 (라면, 통조림, 에너지바)",
+        "⭐ 손전등 및 여분 건전지",
+        "⭐ 귀중품 및 중요 서류 (방수 비닐 보관)",
+        "⭐ 신용카드, 현금카드 및 현금",
         "상비약 (개인 복용 약물 포함)",
         "휴대용 라디오 (건전지 포함)",
         "화장지 및 물티슈",
         "우의 및 방수용품",
         "담요 또는 보온용품",
         "방독면 및 마스크",
-        "귀중품 및 중요 서류 (방수 비닐 보관) ⭐",
         "예비 자동차 키와 열쇠",
-        "신용카드, 현금카드 및 현금 ⭐",
+
         "편안한 신발 및 보온 의류",
         "가족 연락처 및 행동요령 수첩",
       ],
     ),
     ChecklistSection(
-      title: 'II. 집에 비치할 것',
+      title: '집에 비치할 것',
       icon: Icons.home,
       items: [
+        "⭐ 식수 저장용기 및 정수제 ",
         "가공식품 (라면, 통조림 등 3일분)",
         "취사도구 (코펠, 버너, 부탄가스)",
         "침구 및 피복 (담요, 따뜻한 옷, 비옷)",
-        "식수 저장용기 및 정수제 ⭐",
         "개인위생용품 (비누, 치약, 칫솔, 수건)",
         "라디오, 휴대폰 충전기, 배터리",
         "전등, 양초, 성냥 (라이터)",
@@ -47,11 +48,11 @@ class _ChecklistPageState extends State<ChecklistPage> {
       ],
     ),
     ChecklistSection(
-      title: 'III. 가정용 비상 의약품',
+      title: '가정용 비상 의약품',
       icon: Icons.medical_services,
       items: [
-        "소독제 (알코올, 오오드) ⭐",
-        "해열진통제 (아세트아미노펜, 이부프로펜) ⭐",
+        "⭐ 소독제 (알코올, 오오드) ",
+        "⭐ 해열진통제 (아세트아미노펜, 이부프로펜) ",
         "소화제 및 지사제",
         "화상연고 및 상처치료제",
         "지혈제 및 소염제",
@@ -64,10 +65,10 @@ class _ChecklistPageState extends State<ChecklistPage> {
       ],
     ),
     ChecklistSection(
-      title: 'IV. 마을 공동 준비 사항',
+      title: '마을 공동 준비 사항',
       icon: Icons.groups,
       items: [
-        "비상 대피 시설 (지하실, 대피소) ⭐",
+        "⭐ 비상 대피 시설 (지하실, 대피소)",
         "마대 및 모래",
         "쟁이, 망토, 삽, 곡괭이",
         "사다리 및 토퍼",
@@ -76,11 +77,11 @@ class _ChecklistPageState extends State<ChecklistPage> {
       ],
     ),
     ChecklistSection(
-      title: 'V. 화생방 방전 비상용품',
+      title: '화생방 방전 비상용품',
       icon: Icons.shield,
       items: [
-        "방독면 또는 비닐, 수건, 마스크 ⭐",
-        "보호 옷, 보호 두건 또는 비닐 옷 ⭐",
+        "⭐ 방독면 또는 비닐, 수건, 마스크",
+        "⭐ 보호 옷, 보호 두건 또는 비닐 옷",
         "방독(고무) 장화",
         "방독(고무) 장갑",
         "제독제 및 세정용품",
@@ -94,116 +95,151 @@ class _ChecklistPageState extends State<ChecklistPage> {
   @override
   void initState() {
     super.initState();
-    checkedStates = sections
-        .map((section) => List<bool>.filled(section.items.length, false))
-        .toList();
-  }
-
-  double get progress {
-    int total = 0;
-    int completed = 0;
-    for (var list in checkedStates) {
-      total += list.length;
-      completed += list.where((e) => e).length;
-    }
-    return total == 0 ? 0 : completed / total;
+    checkedStates = sections.map((s) => List.filled(s.items.length, false)).toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    int total = 0, done = 0;
+    for (int i = 0; i < checkedStates.length; i++) {
+      total += checkedStates[i].length;
+      done += checkedStates[i].where((e) => e).length;
+    }
+    final double percent = total == 0 ? 0.0 : done / total;
+
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('재난물자 체크리스트'),
+        title: const Text('재난 대비 체크리스트'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Column(
           children: [
-            const Text('비상시를 대비한 필수 물품들을 체크해보세요'),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 8,
-                    color: Colors.indigo,
-                    backgroundColor: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text('${(progress * 100).round()}%',
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 20),
-            ...List.generate(sections.length, (sectionIndex) {
-              final section = sections[sectionIndex];
-              return ExpansionTile(
-                initiallyExpanded: true,
-                backgroundColor: Colors.blue.shade50,
-                title: Row(
-                  children: [
-                    Icon(section.icon, color: Colors.indigo),
-                    const SizedBox(width: 8),
-                    Text(
-                      section.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.indigo,
-                      ),
-                    ),
-                  ],
-                ),
-                children: List.generate(section.items.length, (itemIndex) {
-                  final item = section.items[itemIndex];
+            _buildOverallProgress(percent, done, total),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.separated(
+                itemCount: sections.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, sectionIndex) {
+                  final section = sections[sectionIndex];
+                  final sectionDone = checkedStates[sectionIndex].where((e) => e).length;
+                  final sectionTotal = section.items.length;
+                  final sectionPercent = sectionTotal == 0 ? 0 : (sectionDone / sectionTotal);
+                  final isSectionCompleted = sectionDone == sectionTotal;
                   return Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color:  Color(0x54BFBFBF),
+                        width: 1.5,
+                      ),
+
+                      // 빨간 테두리 추가
                     ),
-                    child: CheckboxListTile(
-                      title: Text(
-                        item,
-                        style: TextStyle(
-                          fontWeight:
-                          item.contains("⭐") ? FontWeight.bold : null,
-                        ),
+                    child: ExpansionTile(
+                      tilePadding: EdgeInsets.zero,
+                      childrenPadding: EdgeInsets.zero,
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8.0, right: 12.0), // 왼쪽 8, 오른쪽 12 간격 추가
+                                child: CircleAvatar(
+                                  backgroundColor: section.title.contains('가방') ? Colors.redAccent :
+                                  section.title.contains('집') ? Colors.orangeAccent :
+                                  section.title.contains('의약품') ? Colors.green :
+                                  section.title.contains('마을') ? Colors.blueAccent :
+                                  section.title.contains('화생방') ? Colors.deepPurple :
+                                  Colors.indigo,
+                                  child: Icon(section.icon, color: Colors.white),
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(section.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 4),
+                                    Text('$sectionDone/$sectionTotal 완료 (${(sectionPercent * 100).round()}%)', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                  ],
+                                ),
+                              ),
+                              Text('${(sectionPercent * 100).round()}%', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Padding(
+                          padding: const EdgeInsets.only(left: 56),
+                          child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: LinearProgressIndicator(
+                          value: sectionPercent.toDouble(),
+                          minHeight: 6,
+                              color: section.title.contains('가방') ? Colors.redAccent :
+                              section.title.contains('집') ? Colors.orangeAccent :
+                              section.title.contains('의약품') ? Colors.green :
+                              section.title.contains('마을') ? Colors.blueAccent :
+                              section.title.contains('화생방') ? Colors.deepPurple :
+                              Colors.indigo,
+                              backgroundColor: Colors.grey.shade300,
+                            ),
+                          ),
+                          ),
+                        ],
                       ),
-                      value: checkedStates[sectionIndex][itemIndex],
-                      activeColor: Colors.indigo,
-                      onChanged: (val) {
-                        setState(() => checkedStates[sectionIndex][itemIndex] = val ?? false);
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+
+
+                      children: List.generate(section.items.length, (itemIndex) {
+                        final item = section.items[itemIndex];
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            color: checkedStates[sectionIndex][itemIndex]
+                                ? Colors.grey.shade100   // 체크되면 연한 회색 배경
+                                : Colors.white,          // 체크 안 됐으면 흰색
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: checkedStates[sectionIndex][itemIndex]
+                                  ?  Color(0xAAAAAA)
+                                  :  Color(0x54BFBFBF) ,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: CheckboxListTile(
+                            title: Text(
+                              item,
+                              style: TextStyle(
+                                decoration: checkedStates[sectionIndex][itemIndex]
+                                    ? TextDecoration.lineThrough  // 체크되면 줄긋기
+                                    : TextDecoration.none,
+                              ),
+                            ),
+                            value: checkedStates[sectionIndex][itemIndex],
+                            activeColor: Color(0xFFFF4242),  // 체크 시 빨간색
+                            checkColor: Colors.white,       // 체크한 아이콘 색상
+                            onChanged: (val) {
+                              setState(() => checkedStates[sectionIndex][itemIndex] = val ?? false);
+                            },
+                            controlAffinity: ListTileControlAffinity.leading,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                          ),
+                        );
+                      }),
                     ),
                   );
-                }),
-              );
-            }),
-            const SizedBox(height: 30),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                '🔷 중요 안내사항 🔷\n\n'
-                    '- 별표(⭐) 표시된 항목은 최우선 준비 물품입니다\n'
-                    '- 가족 구성원 수에 따라 수량을 조절하세요\n'
-                    '- 장기적으로 유통기한과 상태를 점검하세요\n'
-                    '- 비상시 대피 경로를 미리 확인해주세요',
+                },
               ),
             ),
           ],
@@ -211,6 +247,98 @@ class _ChecklistPageState extends State<ChecklistPage> {
       ),
     );
   }
+
+  Widget _buildOverallProgress(double progress, int completed, int total) {
+    final percent = (progress * 100).round();
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,  // 박스 안은 흰색
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.redAccent.withOpacity(0.5),  // 빨간색 그림자
+            blurRadius: 8,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 13), // 진행 바 오른쪽으로 이동
+                child: Stack(
+                  alignment: Alignment.center,  // Stack 내의 요소들이 겹치지 않도록 중앙 정렬
+                  children: [
+                    SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 6,
+                        backgroundColor: Colors.grey[300],
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.redAccent),
+                      ),
+                    ),
+                    // 원형 안에 텍스트 추가
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$percent%',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                        const Text(
+                          '완료',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 32),  // 텍스트 오른쪽으로 이동
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '전체 진행률',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '$completed / $total 완료',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),  // 첫 번째 박스와 두 번째 박스 사이에 공백 추가
+          // 공백 추가 후, 다른 내용이나 박스를 추가할 수 있습니다.
+          const SizedBox(height: 16),  // 아래쪽 공백
+        ],
+      ),
+    );
+  }
+
+
+
+
+
+
+
 }
 
 class ChecklistSection {
