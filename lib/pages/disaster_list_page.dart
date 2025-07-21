@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'disaster_guide_page.dart'; // 통합 가이드 페이지 import
 
 class DisasterListPage extends StatelessWidget {
   const DisasterListPage({super.key});
@@ -6,12 +7,12 @@ class DisasterListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final disasterTypes = [
-      {'title': '화재', 'route': '/fire', 'icon': Icons.local_fire_department_rounded, 'color': Colors.red},
-      {'title': '산사태', 'route': '/landslide', 'icon': Icons.terrain_rounded, 'color': Colors.brown},
-      {'title': '홍수', 'route': '/flood', 'icon': Icons.flood_rounded, 'color': Colors.blue},
-      {'title': '태풍', 'route': '/typhoon', 'icon': Icons.air_rounded, 'color': Colors.teal},
-      {'title': '지진', 'route': '/earthquake', 'icon': Icons.warning_amber_rounded, 'color': Colors.orange},
-      {'title': '한파', 'route': '/coldwave', 'icon': Icons.ac_unit_rounded, 'color': Colors.indigo},
+      {'title': '화재', 'icon': Icons.local_fire_department_rounded, 'color': Colors.red},
+      {'title': '산사태', 'icon': Icons.terrain_rounded, 'color': Colors.brown},
+      {'title': '홍수', 'icon': Icons.flood_rounded, 'color': Colors.blue},
+      {'title': '태풍', 'icon': Icons.air_rounded, 'color': Colors.teal},
+      {'title': '지진', 'icon': Icons.warning_amber_rounded, 'color': Colors.orange},
+      {'title': '한파', 'icon': Icons.ac_unit_rounded, 'color': Colors.indigo},
     ];
 
     return Scaffold(
@@ -25,47 +26,51 @@ class DisasterListPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: ListView.builder(
+      body: Padding(
         padding: const EdgeInsets.all(16),
-        itemCount: disasterTypes.length,
-        itemBuilder: (context, index) {
-          final disaster = disasterTypes[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => Navigator.pushNamed(context, disaster['route'] as String),
+        child: GridView.builder(
+          itemCount: disasterTypes.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.0,
+          ),
+          itemBuilder: (context, index) {
+            final disaster = disasterTypes[index];
+            return InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                // 선택된 재난 인덱스를 넘겨서 DisasterGuidePage로 이동
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DisasterGuidePage(initialIndex: index),
+                  ),
+                );
+              },
               child: Ink(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey.shade300),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Icon(
-                        disaster['icon'] as IconData,
-                        size: 28,
-                        color: disaster['color'] as Color,
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        disaster['title'] as String,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                      ),
-                      const Spacer(),
-                      const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                    ],
-                  ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(disaster['icon'] as IconData, size: 36, color: disaster['color'] as Color),
+                    const SizedBox(height: 12),
+                    Text(
+                      disaster['title'] as String,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
-
     );
   }
 }

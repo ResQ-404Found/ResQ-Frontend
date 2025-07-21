@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'disaster_guide_page.dart';
 
 class DisasterMenuPage extends StatelessWidget {
   const DisasterMenuPage({super.key});
@@ -13,7 +14,7 @@ class DisasterMenuPage extends StatelessWidget {
         'color': Colors.redAccent,
       },
       {
-        'title': '대처 방법',
+        'title': '대피 방법',
         'subtitle': '상황별 대응 가이드',
         'icon': Icons.security,
         'color': Colors.orangeAccent,
@@ -68,11 +69,15 @@ class DisasterMenuPage extends StatelessWidget {
                   final isFirst = index == 0;
                   return GestureDetector(
                     onTap: () {
-                      if (item['title'] == '대처 방법') {
-                        Navigator.pushNamed(context, '/disasterlist');
-                      } else if (item['title'] == '체크리스트') {
-                        Navigator.pushNamed(context, '/checklist');
+                      if (item['title'] == '대피 방법') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DisasterGuidePage(initialIndex: 0),
+                          ),
+                        );
                       }
+
                     },
                     child: Container(
                       height: 100,
