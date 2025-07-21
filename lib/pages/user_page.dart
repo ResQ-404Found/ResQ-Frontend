@@ -339,41 +339,69 @@ final currentController = TextEditingController();
           ),
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.white,
-        elevation: 10,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: Icon(Icons.home, color: Colors.grey[400]),
-                iconSize: 32,
-                onPressed: () => Navigator.pushNamed(context, '/map'),
-              ),
-              IconButton(
-                icon: Icon(Icons.chat, color: Colors.grey[400]),
-                iconSize: 32,
-                onPressed: () => Navigator.pushNamed(context, '/allposts'),
-              ),
-              IconButton(
-                icon: Icon(Icons.groups, color: Colors.grey[400]),
-                iconSize: 32,
-                onPressed: () => Navigator.pushNamed(context, '/community'),
-              ),
-              IconButton(
-                icon: Icon(Icons.emergency_share, color: Colors.grey[400]),
-                iconSize: 32,
-                onPressed: () => Navigator.pushNamed(context, '/disastermenu'),
-              ),
-              IconButton(
-                icon: const Icon(Icons.person),
-                iconSize: 32,
-                onPressed: () {},
-              ),
-            ],
-          ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white, // 배경색
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1), // 그림자 색
+              blurRadius: 10, // 퍼짐 정도
+              offset: Offset(0, -2), // 위쪽으로 살짝 그림자
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.transparent, // Container에서 색 처리했으므로 투명
+          elevation: 0, // 내부 elevation 제거
+          type: BottomNavigationBarType.fixed,
+          currentIndex: 4,
+          onTap: (index) {
+            switch (index) {
+              case 0:
+                Navigator.pushNamed(context, '/map');
+                break;
+              case 1:
+                Navigator.pushNamed(context, '/chatbot');
+                break;
+              case 2:
+                Navigator.pushNamed(context, '/community');
+                break;
+              case 3:
+                Navigator.pushNamed(context, '/disastermenu');
+                break;
+              case 4:
+
+                break;
+            }
+          },
+          selectedItemColor: Colors.redAccent, // 선택된 아이콘 색
+          unselectedItemColor: Colors.grey[300], // 비선택 아이콘 색
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          selectedIconTheme: IconThemeData(size: 30),
+          unselectedIconTheme: IconThemeData(size: 30),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)),
+              label: '지도',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)),
+              label: '채팅',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)),
+              label: '커뮤니티',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)),
+              label: '재난메뉴',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)),
+              label: '마이',
+            ),
+          ],
         ),
       ),
     );
