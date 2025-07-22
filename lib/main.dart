@@ -7,7 +7,6 @@ import 'routes.dart';
 import 'pages/disaster_detail_page.dart';
 import 'pages/map_page.dart';
 import 'pages/initial_page.dart';
-import 'pages/all_disaster_type_message.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 final mockDisaster = Disaster(
@@ -133,12 +132,6 @@ class _MyAppState extends State<MyApp> {
           );
         }
 
-        if (settings.name == '/disastertypedetail') {
-          final disasterType = settings.arguments as String;
-          return MaterialPageRoute(
-            builder: (context) => AllDisasterTypeDetailPage(disasterType: disasterType),
-          );
-        }
 
         return MaterialPageRoute(
           builder: (context) => const Scaffold(

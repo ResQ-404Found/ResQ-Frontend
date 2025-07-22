@@ -110,7 +110,7 @@ class _ChecklistPageState extends State<ChecklistPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('재난 대비 체크리스트'),
+        title: const Text('재난 대비 체크리스트',style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600,fontSize: 20)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,

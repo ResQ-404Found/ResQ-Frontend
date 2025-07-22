@@ -25,12 +25,11 @@ import 'pages/password_reset_verify_page.dart';
 import 'pages/initial_page.dart';
 import 'pages/checklist.dart';
 import 'pages/news_page.dart';
-import 'pages/all_disaster_type_message.dart';
-import 'pages/all_disaster_types.dart';
 import 'pages/my_post_detail_page.dart';
 import 'pages/my_post_edit_page.dart';
-
+import 'pages/all_disaster_type_detail_page.dart';
 final Map<String, WidgetBuilder> routes = {
+  '/all-disasters': (context) => const AllDisasterTypeDetailPage(),
   '/initial': (context) => const InitialPage(),
   '/login': (context) => LoginPage(),
   '/signup': (context) => SignUpPage(),
@@ -56,11 +55,7 @@ final Map<String, WidgetBuilder> routes = {
   '/news': (context) => NewsPage(),
   '/postDetail': (context) => const PostDetailPage(),
   '/postEdit': (context) => const PostEditPage(),
-  '/alldisastertypes': (context) => AllDisasterTypeListPage(),
-  '/disastertypedetail': (context) {
-    final args = ModalRoute.of(context)!.settings.arguments as String;
-    return AllDisasterTypeDetailPage(disasterType: args);
-  },
+
   '/password_reset_request' : (context) => const PasswordResetRequestPage(),
   '/password_reset_verify': (context) {
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
