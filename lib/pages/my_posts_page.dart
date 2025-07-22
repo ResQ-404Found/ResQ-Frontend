@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'all_post_detail_page.dart';
-import 'edit_post_page.dart';
+import 'my_post_edit_page.dart';
 
 class MyPostsPage extends StatefulWidget {
   const MyPostsPage({super.key});
@@ -86,7 +86,10 @@ class _MyPostsPageState extends State<MyPostsPage> {
       appBar: AppBar(
         title: const Text('내가 작성한 글', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        leading: const BackButton(),
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 35),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -108,7 +111,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AllPostDetailPage(post: post),
+                  builder: (_) => AllPostDetailPage(post: post),
                 ),
               );
             },
@@ -154,7 +157,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EditPostPage(post: post),
+                      builder: (context) => PostEditPage(post: post),
                     ),
                   ).then((_) => fetchMyPosts());
                 } else if (value == 'delete') {

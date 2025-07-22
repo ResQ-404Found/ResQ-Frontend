@@ -8,7 +8,9 @@ import 'package:http_parser/http_parser.dart';
 import 'dart:convert';
 
 class PostEditPage extends StatefulWidget {
-  const PostEditPage({super.key});
+  final Map<String, dynamic> post;
+
+  const PostEditPage({super.key, required this.post});
 
   @override
   State<PostEditPage> createState() => _PostEditPageState();
@@ -19,8 +21,8 @@ class _PostEditPageState extends State<PostEditPage> {
   final TextEditingController contentController = TextEditingController();
   String? selectedRegion;
   File? _image;
-  Map<String, dynamic>? post;
   int? postId;
+  final storage = FlutterSecureStorage();
 
   final List<String> regions = [
     '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종',
@@ -34,43 +36,16 @@ class _PostEditPageState extends State<PostEditPage> {
     '경북': 9073, '경남': 10404, '제주': 11977,
   };
 
-  final storage = FlutterSecureStorage();
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final args = ModalRoute.of(context as BuildContext)?.settings.arguments;
-      if (args is int) {
-        postId = args;
-        _loadPost(postId!);
-      } else {
-        ScaffoldMessenger.of(context as BuildContext).showSnackBar(
-          const SnackBar(content: Text('잘못된 접근입니다.')),
-        );
-        Navigator.pop(context as BuildContext);
-      }
-    });
-  }
-
-  Future<void> _loadPost(int id) async {
-    final token = await storage.read(key: 'accessToken');
-    final res = await http.get(
-      Uri.parse('http://54.253.211.96:8000/api/posts/$id'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    if (res.statusCode == 200) {
-      final data = jsonDecode(res.body);
-      setState(() {
-        post = data;
-        titleController.text = post?['title'] ?? '';
-        contentController.text = post?['content'] ?? '';
-        selectedRegion = regionIdMap.entries
-            .firstWhere((e) => e.value == post?['region_id'], orElse: () => const MapEntry('부산', 2559))
-            .key;
-      });
-    }
+    final post = widget.post;
+    postId = post['id'];
+    titleController.text = post['title'] ?? '';
+    contentController.text = post['content'] ?? '';
+    selectedRegion = regionIdMap.entries
+        .firstWhere((e) => e.value == post['region_id'], orElse: () => const MapEntry('부산', 2559))
+        .key;
   }
 
   Future<void> _pickImage() async {
@@ -125,11 +100,7 @@ class _PostEditPageState extends State<PostEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (post == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+    final post = widget.post;
 
     return Scaffold(
       appBar: AppBar(title: const Text('게시글 수정'), centerTitle: true),
@@ -146,8 +117,8 @@ class _PostEditPageState extends State<PostEditPage> {
                 color: Colors.grey.shade300,
                 child: _image != null
                     ? Image.file(_image!, fit: BoxFit.cover)
-                    : (post?['post_imageURLs'] != null && post!['post_imageURLs'].isNotEmpty)
-                    ? Image.network(post!['post_imageURLs'][0])
+                    : (post['post_imageURLs'] != null && post['post_imageURLs'].isNotEmpty)
+                    ? Image.network(post['post_imageURLs'][0])
                     : const Icon(Icons.add, size: 40, color: Colors.white),
               ),
             ),

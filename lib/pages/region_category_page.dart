@@ -13,7 +13,7 @@ class RegionCategoryPage extends StatefulWidget {
 class _RegionCategoryPageState extends State<RegionCategoryPage> {
   final storage = const FlutterSecureStorage();
   Map<int, int> notificationRegionMap =
-      {}; // regionId -> notification_region_id
+  {}; // regionId -> notification_region_id
 
   final Map<int, String> regionIdToName = {
     // 서울특별시
@@ -610,79 +610,99 @@ class _RegionCategoryPageState extends State<RegionCategoryPage> {
   @override
   Widget build(BuildContext context) {
     final visibleRegions =
-        regionData.entries.where((e) => e.value.isNotEmpty).toList();
+    regionData.entries.where((e) => e.value.isNotEmpty).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('지역 선택'),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0.5,
-        scrolledUnderElevation: 0.5,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 6,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            centerTitle: true,
+            title: const Text('지역 선택', style: TextStyle(color: Colors.black)),
+            foregroundColor: Colors.black,
+            leading: IconButton(
+              icon: const Icon(Icons.chevron_left, size: 35),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
         ),
       ),
       backgroundColor: const Color(0xFFF9FAFB),
       body: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: ListView.builder(
-          itemCount: visibleRegions.length,
-          itemBuilder: (context, index) {
-            final regionName = visibleRegions[index].key;
-            final subCount = visibleRegions[index].value.length;
-            final regionId =
-                regionIdToName.entries
-                    .firstWhere(
-                      (e) => e.value == regionName,
-                      orElse: () => const MapEntry(-1, ''),
-                    )
-                    .key;
-            final isSelected = notificationRegionMap.containsKey(regionId);
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Column(
+          children: [
+            const SizedBox(height: 12), // 앱바와 첫 박스 사이 간격 추가
+            Expanded(
+              child: ListView.builder(
+                itemCount: visibleRegions.length,
+                itemBuilder: (context, index) {
+                  final regionName = visibleRegions[index].key;
+                  final subCount = visibleRegions[index].value.length;
+                  final regionId = regionIdToName.entries
+                      .firstWhere(
+                        (e) => e.value == regionName,
+                    orElse: () => const MapEntry(-1, ''),
+                  )
+                      .key;
+                  final isSelected = notificationRegionMap.containsKey(regionId);
 
-            return GestureDetector(
-              onTap: () async {
-                _showSubRegionModal(context, regionName);
-              },
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 20,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      regionName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                  return GestureDetector(
+                    onTap: () async {
+                      _showSubRegionModal(context, regionName);
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 20,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            regionName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          if (subCount > 0)
+                            Text(
+                              '$subCount개 지역',
+                              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                            ),
+                        ],
                       ),
                     ),
-                    if (subCount > 0)
-                      Text(
-                        '$subCount개 지역',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                      ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
@@ -698,113 +718,103 @@ class _RegionCategoryPageState extends State<RegionCategoryPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder:
-          (context) => StatefulBuilder(
-            builder:
-                (context, setModalState) => DraggableScrollableSheet(
-                  expand: false,
-                  initialChildSize: 0.6,
-                  minChildSize: 0.4,
-                  maxChildSize: 0.9,
-                  builder:
-                      (context, scrollController) => SingleChildScrollView(
-                        controller: scrollController,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 20,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  regionName,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.close),
-                                  onPressed: () => Navigator.pop(context),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              '원하는 지역을 선택해주세요',
-                              style: TextStyle(fontSize: 15),
-                            ),
-                            const SizedBox(height: 20),
-                            Align(
-                              alignment: Alignment.center,
-                              child: Wrap(
-                                alignment: WrapAlignment.center,
-                                spacing: 35,
-                                runSpacing: 20,
-                                children:
-                                    subRegions.map((sub) {
-                                      final matched = regionIdToName.entries
-                                          .firstWhere(
-                                            (e) => e.value == sub,
-                                            orElse:
-                                                () => const MapEntry(-1, ''),
-                                          );
-                                      final regionId = matched.key;
-                                      final isNotified = notificationRegionMap
-                                          .containsKey(regionId);
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (context, scrollController) => SingleChildScrollView(
+            controller: scrollController,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 20,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      regionName,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  '원하는 지역을 선택해주세요',
+                  style: TextStyle(fontSize: 15),
+                ),
+                const SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.center,
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 35,
+                    runSpacing: 20,
+                    children: subRegions.map((sub) {
+                      final matched = regionIdToName.entries.firstWhere(
+                            (e) => e.value == sub,
+                        orElse: () => const MapEntry(-1, ''),
+                      );
+                      final regionId = matched.key;
+                      final isNotified = notificationRegionMap.containsKey(regionId);
 
-                                      return GestureDetector(
-                                        onTap: () async {
-                                          if (regionId == -1) return;
+                      return GestureDetector(
+                        onTap: () async {
+                          if (regionId == -1) return;
 
-                                          if (isNotified) {
-                                            await _deleteNotificationRegion(
-                                              regionId,
-                                            );
-                                          } else {
-                                            await _addNotificationRegion(
-                                              regionId,
-                                            );
-                                          }
-                                          setModalState(() {});
-                                        },
-                                        child: Container(
-                                          width: 140,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 14,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                isNotified
-                                                    ? Colors.lightBlue[100]
-                                                    : Colors.grey[200],
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              sub,
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(),
+                          if (isNotified) {
+                            await _deleteNotificationRegion(
+                              regionId,
+                            );
+                          } else {
+                            await _addNotificationRegion(
+                              regionId,
+                            );
+                          }
+                          setModalState(() {});
+                        },
+                        child: Container(
+                          width: 140,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isNotified ? Colors.lightBlue[100] : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(
+                              10,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              sub,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 14,
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+                      );
+                    }).toList(),
+                  ),
                 ),
+              ],
+            ),
           ),
+        ),
+      ),
     );
   }
 }

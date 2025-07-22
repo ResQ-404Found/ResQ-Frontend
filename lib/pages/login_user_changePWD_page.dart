@@ -103,6 +103,12 @@ class _LoginUserChangePWDPageState extends State<LoginUserChangePWDPage> {
         title: const Text("비밀번호 변경", style: TextStyle(color: Colors.black87, fontSize: 18)),
         backgroundColor: Color(0xFFFAFAFA),
         iconTheme: const IconThemeData(color: Colors.black87),
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 35),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),

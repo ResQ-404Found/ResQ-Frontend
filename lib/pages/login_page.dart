@@ -314,7 +314,7 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     const SizedBox(height: 30),
                     buildEmail(),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 16),
                     buildPassword(),
                     const SizedBox(height: 3),
                     buildForgotPasswordButton(),

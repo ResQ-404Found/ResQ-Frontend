@@ -62,7 +62,9 @@ class CommunityMainPageState extends State<CommunityMainPage> {
   }
 
   Future<void> fetchPopularPosts() async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts?sort=like_count');
+    final url = Uri.parse(
+      'http://54.253.211.96:8000/api/posts?sort=like_count',
+    );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -113,6 +115,18 @@ class CommunityMainPageState extends State<CommunityMainPage> {
     });
   }
 
+  String? resolveImageUrl(dynamic urls) {
+    if (urls is List && urls.isNotEmpty) {
+      final url = urls.first;
+      if (url.startsWith('/static')) {
+        return 'http://54.253.211.96:8000$url';
+      } else if (url.startsWith('http')) {
+        return url;
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,52 +175,57 @@ class CommunityMainPageState extends State<CommunityMainPage> {
           ),
         ),
       ),
-      body: isSearching
-          ? Padding(
-        padding: const EdgeInsets.all(16),
-        child: searchResults.isNotEmpty
-            ? ListView.builder(
-          itemCount: searchResults.length,
-          itemBuilder: (context, index) {
-            final post = searchResults[index];
-            return Container(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey[300]!),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          post['title'],
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "작성자: ${post['author']?['nickname'] ?? post['user_id'] ?? '알 수 없음'}",
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        )
-            : const Center(child: Text('검색결과가 없습니다')),
-      )
-          : buildDefaultContent(),
+      body:
+          isSearching
+              ? Padding(
+                padding: const EdgeInsets.all(16),
+                child:
+                    searchResults.isNotEmpty
+                        ? ListView.builder(
+                          itemCount: searchResults.length,
+                          itemBuilder: (context, index) {
+                            final post = searchResults[index];
+                            return Container(
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.grey[300]!),
+                              ),
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          post['title'],
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          "작성자: ${post['author']?['nickname'] ?? post['user_id'] ?? '알 수 없음'}",
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        )
+                        : const Center(child: Text('검색결과가 없습니다')),
+              )
+              : buildDefaultContent(),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -241,14 +260,17 @@ class CommunityMainPageState extends State<CommunityMainPage> {
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: '채팅'),
           BottomNavigationBarItem(icon: Icon(Icons.groups), label: '커뮤니티'),
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: '재난메뉴'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: '마이'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_border),
+            label: '마이',
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pushNamed(context, '/createpost'),
         backgroundColor: Colors.redAccent,
         shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white, size: 32),
+        child: const Icon(Icons.edit, color: Colors.white, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -277,7 +299,10 @@ class CommunityMainPageState extends State<CommunityMainPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         Padding(
           padding: const EdgeInsets.only(right: 15),
           child: InkWell(
@@ -305,6 +330,8 @@ class CommunityMainPageState extends State<CommunityMainPage> {
         itemBuilder: (context, index) {
           final post = postsList[index];
           final regionId = int.tryParse('${post['region_id']}');
+          final imageUrl = resolveImageUrl(post['post_imageURLs']);
+
           return Container(
             width: 180,
             margin: const EdgeInsets.only(right: 12),
@@ -317,7 +344,7 @@ class CommunityMainPageState extends State<CommunityMainPage> {
                   blurRadius: 5,
                   spreadRadius: 1,
                   offset: const Offset(0, 2),
-                )
+                ),
               ],
             ),
             child: Column(
@@ -326,11 +353,21 @@ class CommunityMainPageState extends State<CommunityMainPage> {
                 Expanded(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      width: double.infinity,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.image, size: 48),
-                    ),
+                    child:
+                        imageUrl != null
+                            ? Image.network(
+                              imageUrl,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (_, __, ___) =>
+                                      const Icon(Icons.broken_image),
+                            )
+                            : Container(
+                              width: double.infinity,
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.image, size: 48),
+                            ),
                   ),
                 ),
                 Container(
@@ -341,16 +378,25 @@ class CommunityMainPageState extends State<CommunityMainPage> {
                     children: [
                       Text(
                         regionNames[regionId] ?? '알 수 없음',
-                        style: const TextStyle(fontSize: 15, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey,
+                        ),
                       ),
                       Text(
                         post['title'],
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         '작성자 ${post['author']?['nickname'] ?? post['user_id'] ?? '알 수 없음'}',
-                        style: const TextStyle(fontSize: 15, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),

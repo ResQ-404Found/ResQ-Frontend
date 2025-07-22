@@ -15,20 +15,45 @@ class ChatbotPage extends StatefulWidget {
 class _ChatbotPageState extends State<ChatbotPage> {
   final TextEditingController _messageController = TextEditingController();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final List<Map<String, String>> _messages = [];
 
-  final List<Map<String, String>> _messages =
-  []; // {"role": "user"/"bot", "message": "내용"}
   @override
   void initState() {
     super.initState();
-    _messages.add({
-      "role": "bot",
-      "message": "안녕하세요 저는 재난 전문 챗봇입니다. 무엇을 도와드릴까요?"
-    });
+    _loadChatHistory();
   }
+
+  Future<void> _loadChatHistory() async {
+    final token = await _storage.read(key: 'accessToken');
+    if (token == null) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://54.253.211.96:8000/api/chatbot/history'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> history = jsonDecode(response.body);
+        final ordered = history.reversed.toList();
+        setState(() {
+          _messages.add({
+            "role": "bot",
+            "message": "안녕하세요 저는 재난 전문 챗봇입니다. 무엇을 도와드릴까요?",
+          });
+          for (final item in ordered) {
+            _messages.add({"role": "user", "message": item['user_message']});
+            _messages.add({"role": "bot", "message": item['bot_response']});
+          }
+        });
+      }
+    } catch (e) {
+      print('채팅 기록 불러오기 오류: $e');
+    }
+  }
+
   Future<String?> _getAccessToken() async {
     final token = await _storage.read(key: 'accessToken');
-    print("읽은 accessToken: $token");
     return token;
   }
 
@@ -62,7 +87,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final botResponse = data['response'] ?? '답변을 가져오지 못했습니다.';
-
         setState(() {
           _messages.add({"role": "bot", "message": botResponse});
         });
@@ -89,10 +113,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
         preferredSize: const Size.fromHeight(60),
         child: Stack(
           children: [
-            Container(
-              height: 60,
-              color: Colors.white, // ✅ AppBar의 배경 고정
-            ),
+            Container(height: 60, color: Colors.white),
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -105,7 +126,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                 ],
               ),
               child: AppBar(
-                backgroundColor: Colors.transparent, // ✅ 여전히 transparent로 둬도 됨
+                backgroundColor: Colors.transparent,
                 elevation: 0,
                 title: const Padding(
                   padding: EdgeInsets.only(bottom: 4),
@@ -124,8 +145,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
           ],
         ),
       ),
-
-
       body: Column(
         children: [
           Expanded(
@@ -135,32 +154,32 @@ class _ChatbotPageState extends State<ChatbotPage> {
               itemBuilder: (context, index) {
                 final message = _messages[index];
                 final isUser = message['role'] == 'user';
-
                 final messageWidget = Align(
                   alignment:
-                  isUser ? Alignment.centerRight : Alignment.centerLeft,
+                      isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
-                    margin: isUser
-                        ? const EdgeInsets.fromLTRB(80, 20, 16, 5)  // 오른쪽 여백 16 추가됨
-                        : const EdgeInsets.fromLTRB(16, 8, 60, 5),
-
+                    margin:
+                        isUser
+                            ? const EdgeInsets.fromLTRB(80, 20, 16, 5)
+                            : const EdgeInsets.fromLTRB(16, 8, 60, 5),
                     padding: const EdgeInsets.all(12),
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.75,
                     ),
                     decoration: BoxDecoration(
-                      color: isUser ? Colors.white : Colors.white,
-                      borderRadius: BorderRadius.circular(isUser ? 20 : 20), // ✅ 사용자만 더 둥글게
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: isUser ? Color(0xFF5DD194).withOpacity(0.2) : Colors.redAccent.withOpacity(0.2), // ✅ 사용자든 챗봇이든 그림자
+                          color:
+                              isUser
+                                  ? const Color(0xFF5DD194).withOpacity(0.2)
+                                  : Colors.redAccent.withOpacity(0.2),
                           blurRadius: 6,
                           offset: const Offset(0, 3),
                         ),
                       ],
                     ),
-
-
                     child: Text(
                       message['message'] ?? '',
                       style: const TextStyle(fontSize: 15),
@@ -168,50 +187,47 @@ class _ChatbotPageState extends State<ChatbotPage> {
                   ),
                 );
 
-                if (isUser) {
-                  return messageWidget;
-                } else {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(padding: EdgeInsets.only(bottom: 4)),
-                      Row(
-                        children: [
-                          const SizedBox(width: 16),
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.redAccent.withOpacity(0.3),
-                                  blurRadius: 3,
-                                  offset: const Offset(0, 0),
-                                )
-                              ],
-                            ),
-                            child: const CircleAvatar(
-                              radius: 16,
-                              backgroundImage: AssetImage('lib/asset/chatbot_profile.png'),
-                              backgroundColor: Colors.white,
-                            ),
+                if (isUser) return messageWidget;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(padding: EdgeInsets.only(bottom: 4)),
+                    Row(
+                      children: [
+                        const SizedBox(width: 16),
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF5E5E5E).withOpacity(0.4),
+                                blurRadius: 3,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
                           ),
-
-                          const SizedBox(width: 12),
-                          const Text(
-                            '재난 전문 챗봇',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF454545)
+                          child: const CircleAvatar(
+                            radius: 16,
+                            backgroundImage: AssetImage(
+                              'lib/asset/chatbot_profile.png',
                             ),
+                            backgroundColor: Colors.white,
                           ),
-                        ],
-                      ),
-
-                      messageWidget,
-                    ],
-                  );
-                }
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          '재난 전문 챗봇',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF454545),
+                          ),
+                        ),
+                      ],
+                    ),
+                    messageWidget,
+                  ],
+                );
               },
             ),
           ),
@@ -231,6 +247,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
                       controller: _messageController,
                       decoration: const InputDecoration(
                         hintText: '메시지를 입력하세요',
+                        hintStyle: TextStyle(color: Colors.grey, fontSize: 15),
+                        contentPadding: EdgeInsets.only(left: 8),
                         border: InputBorder.none,
                       ),
                       onSubmitted: (_) => _sendMessage(),
@@ -257,18 +275,18 @@ class _ChatbotPageState extends State<ChatbotPage> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white, // 배경색
+          color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1), // 그림자 색
-              blurRadius: 2, // 퍼짐 정도
-              offset: Offset(0, 0), // 위쪽으로 살짝 그림자
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 2,
+              offset: const Offset(0, 0),
             ),
           ],
         ),
         child: BottomNavigationBar(
-          backgroundColor: Colors.transparent, // Container에서 색 처리했으므로 투명
-          elevation: 0, // 내부 elevation 제거
+          backgroundColor: Colors.transparent,
+          elevation: 0,
           type: BottomNavigationBarType.fixed,
           currentIndex: 1,
           onTap: (index) {
@@ -289,31 +307,46 @@ class _ChatbotPageState extends State<ChatbotPage> {
                 break;
             }
           },
-          selectedItemColor: Colors.redAccent, // 선택된 아이콘 색
-          unselectedItemColor: Colors.grey[300], // 비선택 아이콘 색
+          selectedItemColor: Colors.redAccent,
+          unselectedItemColor: Colors.grey[300],
           showSelectedLabels: false,
           showUnselectedLabels: false,
-          selectedIconTheme: IconThemeData(size: 30),
-          unselectedIconTheme: IconThemeData(size: 30),
+          selectedIconTheme: const IconThemeData(size: 30),
+          unselectedIconTheme: const IconThemeData(size: 30),
           items: const [
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.place),
+              ),
               label: '지도',
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.chat),
+              ),
               label: '채팅',
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.groups),
+              ),
               label: '커뮤니티',
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.dashboard),
+              ),
               label: '재난메뉴',
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.favorite_border),
+              ),
               label: '마이',
             ),
           ],

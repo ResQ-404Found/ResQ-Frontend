@@ -152,9 +152,9 @@ class _DisasterGuidePageState extends State<DisasterGuidePage> {
                   ],
                 ),
                 child: const Icon(
-                  Icons.arrow_back,
+                  Icons.chevron_left,
                   color: Colors.white,
-                  size: 24,
+                  size: 35,
                 ),
               ),
             ),

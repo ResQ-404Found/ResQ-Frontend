@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert'; // 꼭 필요
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChecklistPage extends StatefulWidget {
   const ChecklistPage({super.key});
@@ -91,12 +93,31 @@ class _ChecklistPageState extends State<ChecklistPage> {
   ];
 
   late List<List<bool>> checkedStates;
+  Future<void> saveChecklistState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = jsonEncode(checkedStates);
+    await prefs.setString('checklist_state', encoded);
+  }
 
+  Future<void> loadChecklistState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = prefs.getString('checklist_state');
+    if (encoded != null) {
+      final decoded = jsonDecode(encoded);
+      setState(() {
+        checkedStates = List<List<bool>>.from(
+          decoded.map<List<bool>>((section) => List<bool>.from(section)),
+        );
+      });
+    }
+  }
   @override
   void initState() {
     super.initState();
     checkedStates = sections.map((s) => List.filled(s.items.length, false)).toList();
+    loadChecklistState(); // 상태 불러오기
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -110,10 +131,14 @@ class _ChecklistPageState extends State<ChecklistPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('재난 대비 체크리스트'),
+        title: const Text('재난 대비 체크리스트',style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600,fontSize: 20)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 35),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -227,8 +252,12 @@ class _ChecklistPageState extends State<ChecklistPage> {
                             activeColor: Color(0xFFFF4242),  // 체크 시 빨간색
                             checkColor: Colors.white,       // 체크한 아이콘 색상
                             onChanged: (val) {
-                              setState(() => checkedStates[sectionIndex][itemIndex] = val ?? false);
+                              setState(() {
+                                checkedStates[sectionIndex][itemIndex] = val ?? false;
+                              });
+                              saveChecklistState();  // 변경 후 저장
                             },
+
                             controlAffinity: ListTileControlAffinity.leading,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),

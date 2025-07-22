@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'disaster_guide_page.dart';
-
 import 'checklist.dart';
-
-import 'all_disaster_types.dart';
-
-
+import 'all_disaster_type_detail_page.dart';
 class DisasterMenuPage extends StatelessWidget {
   const DisasterMenuPage({super.key});
 
@@ -13,8 +9,8 @@ class DisasterMenuPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final menuItems = [
       {
-        'title': '재난 정보',
-        'subtitle': '실시간 재난 현황 확인',
+        'title': '전체 재난 정보',
+        'subtitle': '전체 재난 기록 확인',
         'icon': Icons.warning_amber_rounded,
         'color': Colors.redAccent,
       },
@@ -74,11 +70,12 @@ class DisasterMenuPage extends StatelessWidget {
                   final isFirst = index == 0;
                   return GestureDetector(
                     onTap: () {
-                      if (item['title'] == '재난 정보') {
+                      if (item['title'] == '전체 재난 정보') {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => AllDisasterTypeListPage(),
+                            builder: (_) => const AllDisasterTypeDetailPage(),
+
                           ),
                         );
                       } else if (item['title'] == '대피 방법') {
@@ -96,11 +93,10 @@ class DisasterMenuPage extends StatelessWidget {
                           ),
                         );
                       } else if (item['title'] == '뉴스') {
-                  Navigator.pushNamed(context, '/news');
-                }
-
-
-
+                        Navigator.pushNamed(context, '/news');
+                      } else if (item['title'] == '후원') {
+                        Navigator.pushNamed(context, '/sponsor');
+                      }
                     },
                     child: Container(
                       height: 100,

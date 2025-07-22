@@ -3,11 +3,12 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'pages/all_post_detail_page.dart';
+import 'pages/my_post_edit_page.dart';
 import 'routes.dart';
 import 'pages/disaster_detail_page.dart';
 import 'pages/map_page.dart';
 import 'pages/initial_page.dart';
-
 import 'package:permission_handler/permission_handler.dart';
 
 final mockDisaster = Disaster(
@@ -124,6 +125,7 @@ class _MyAppState extends State<MyApp> {
         ...routes,
         '/initial': (context) => const InitialPage(),
       },
+
       onGenerateRoute: (settings) {
         if (settings.name == '/disasterDetail') {
           final disaster = settings.arguments as Disaster;
@@ -131,8 +133,28 @@ class _MyAppState extends State<MyApp> {
             builder: (context) => DisasterDetailPage(disaster: disaster),
           );
         }
-        return null;
+
+        if (settings.name == '/postDetail') {
+          final post = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) => AllPostDetailPage(post: post),
+          );
+        }
+
+        if (settings.name == '/postEdit') {
+          final post = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) => PostEditPage(post: post),
+          );
+        }
+
+        return MaterialPageRoute(
+          builder: (context) => const Scaffold(
+            body: Center(child: Text('페이지를 찾을 수 없습니다')),
+          ),
+        );
       },
+
     );
   }
 }

@@ -84,6 +84,10 @@ class PostDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 35),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text('${post['region_id'] ?? '재난'} 커뮤니티'),
         actions: [
           IconButton(
@@ -93,7 +97,7 @@ class PostDetailPage extends StatelessWidget {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
             Row(
@@ -102,45 +106,45 @@ class PostDetailPage extends StatelessWidget {
                   backgroundImage: NetworkImage(
                     post['author']?['profile_imageURL'] ?? 'https://via.placeholder.com/150',
                   ),
+                  radius: 20,
                 ),
                 const SizedBox(width: 10),
-                Text(
-                  post['author']?['username'] ?? '익명',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const Spacer(),
-                Text(
-                  post['created_at']?.substring(0, 10) ?? '',
-                  style: const TextStyle(color: Colors.grey),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      post['author']?['username'] ?? '익명',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    Text(
+                      '${post['created_at']?.substring(0, 10) ?? ''} • ${post['location'] ?? '위치 없음'}',
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            if (post['post_imageURLs'] != null && post['post_imageURLs'].isNotEmpty)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(post['post_imageURLs'][0]),
-              ),
-            const SizedBox(height: 20),
-            Text(
-              post['title'] ?? '',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(
               post['content'] ?? '',
               style: const TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                (post['post_imageURLs'] != null && post['post_imageURLs'].isNotEmpty)
+                    ? post['post_imageURLs'][0]
+                    : 'https://via.placeholder.com/400x250.png?text=No+Image',
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 const Icon(Icons.favorite_border, size: 20),
                 const SizedBox(width: 5),
-                Text('${post['like_count'] ?? 0}'),
-                const SizedBox(width: 16),
-                const Icon(Icons.remove_red_eye, size: 20),
-                const SizedBox(width: 5),
-                Text('${post['view_count'] ?? 0}'),
+                Text('${post['like_count'] ?? 0} likes', style: const TextStyle(fontSize: 14)),
               ],
             ),
           ],
