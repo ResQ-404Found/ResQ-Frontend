@@ -57,6 +57,7 @@ class _AllDisasterTypeDetailPageState
       appBar: AppBar(
         title: Text('${widget.disasterType} 정보 기록'),
         actions: const [Icon(Icons.filter_alt_outlined)],
+
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

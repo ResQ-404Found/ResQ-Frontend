@@ -59,6 +59,10 @@ class _PasswordResetVerifyPageState extends State<PasswordResetVerifyPage> {
         backgroundColor: Color(0xFFFAFAFA),
         title: const Text("인증코드 입력", style: TextStyle(color: Colors.black87,fontSize: 18)),
         iconTheme: const IconThemeData(color: Colors.black87),
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 35),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),

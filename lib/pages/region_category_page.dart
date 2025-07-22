@@ -621,8 +621,10 @@ class _RegionCategoryPageState extends State<RegionCategoryPage> {
         elevation: 0.5,
         scrolledUnderElevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.chevron_left, size: 35),
+          onPressed: () {
+            Navigator.pop(context); // ← 뒤로가기 동작
+          },
         ),
       ),
       backgroundColor: const Color(0xFFF9FAFB),
