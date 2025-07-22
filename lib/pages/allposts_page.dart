@@ -14,14 +14,14 @@ const Map<int, String> regionNames = {
   3664: '울산광역시',
   3759: '세종특별자치시',
   3793: '경기도',
-  5660: '강원도',
-  6129: '충청북도',
+  5660: '강원특별자치도',
+  6129: '충북특별자치도',
   6580: '충청남도',
   7376: '전라북도',
   8143: '전라남도',
   9073: '경상북도',
   10404: '경상남도',
-  11977: '제주도',
+  11977: '제주특별자치도',
 };
 
 class AllPostsPage extends StatefulWidget {
@@ -50,8 +50,10 @@ class _AllPostsPageState extends State<AllPostsPage> {
     await fetchPosts();
   }
 
-  Future<void> fetchPosts() async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts');
+  Future<void> fetchPosts({String? regionName}) async {
+    final query =
+        regionName != null ? '?region=${Uri.encodeComponent(regionName)}' : '';
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts$query');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -66,9 +68,11 @@ class _AllPostsPageState extends State<AllPostsPage> {
         for (int i = 0; i < posts.length; i++) {
           final postId = posts[i]['id'];
           final liked = await fetchLikeStatus(postId);
-          setState(() {
-            isLikedList[i] = liked;
-          });
+          if (mounted) {
+            setState(() {
+              isLikedList[i] = liked;
+            });
+          }
         }
       } else {
         print('게시글 불러오기 실패: ${response.statusCode}');
@@ -174,21 +178,26 @@ class _AllPostsPageState extends State<AllPostsPage> {
         ),
         centerTitle: true,
         actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.tune, color: Colors.black),
-            onSelected: (String selectedRegion) {
-              print('선택된 지역: $selectedRegion');
-            },
-            itemBuilder:
-                (BuildContext context) =>
-                    regionNames.values
-                        .map(
-                          (region) => PopupMenuItem<String>(
-                            value: region,
-                            child: Text(region),
-                          ),
-                        )
-                        .toList(),
+          Theme(
+            data: Theme.of(context).copyWith(
+              popupMenuTheme: const PopupMenuThemeData(color: Colors.white),
+            ),
+            child: PopupMenuButton<String>(
+              icon: const Icon(Icons.tune, color: Colors.black),
+              onSelected: (String selectedRegion) async {
+                await fetchPosts(regionName: selectedRegion);
+              },
+              itemBuilder:
+                  (BuildContext context) =>
+                      regionNames.values
+                          .map(
+                            (region) => PopupMenuItem<String>(
+                              value: region,
+                              child: Text(region),
+                            ),
+                          )
+                          .toList(),
+            ),
           ),
         ],
         bottom: const PreferredSize(
@@ -203,7 +212,11 @@ class _AllPostsPageState extends State<AllPostsPage> {
         ),
       ),
       body:
-          (posts.isEmpty || isLikedList.length != posts.length)
+          (posts.isEmpty && isLikedList.isEmpty)
+              ? const Center(
+                child: Text('게시글이 없습니다.', style: TextStyle(fontSize: 18)),
+              )
+              : (isLikedList.length != posts.length)
               ? const Center(child: CircularProgressIndicator())
               : ListView.builder(
                 itemCount: posts.length,
