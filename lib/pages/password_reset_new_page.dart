@@ -76,7 +76,7 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
-        title: const Text("새 비밀번호 설정", style: TextStyle(color: Colors.black87,fontSize: 18)),
+        title: const Text("새 비밀번호 설정", style: TextStyle(color: Colors.black87, fontSize: 18)),
         backgroundColor: Color(0xFFFAFAFA),
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
@@ -85,13 +85,14 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+
             const Text(
-              "안전한 비밀번호를 입력해주세요 🔐",
+              "안전한 비밀번호를 입력해주세요",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 32),
 
-// 🔐 새 비밀번호 입력 박스
+            // 🔐 새 비밀번호 입력 박스
             Container(
               width: 340,
               decoration: BoxDecoration(
@@ -111,7 +112,7 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
                 decoration: InputDecoration(
                   hintText: "새 비밀번호 (8자 이상)",
                   hintStyle: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 14),
-                  prefixIcon: const Icon(Icons.lock_outline, color: Colors.black87),
+                  prefixIcon: const Icon(Icons.lock, color: Colors.grey), // 자물쇠 아이콘
                   suffixIcon: IconButton(
                     icon: Icon(
                       showPassword ? Icons.visibility : Icons.visibility_off,
@@ -129,10 +130,9 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
               ),
             ),
 
-
             const SizedBox(height: 10),
 
-// 🔒 비밀번호 확인 박스
+            // 🔒 비밀번호 확인 박스
             Container(
               width: 340,
               decoration: BoxDecoration(
@@ -152,7 +152,7 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
                 decoration: InputDecoration(
                   hintText: "비밀번호 확인",
                   hintStyle: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 14),
-                  prefixIcon: const Icon(Icons.lock_person_outlined, color: Colors.black87),
+                  prefixIcon: const Icon(Icons.lock_person_outlined, color: Colors.grey), // 자물쇠 아이콘
                   suffixIcon: IconButton(
                     icon: Icon(
                       showConfirmPassword ? Icons.visibility : Icons.visibility_off,
@@ -169,8 +169,6 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
                 ),
               ),
             ),
-
-
 
             const SizedBox(height: 30),
             Center(

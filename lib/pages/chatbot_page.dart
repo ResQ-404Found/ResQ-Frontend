@@ -18,7 +18,14 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
   final List<Map<String, String>> _messages =
   []; // {"role": "user"/"bot", "message": "내용"}
-
+  @override
+  void initState() {
+    super.initState();
+    _messages.add({
+      "role": "bot",
+      "message": "안녕하세요 저는 재난 전문 챗봇입니다. 무엇을 도와드릴까요?"
+    });
+  }
   Future<String?> _getAccessToken() async {
     final token = await _storage.read(key: 'accessToken');
     print("읽은 accessToken: $token");
@@ -77,16 +84,48 @@ class _ChatbotPageState extends State<ChatbotPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text(
-          '챗봇',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+      backgroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Stack(
+          children: [
+            Container(
+              height: 60,
+              color: Colors.white, // ✅ AppBar의 배경 고정
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: AppBar(
+                backgroundColor: Colors.transparent, // ✅ 여전히 transparent로 둬도 됨
+                elevation: 0,
+                title: const Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    '챗봇',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF353535),
+                    ),
+                  ),
+                ),
+                centerTitle: true,
+                automaticallyImplyLeading: false,
+              ),
+            ),
+          ],
         ),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
       ),
+
+
       body: Column(
         children: [
           Expanded(
@@ -101,23 +140,27 @@ class _ChatbotPageState extends State<ChatbotPage> {
                   alignment:
                   isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
-                    margin:
-                    isUser
-                        ? const EdgeInsets.fromLTRB(
-                      80,
-                      20,
-                      0,
-                      5,
-                    ) // 사용자: 오른쪽 정렬, 왼쪽 여백 추가
-                        : const EdgeInsets.fromLTRB(10, 4, 80, 4),
+                    margin: isUser
+                        ? const EdgeInsets.fromLTRB(80, 20, 16, 5)  // 오른쪽 여백 16 추가됨
+                        : const EdgeInsets.fromLTRB(16, 8, 60, 5),
+
                     padding: const EdgeInsets.all(12),
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.75,
                     ),
                     decoration: BoxDecoration(
-                      color: isUser ? Colors.blue[100] : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                      color: isUser ? Colors.white : Colors.white,
+                      borderRadius: BorderRadius.circular(isUser ? 20 : 20), // ✅ 사용자만 더 둥글게
+                      boxShadow: [
+                        BoxShadow(
+                          color: isUser ? Color(0xFF5DD194).withOpacity(0.2) : Colors.redAccent.withOpacity(0.2), // ✅ 사용자든 챗봇이든 그림자
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
+
+
                     child: Text(
                       message['message'] ?? '',
                       style: const TextStyle(fontSize: 15),
@@ -133,25 +176,37 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     children: [
                       const Padding(padding: EdgeInsets.only(bottom: 4)),
                       Row(
-                        children: const [
-                          CircleAvatar(
-                            backgroundColor: Colors.red,
-                            radius: 16,
-                            child: Text(
-                              '',
-                              style: TextStyle(color: Colors.white),
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.redAccent.withOpacity(0.3),
+                                  blurRadius: 3,
+                                  offset: const Offset(0, 0),
+                                )
+                              ],
+                            ),
+                            child: const CircleAvatar(
+                              radius: 16,
+                              backgroundImage: AssetImage('lib/asset/chatbot_profile.png'),
+                              backgroundColor: Colors.white,
                             ),
                           ),
-                          SizedBox(width: 8),
-                          Text(
-                            '이름',
+
+                          const SizedBox(width: 8),
+                          const Text(
+                            '재난 전문 챗봇',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
+                              color: Color(0xFF454545)
                             ),
                           ),
                         ],
                       ),
+
                       const SizedBox(height: 6),
                       messageWidget,
                     ],
@@ -169,7 +224,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.grey[300]!),
                     ),
                     child: TextField(
@@ -206,8 +261,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1), // 그림자 색
-              blurRadius: 10, // 퍼짐 정도
-              offset: Offset(0, -2), // 위쪽으로 살짝 그림자
+              blurRadius: 2, // 퍼짐 정도
+              offset: Offset(0, 0), // 위쪽으로 살짝 그림자
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'disaster_guide_page.dart';
+import 'checklist.dart';
 
 class DisasterMenuPage extends StatelessWidget {
   const DisasterMenuPage({super.key});
@@ -74,6 +75,14 @@ class DisasterMenuPage extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (_) => DisasterGuidePage(initialIndex: 0),
+                          ),
+                        );
+
+                      } else if (item['title'] == '체크리스트') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ChecklistPage(),
                           ),
                         );
                       }
