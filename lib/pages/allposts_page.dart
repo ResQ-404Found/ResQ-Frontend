@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'all_post_detail_page.dart';
+
 const Map<int, String> regionNames = {
   1: '서울특별시',
   2559: '부산광역시',
@@ -191,10 +193,7 @@ class _AllPostsPageState extends State<AllPostsPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => Scaffold(
-                    appBar: AppBar(title: const Text('상세 페이지')),
-                    body: const Center(child: Text('상세 페이지 구현 예정')),
-                  ),
+                  builder: (_) => AllPostDetailPage(post: post),
                 ),
               );
             },
