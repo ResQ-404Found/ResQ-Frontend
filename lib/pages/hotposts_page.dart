@@ -2,8 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import 'all_post_detail_page.dart';
+
+const Map<int, String> regionNames = {
+  1: '서울특별시',
+  2559: '부산광역시',
+  2784: '대구광역시',
+  3011: '인천광역시',
+  3235: '광주광역시',
+  3481: '대전광역시',
+  3664: '울산광역시',
+  3759: '세종특별자치시',
+  3793: '경기도',
+  5660: '강원도',
+  6129: '충청북도',
+  6580: '충청남도',
+  7376: '전라북도',
+  8143: '전라남도',
+  9073: '경상북도',
+  10404: '경상남도',
+  11977: '제주도',
+};
 
 class HotPostsPage extends StatefulWidget {
   const HotPostsPage({super.key});
@@ -16,30 +35,8 @@ class _HotPostsPageState extends State<HotPostsPage> {
   List<dynamic> posts = [];
   List<bool> isLikedList = [];
   List<int> likeCountList = [];
-  List<String> timeAgoList = [];
-
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   String? accessToken;
-
-  final Map<int, String> regionNames = {
-    1: '서울특별시',
-    2559: '부산광역시',
-    2784: '대구광역시',
-    3011: '인천광역시',
-    3235: '광주광역시',
-    3481: '대전광역시',
-    3664: '울산광역시',
-    3759: '세종특별자치시',
-    3793: '경기도',
-    5660: '강원도',
-    6129: '충청북도',
-    6580: '충청남도',
-    7376: '전라북도',
-    8143: '전라남도',
-    9073: '경상북도',
-    10404: '경상남도',
-    11977: '제주도',
-  };
 
   @override
   void initState() {
@@ -52,52 +49,23 @@ class _HotPostsPageState extends State<HotPostsPage> {
     await fetchPosts();
   }
 
-  String formatTimeAgo(String timestamp) {
-    final created = DateTime.parse(timestamp).toLocal();
-    final now = DateTime.now();
-    final difference = now.difference(created);
-
-    if (difference.inMinutes < 1) return '방금 전';
-    if (difference.inMinutes < 60) return '${difference.inMinutes}분 전';
-    if (difference.inHours < 24) return '${difference.inHours}시간 전';
-
-    final yesterday = now.subtract(const Duration(days: 1));
-    if (created.day == yesterday.day &&
-        created.month == yesterday.month &&
-        created.year == yesterday.year) {
-      return '어제';
-    }
-
-    if (created.year == now.year) {
-      return '${created.month}월 ${created.day}일';
-    }
-
-    return '${created.year}년 ${created.month}월 ${created.day}일';
-  }
-
   Future<void> fetchPosts() async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts?sort=like_count');
+    final url = Uri.parse(
+      'http://54.253.211.96:8000/api/posts?sort=like_count',
+    );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         posts = data;
-        likeCountList = posts.map<int>((post) => post['like_count'] ?? 0).toList();
-        timeAgoList = posts.map<String>((post) {
-          final createdAt = post['created_at'] ?? DateTime.now().toIso8601String();
-          return formatTimeAgo(createdAt);
-        }).toList();
-        isLikedList = List.filled(posts.length, false); // 초기화
-
-        setState(() {}); // 로딩용
-
-        // 각 게시글 좋아요 상태 확인
+        likeCountList =
+            posts.map<int>((post) => post['like_count'] ?? 0).toList();
+        isLikedList = List.filled(posts.length, false);
+        setState(() {});
         for (int i = 0; i < posts.length; i++) {
-          final postId = posts[i]['id'];
-          final liked = await fetchLikeStatus(postId);
-          setState(() {
-            isLikedList[i] = liked;
-          });
+          final liked = await fetchLikeStatus(posts[i]['id']);
+          if (!mounted) return;
+          setState(() => isLikedList[i] = liked);
         }
       } else {
         print('게시글 불러오기 실패: ${response.statusCode}');
@@ -108,42 +76,38 @@ class _HotPostsPageState extends State<HotPostsPage> {
   }
 
   Future<bool> fetchLikeStatus(int postId) async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like/status');
+    final url = Uri.parse(
+      'http://54.253.211.96:8000/api/posts/$postId/like/status',
+    );
     try {
       final response = await http.get(
         url,
         headers: {'Authorization': 'Bearer $accessToken'},
       );
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['data']['liked'] ?? false;
-      } else {
-        print('좋아요 상태 확인 실패: ${response.statusCode}');
-        return false;
+        return jsonDecode(response.body)['data']['liked'] ?? false;
       }
     } catch (e) {
-      print('좋아요 상태 요청 중 오류 발생: $e');
-      return false;
+      print('좋아요 상태 오류: $e');
     }
+    return false;
   }
 
   Future<void> toggleLike(int index) async {
     final postId = posts[index]['id'];
     final isLiked = isLikedList[index];
     final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like');
-
     try {
       final response =
-      isLiked
-          ? await http.delete(
-        url,
-        headers: {'Authorization': 'Bearer $accessToken'},
-      )
-          : await http.post(
-        url,
-        headers: {'Authorization': 'Bearer $accessToken'},
-      );
-
+          isLiked
+              ? await http.delete(
+                url,
+                headers: {'Authorization': 'Bearer $accessToken'},
+              )
+              : await http.post(
+                url,
+                headers: {'Authorization': 'Bearer $accessToken'},
+              );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
@@ -151,12 +115,33 @@ class _HotPostsPageState extends State<HotPostsPage> {
           likeCountList[index] =
               data['data']['like_count'] ?? likeCountList[index];
         });
-      } else {
-        print('좋아요 실패: ${response.statusCode}');
       }
     } catch (e) {
-      print('좋아요 중 오류 발생: $e');
+      print('좋아요 토글 오류: $e');
     }
+  }
+
+  String? resolveImageUrl(dynamic urls) {
+    if (urls is List && urls.isNotEmpty) {
+      final url = urls.first;
+      if (url.startsWith('/static')) {
+        return 'http://54.253.211.96:8000$url';
+      } else if (url.startsWith('http')) {
+        return url;
+      }
+    }
+    return null;
+  }
+
+  String parseTimeAgo(String time) {
+    final dateTime = DateTime.parse(time).toLocal();
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+    if (diff.inSeconds < 60) return '${diff.inSeconds}초 전';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
+    if (diff.inHours < 24) return '${diff.inHours}시간 전';
+    if (diff.inDays == 1) return '어제';
+    return '${diff.inDays}일 전';
   }
 
   @override
@@ -165,74 +150,50 @@ class _HotPostsPageState extends State<HotPostsPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left, size: 35),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          '인기글',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        elevation: 1,
+        title: const Text('인기글', style: TextStyle(color: Colors.black)),
         centerTitle: true,
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(2.0),
-          child: Divider(
-            height: 1,
-            thickness: 3.0,
-            indent: 200,
-            endIndent: 200,
-            color: Colors.black54,
-          ),
-        ),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body:
-      (posts.isEmpty || isLikedList.length != posts.length)
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-        itemCount: posts.length,
-        itemBuilder: (context, index) {
-          final post = posts[index];
-          final regionName = regionNames[post['region_id']] ?? '정보 없음';
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => AllPostDetailPage(post: post),
-                ),
-              );
-            },
-            child: PostCard(
-              username: '${post['author']?['nickname'] ?? '알 수 없음'}',
-              timeAgo: timeAgoList[index],
-              description: post['content'] ?? '',
-              location: regionName,
-              likes: likeCountList[index],
-              comments: post['view_count'] ?? 0,
-              isLiked: isLikedList[index],
-              onLikePressed: () => toggleLike(index),
-            ),
-          );
-        },
-      ),
+          (posts.isEmpty || isLikedList.length != posts.length)
+              ? const Center(child: CircularProgressIndicator())
+              : ListView.builder(
+                itemCount: posts.length,
+                itemBuilder: (context, index) {
+                  final post = posts[index];
+                  final imageUrl = resolveImageUrl(post['post_imageURLs']);
+                  return GestureDetector(
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AllPostDetailPage(post: post),
+                          ),
+                        ),
+                    child: PostCard(
+                      username: post['author']?['nickname'] ?? '알 수 없음',
+                      timeAgo: parseTimeAgo(post['created_at']),
+                      description: post['content'] ?? '',
+                      location: regionNames[post['region_id']] ?? '지역 정보 없음',
+                      likes: likeCountList[index],
+                      comments: post['view_count'] ?? 0,
+                      isLiked: isLikedList[index],
+                      imageUrl: imageUrl,
+                      onLikePressed: () => toggleLike(index),
+                    ),
+                  );
+                },
+              ),
     );
   }
 }
 
 class PostCard extends StatelessWidget {
-  final String username;
-  final String timeAgo;
-  final String description;
-  final String location;
-  final int likes;
-  final int comments;
+  final String username, timeAgo, description, location;
+  final int likes, comments;
   final bool isLiked;
+  final String? imageUrl;
   final VoidCallback onLikePressed;
 
   const PostCard({
@@ -244,6 +205,7 @@ class PostCard extends StatelessWidget {
     required this.likes,
     required this.comments,
     required this.isLiked,
+    required this.imageUrl,
     required this.onLikePressed,
   });
 
@@ -311,9 +273,28 @@ class PostCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Center(
-                  child: Icon(Icons.image, size: 300, color: Colors.grey[400]),
-                ),
+                imageUrl != null
+                    ? Center(
+                      child: Image.network(
+                        imageUrl!,
+                        width: 300,
+                        height: 300,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) => const Icon(
+                              Icons.image_not_supported,
+                              size: 300,
+                              color: Colors.grey,
+                            ),
+                      ),
+                    )
+                    : Center(
+                      child: Icon(
+                        Icons.image,
+                        size: 300,
+                        color: Colors.grey[400],
+                      ),
+                    ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4.0),
                   child: Text(

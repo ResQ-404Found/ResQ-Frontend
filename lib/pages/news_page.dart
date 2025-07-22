@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:html/parser.dart' as html_parser;
 import 'package:url_launcher/url_launcher_string.dart';
+import 'news_detail_page.dart';
 
 String decodeHtmlEntities(String htmlString) {
   final document = html_parser.parse(htmlString);
@@ -19,47 +20,73 @@ class NewsPage extends StatefulWidget {
 
 class _NewsPageState extends State<NewsPage> {
   List<Map<String, dynamic>> newsList = [];
+  List<Map<String, dynamic>> youtubeVideos = [];
   int currentPage = 0;
   final int itemsPerPage = 10;
-  final int maxPages = 25; // 페이지 수 
+  final int maxPages = 2;
 
   @override
   void initState() {
     super.initState();
     fetchDisasterNews();
+    fetchYoutubeVideos();
   }
 
   Future<void> fetchDisasterNews() async {
-    int start = currentPage * itemsPerPage + 1;
+    final int start = currentPage * itemsPerPage;
+    final query = '재난';
 
-    final url = Uri.parse(
-      'https://openapi.naver.com/v1/search/news.json?query=재난&display=$itemsPerPage&start=$start&sort=date',
-    );
+    final url = Uri.parse('http://54.253.211.96:8000/api/news/?query=$query');
 
     final response = await http.get(
       url,
-      headers: {
-        'X-Naver-Client-Id': 'Px2OOf0dQFJLmbrozUdW',
-        'X-Naver-Client-Secret': 'ik8BtDwvl0',
-      },
+      headers: {'accept': 'application/json'},
     );
 
     if (response.statusCode == 200) {
-      final jsonData = json.decode(utf8.decode(response.bodyBytes));
-      final List<dynamic> items = jsonData['items'];
+      final List<dynamic> items = json.decode(utf8.decode(response.bodyBytes));
+      final paginatedItems = items.skip(start).take(itemsPerPage).toList();
 
       setState(() {
         newsList =
-            items.map<Map<String, dynamic>>((item) {
+            paginatedItems.map<Map<String, dynamic>>((item) {
               return {
-                'title': decodeHtmlEntities(item['title'] ?? '제목 없음'),
-                'date': item['pubDate'] ?? '날짜 없음',
-                'link': item['link'] ?? '',
+                'id': item['id'],
+                'title': item['title'] ?? '제목 없음',
+                'date':
+                    item['pub_date']?.toString().replaceAll('T', ' ') ??
+                    '날짜 없음',
               };
             }).toList();
       });
     } else {
-      print('API 호출 실패: ${response.statusCode}');
+      print('뉴스 API 호출 실패: ${response.statusCode}');
+    }
+  }
+
+  Future<void> fetchYoutubeVideos() async {
+    final url = Uri.parse('http://54.253.211.96:8000/api/youtube?query=재난&channel=KBS News');
+
+    final response = await http.get(
+      url,
+      headers: {'accept': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> items = json.decode(utf8.decode(response.bodyBytes));
+      setState(() {
+        youtubeVideos =
+            items.map<Map<String, dynamic>>((item) {
+              return {
+                'title': item['title'],
+                'thumbnail': item['thumbnail_url'],
+                'videoUrl': item['video_url'],
+                'channel': item['channel_title'],
+              };
+            }).toList();
+      });
+    } else {
+      print('유튜브 API 호출 실패: ${response.statusCode}');
     }
   }
 
@@ -90,6 +117,45 @@ class _NewsPageState extends State<NewsPage> {
               ? const Center(child: CircularProgressIndicator())
               : Column(
                 children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 16, left: 16),
+                    child: Align(alignment: Alignment.centerLeft),
+                  ),
+                  SizedBox(
+                    height: 120,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      itemCount: youtubeVideos.length,
+                      itemBuilder: (context, index) {
+                        final video = youtubeVideos[index];
+                        return GestureDetector(
+                          onTap: () => launchUrlString(video['videoUrl']),
+                          child: Column(
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.all(6),
+                                width: 120,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  image: DecorationImage(
+                                    image: NetworkImage(video['thumbnail']),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                video['channel'] ?? '',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const Divider(),
                   Expanded(
                     child: ListView.builder(
                       padding: const EdgeInsets.all(8.0),
@@ -98,10 +164,14 @@ class _NewsPageState extends State<NewsPage> {
                         final news = newsList[index];
                         return InkWell(
                           onTap: () {
-                            if (news['link'] != null &&
-                                news['link'].toString().isNotEmpty) {
-                              launchUrlString(news['link']);
-                            }
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        NewsDetailPage(newsId: news['id']),
+                              ),
+                            );
                           },
                           child: Card(
                             margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -184,27 +254,27 @@ class _NewsPageState extends State<NewsPage> {
               IconButton(
                 icon: Icon(Icons.home, color: Colors.grey[400]),
                 iconSize: 32,
-                onPressed: () {},
+                onPressed: () => Navigator.pushNamed(context, '/map'),
               ),
               IconButton(
-                icon: Icon(Icons.feed, color: Colors.grey[800]),
+                icon: Icon(Icons.chat, color: Colors.grey[400]),
                 iconSize: 32,
-                onPressed: () {},
+                onPressed: () => Navigator.pushNamed(context, '/allposts'),
               ),
               IconButton(
                 icon: Icon(Icons.groups, color: Colors.grey[400]),
                 iconSize: 32,
-                onPressed: () {},
+                onPressed: () => Navigator.pushNamed(context, '/community'),
               ),
               IconButton(
-                icon: Icon(Icons.emergency_share, color: Colors.grey[400]),
+                icon: Icon(Icons.emergency_share),
                 iconSize: 32,
                 onPressed: () {},
               ),
               IconButton(
                 icon: Icon(Icons.person, color: Colors.grey[400]),
                 iconSize: 32,
-                onPressed: () {},
+                onPressed: () => Navigator.pushNamed(context, '/user'),
               ),
             ],
           ),

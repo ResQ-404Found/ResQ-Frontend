@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import 'all_post_detail_page.dart';
 
 const Map<int, String> regionNames = {
@@ -15,14 +14,14 @@ const Map<int, String> regionNames = {
   3664: '울산광역시',
   3759: '세종특별자치시',
   3793: '경기도',
-  5660: '강원도',
-  6129: '충청북도',
+  5660: '강원특별자치도',
+  6129: '충북특별자치도',
   6580: '충청남도',
   7376: '전라북도',
   8143: '전라남도',
   9073: '경상북도',
   10404: '경상남도',
-  11977: '제주도',
+  11977: '제주특별자치도',
 };
 
 class AllPostsPage extends StatefulWidget {
@@ -51,25 +50,29 @@ class _AllPostsPageState extends State<AllPostsPage> {
     await fetchPosts();
   }
 
-  Future<void> fetchPosts() async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts');
+  Future<void> fetchPosts({String? regionName}) async {
+    final query =
+        regionName != null ? '?region=${Uri.encodeComponent(regionName)}' : '';
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts$query');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         posts = data;
-        likeCountList = posts.map<int>((post) => post['like_count'] ?? 0).toList();
-        isLikedList = List.filled(posts.length, false); // 초기화
+        likeCountList =
+            posts.map<int>((post) => post['like_count'] ?? 0).toList();
+        isLikedList = List.filled(posts.length, false);
 
-        setState(() {}); // 임시 로딩 표시용
+        setState(() {});
 
-        // 각 게시글 좋아요 상태 확인
         for (int i = 0; i < posts.length; i++) {
           final postId = posts[i]['id'];
           final liked = await fetchLikeStatus(postId);
-          setState(() {
-            isLikedList[i] = liked;
-          });
+          if (mounted) {
+            setState(() {
+              isLikedList[i] = liked;
+            });
+          }
         }
       } else {
         print('게시글 불러오기 실패: ${response.statusCode}');
@@ -80,20 +83,21 @@ class _AllPostsPageState extends State<AllPostsPage> {
   }
 
   Future<bool> fetchLikeStatus(int postId) async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like/status');
+    final url = Uri.parse(
+      'http://54.253.211.96:8000/api/posts/$postId/like/status',
+    );
     try {
-      final response = await http.get(url, headers: {
-        'Authorization': 'Bearer $accessToken',
-      });
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $accessToken'},
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data['data']['liked'] ?? false;
       } else {
-        print('좋아요 상태 확인 실패: ${response.statusCode}');
         return false;
       }
     } catch (e) {
-      print('좋아요 상태 요청 중 오류 발생: $e');
       return false;
     }
   }
@@ -104,21 +108,27 @@ class _AllPostsPageState extends State<AllPostsPage> {
     final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like');
 
     try {
-      final response = isLiked
-          ? await http.delete(url, headers: {'Authorization': 'Bearer $accessToken'})
-          : await http.post(url, headers: {'Authorization': 'Bearer $accessToken'});
+      final response =
+          isLiked
+              ? await http.delete(
+                url,
+                headers: {'Authorization': 'Bearer $accessToken'},
+              )
+              : await http.post(
+                url,
+                headers: {'Authorization': 'Bearer $accessToken'},
+              );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
           isLikedList[index] = !isLiked;
-          likeCountList[index] = data['data']['like_count'] ?? likeCountList[index];
+          likeCountList[index] =
+              data['data']['like_count'] ?? likeCountList[index];
         });
-      } else {
-        print('좋아요 실패: ${response.statusCode}');
       }
     } catch (e) {
-      print('좋아요 중 오류 발생: $e');
+      print('좋아요 오류: $e');
     }
   }
 
@@ -132,6 +142,18 @@ class _AllPostsPageState extends State<AllPostsPage> {
     if (diff.inHours < 24) return '${diff.inHours}시간 전';
     if (diff.inDays == 1) return '어제';
     return '${diff.inDays}일 전';
+  }
+
+  String? resolveImageUrl(dynamic urls) {
+    if (urls is List && urls.isNotEmpty) {
+      String url = urls.first;
+      if (url.startsWith('/static')) {
+        return 'http://54.253.211.96:8000$url';
+      } else if (url.startsWith('http')) {
+        return url;
+      }
+    }
+    return null;
   }
 
   @override
@@ -156,17 +178,26 @@ class _AllPostsPageState extends State<AllPostsPage> {
         ),
         centerTitle: true,
         actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.tune, color: Colors.black),
-            onSelected: (String selectedRegion) {
-              print('선택된 지역: $selectedRegion');
-            },
-            itemBuilder: (BuildContext context) => regionNames.values.map((region) {
-              return PopupMenuItem<String>(
-                value: region,
-                child: Text(region),
-              );
-            }).toList(),
+          Theme(
+            data: Theme.of(context).copyWith(
+              popupMenuTheme: const PopupMenuThemeData(color: Colors.white),
+            ),
+            child: PopupMenuButton<String>(
+              icon: const Icon(Icons.tune, color: Colors.black),
+              onSelected: (String selectedRegion) async {
+                await fetchPosts(regionName: selectedRegion);
+              },
+              itemBuilder:
+                  (BuildContext context) =>
+                      regionNames.values
+                          .map(
+                            (region) => PopupMenuItem<String>(
+                              value: region,
+                              child: Text(region),
+                            ),
+                          )
+                          .toList(),
+            ),
           ),
         ],
         bottom: const PreferredSize(
@@ -180,36 +211,43 @@ class _AllPostsPageState extends State<AllPostsPage> {
           ),
         ),
       ),
-      body: (posts.isEmpty || isLikedList.length != posts.length)
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-        itemCount: posts.length,
-        itemBuilder: (context, index) {
-          final post = posts[index];
-          final regionId = post['region_id'];
-          final regionName = regionNames[regionId] ?? '지역 정보 없음';
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => AllPostDetailPage(post: post),
-                ),
-              );
-            },
-            child: PostCard(
-              username: '${post['author']?['nickname'] ?? '알 수 없음'}',
-              timeAgo: parseTimeAgo(post['created_at']),
-              description: post['content'] ?? '',
-              location: regionName,
-              likes: likeCountList[index],
-              comments: post['view_count'] ?? 0,
-              isLiked: isLikedList[index],
-              onLikePressed: () => toggleLike(index),
-            ),
-          );
-        },
-      ),
+      body:
+          (posts.isEmpty && isLikedList.isEmpty)
+              ? const Center(
+                child: Text('게시글이 없습니다.', style: TextStyle(fontSize: 18)),
+              )
+              : (isLikedList.length != posts.length)
+              ? const Center(child: CircularProgressIndicator())
+              : ListView.builder(
+                itemCount: posts.length,
+                itemBuilder: (context, index) {
+                  final post = posts[index];
+                  final regionId = post['region_id'];
+                  final regionName = regionNames[regionId] ?? '지역 정보 없음';
+                  final imageUrl = resolveImageUrl(post['post_imageURLs']);
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AllPostDetailPage(post: post),
+                        ),
+                      );
+                    },
+                    child: PostCard(
+                      username: '${post['author']?['nickname'] ?? '알 수 없음'}',
+                      timeAgo: parseTimeAgo(post['created_at']),
+                      description: post['content'] ?? '',
+                      location: regionName,
+                      likes: likeCountList[index],
+                      comments: post['view_count'] ?? 0,
+                      isLiked: isLikedList[index],
+                      imageUrl: imageUrl,
+                      onLikePressed: () => toggleLike(index),
+                    ),
+                  );
+                },
+              ),
     );
   }
 }
@@ -222,6 +260,7 @@ class PostCard extends StatelessWidget {
   final int likes;
   final int comments;
   final bool isLiked;
+  final String? imageUrl;
   final VoidCallback onLikePressed;
 
   const PostCard({
@@ -233,6 +272,7 @@ class PostCard extends StatelessWidget {
     required this.likes,
     required this.comments,
     required this.isLiked,
+    required this.imageUrl,
     required this.onLikePressed,
   });
 
@@ -257,7 +297,6 @@ class PostCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 유저명 + 시간 + 위치
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -281,7 +320,11 @@ class PostCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(Icons.location_pin, size: 16, color: Colors.red),
+                            const Icon(
+                              Icons.location_pin,
+                              size: 16,
+                              color: Colors.red,
+                            ),
                             Text(
                               location,
                               style: TextStyle(
@@ -297,9 +340,28 @@ class PostCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Center(
-                  child: Icon(Icons.image, size: 300, color: Colors.grey[400]),
-                ),
+                imageUrl != null
+                    ? Center(
+                      child: Image.network(
+                        imageUrl!,
+                        width: 300,
+                        height: 300,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) => const Icon(
+                              Icons.image_not_supported,
+                              size: 300,
+                              color: Colors.grey,
+                            ),
+                      ),
+                    )
+                    : Center(
+                      child: Icon(
+                        Icons.image,
+                        size: 300,
+                        color: Colors.grey[400],
+                      ),
+                    ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4.0),
                   child: Text(
@@ -321,14 +383,20 @@ class PostCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       '$likes',
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     const Icon(Icons.comment, size: 25),
                     const SizedBox(width: 4),
                     Text(
                       '$comments',
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
