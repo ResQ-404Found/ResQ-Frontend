@@ -103,7 +103,7 @@ class _NewsPageState extends State<NewsPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('재난 뉴스'),
+        title: const Text('재난 뉴스',style:TextStyle(color: Colors.black, fontWeight: FontWeight.w600,fontSize: 20),),
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
