@@ -94,19 +94,21 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('마이페이지', style: TextStyle(color: Colors.black)),
+        leading:null,
+        title: const Text('마이페이지', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600,fontSize: 20)),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey.shade100,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
+              color: Colors.white,
+              // border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -168,6 +170,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 const SizedBox(height: 6),
                 _buildSectionCard(children: [
                   _buildActionRow('닉네임 변경', onTap: _onChangeNickname),
+                  const Divider(height: 1, thickness: 0.8, indent: 10, endIndent: 10,color:Color(
+                      0xFFF6F6F6)),
                   _buildActionRow('비밀번호 변경', onTap: _onChangePassword),
                 ]),
 
@@ -175,6 +179,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 const SizedBox(height: 6),
                 _buildSectionCard(children: [
                   _buildActionRow('지역 알림 설정', onTap: _onRegionFilterSetting),
+                  const Divider(height: 1, thickness: 0.8, indent: 10, endIndent: 10,color:Color(
+                      0xFFF6F6F6)),
                   _buildActionRow('재난 유형 알림 설정', onTap: _onTypeFilterSetting),
                 ]),
 
@@ -183,11 +189,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 _buildSectionCard(children: [
                   _buildActionRow('내가 작성한 글', onTap: () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPostsPage()));
-                  }),
+                  }),const Divider(height: 1, thickness: 0.8, indent: 10, endIndent: 10,color:Color(
+                      0xFFF6F6F6)),
                   _buildActionRow('내가 작성한 댓글', onTap: () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const MyCommentsPage()));
-                  }),
-                  _buildActionRow('로그아웃', onTap: _onLogout),
+                  }),const Divider(height: 1, thickness: 0.8, indent: 10, endIndent: 10,color:Color(
+                      0xFFF6F6F6)),
+                  _buildActionRow('로그아웃', onTap: _onLogout),const Divider(height: 1, thickness: 0.8, indent: 10, endIndent: 10,color:Color(
+                      0xFFF6F6F6)),
                   _buildActionRow('회원탈퇴', onTap: _onDeleteAccount),
                 ]),
               ],
@@ -222,6 +231,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ),
               const SizedBox(width: 10),
               Column(
+
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('나의 포인트', style: TextStyle(fontSize: 13, color: Colors.grey)),
@@ -287,7 +297,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Colors.grey.shade100),
       ),
       child: Column(children: children),
     );
