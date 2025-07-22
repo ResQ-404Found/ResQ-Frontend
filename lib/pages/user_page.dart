@@ -123,10 +123,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left, size: 35),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: null,
+        automaticallyImplyLeading: false,
         title: const Text(
           '마이페이지',
           style: TextStyle(
