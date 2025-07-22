@@ -19,7 +19,6 @@ import 'pages/flood_page.dart';
 import 'pages/typhoon_page.dart';
 import 'pages/earthquake_page.dart';
 import 'pages/coldwave_page.dart';
-import 'pages/disaster_list_page.dart';
 import 'pages/password_reset_new_page.dart';
 import 'pages/password_reset_request_page.dart';
 import 'pages/password_reset_verify_page.dart';
