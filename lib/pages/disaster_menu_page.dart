@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'disaster_guide_page.dart';
-<<<<<<< HEAD
 import 'checklist.dart';
-=======
 import 'all_disaster_types.dart';
->>>>>>> 6c8b1a7 (comments)
 
 class DisasterMenuPage extends StatelessWidget {
   const DisasterMenuPage({super.key});
@@ -88,8 +85,6 @@ class DisasterMenuPage extends StatelessWidget {
                             builder: (_) => DisasterGuidePage(initialIndex: 0),
                           ),
                         );
-<<<<<<< HEAD
-
                       } else if (item['title'] == '체크리스트') {
                         Navigator.push(
                           context,
@@ -98,12 +93,10 @@ class DisasterMenuPage extends StatelessWidget {
                           ),
                         );
                       } else if (item['title'] == '뉴스') {
-                  Navigator.pushNamed(context, '/news');
-                }
-
-=======
+                        Navigator.pushNamed(context, '/news');
+                      } else if (item['title'] == '후원') {
+                        Navigator.pushNamed(context, '/sponsor');
                       }
->>>>>>> 6c8b1a7 (comments)
                     },
                     child: Container(
                       height: 100,
