@@ -713,11 +713,14 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
     final post = widget.post;
     return Scaffold(
       appBar: AppBar(
-        leading: const BackButton(color: Colors.black),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         title: const Text('재난 커뮤니티', style: TextStyle(color: Colors.black)),
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 35),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           if (post['author']?['id'] == myUserId) ...[
             IconButton(

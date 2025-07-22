@@ -19,7 +19,6 @@ import 'pages/flood_page.dart';
 import 'pages/typhoon_page.dart';
 import 'pages/earthquake_page.dart';
 import 'pages/coldwave_page.dart';
-import 'pages/disaster_list_page.dart';
 import 'pages/password_reset_new_page.dart';
 import 'pages/password_reset_request_page.dart';
 import 'pages/password_reset_verify_page.dart';
@@ -58,7 +57,6 @@ final Map<String, WidgetBuilder> routes = {
   '/postDetail': (context) => const PostDetailPage(),
   '/postEdit': (context) => const PostEditPage(),
   '/alldisastertypes': (context) => AllDisasterTypeListPage(),
-  '/'
   '/disastertypedetail': (context) {
     final args = ModalRoute.of(context)!.settings.arguments as String;
     return AllDisasterTypeDetailPage(disasterType: args);

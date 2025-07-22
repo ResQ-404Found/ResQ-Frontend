@@ -107,6 +107,10 @@ class _NewsPageState extends State<NewsPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 35),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body:
           newsList.isEmpty

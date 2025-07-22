@@ -183,7 +183,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.redAccent.withOpacity(0.3),
+                                  color: Color(0xFF5E5E5E).withOpacity(0.4),
                                   blurRadius: 3,
                                   offset: const Offset(0, 0),
                                 )
@@ -231,6 +231,11 @@ class _ChatbotPageState extends State<ChatbotPage> {
                       controller: _messageController,
                       decoration: const InputDecoration(
                         hintText: '메시지를 입력하세요',
+                        hintStyle: TextStyle(
+                          color: Colors.grey,     // 힌트 글자 색
+                          fontSize: 15,           // 폰트 크기
+                        ),
+                        contentPadding: EdgeInsets.only(left: 8),
                         border: InputBorder.none,
                       ),
                       onSubmitted: (_) => _sendMessage(),

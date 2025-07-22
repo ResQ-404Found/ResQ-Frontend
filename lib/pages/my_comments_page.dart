@@ -176,7 +176,10 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
       appBar: AppBar(
         title: const Text('내가 작성한 댓글', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        leading: const BackButton(),
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 35),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

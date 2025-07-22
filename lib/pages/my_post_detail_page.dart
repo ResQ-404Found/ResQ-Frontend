@@ -84,7 +84,12 @@ class PostDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 35),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text('${post['region_id'] ?? '재난'} 커뮤니티'),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.more_horiz),

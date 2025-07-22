@@ -134,9 +134,10 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
           ),
           child: AppBar(
             leading: Padding(
-              padding: const EdgeInsets.only(top: 27), // 화살표 위치 조정
+              padding: const EdgeInsets.only(top: 20), // 화살표 위치 조정
+
               child: IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: const Icon(Icons.chevron_left, size: 35),
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -146,7 +147,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
             foregroundColor: Colors.black,
             elevation: 0,  // 내부 그림자 제거
             flexibleSpace: Padding(
-              padding: const EdgeInsets.only(top: 22.0), // 텍스트와 아이콘을 동일하게 맞추기 위한 위쪽 여백 추가
+              padding: const EdgeInsets.only(top: 20.0), // 텍스트와 아이콘을 동일하게 맞추기 위한 위쪽 여백 추가
               child: Align(
                 alignment: Alignment.center,
                 child: Container(

@@ -86,7 +86,10 @@ class _MyPostsPageState extends State<MyPostsPage> {
       appBar: AppBar(
         title: const Text('내가 작성한 글', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        leading: const BackButton(),
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 35),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
