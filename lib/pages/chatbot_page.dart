@@ -183,7 +183,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.redAccent.withOpacity(0.3),
+                                  color: Color(0xFF5E5E5E).withOpacity(0.4),
                                   blurRadius: 3,
                                   offset: const Offset(0, 0),
                                 )
