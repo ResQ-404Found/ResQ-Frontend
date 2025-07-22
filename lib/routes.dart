@@ -25,6 +25,7 @@ import 'pages/password_reset_request_page.dart';
 import 'pages/password_reset_verify_page.dart';
 import 'pages/initial_page.dart';
 import 'pages/checklist.dart';
+import 'pages/news_page.dart';
 
 
 final Map<String, WidgetBuilder> routes = {
@@ -50,6 +51,7 @@ final Map<String, WidgetBuilder> routes = {
   '/type-filter': (context) => NotificationSettingsPage(),
   '/disasterlist': (context) => DisasterGuidePage(initialIndex: 0),
   '/checklist' : (context) => const ChecklistPage(),
+  '/news': (context) => NewsPage(),
   '/password_reset_request' : (context) => const PasswordResetRequestPage(),
   '/password_reset_verify': (context) {
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
