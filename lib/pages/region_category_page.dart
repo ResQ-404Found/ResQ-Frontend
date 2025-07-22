@@ -13,7 +13,7 @@ class RegionCategoryPage extends StatefulWidget {
 class _RegionCategoryPageState extends State<RegionCategoryPage> {
   final storage = const FlutterSecureStorage();
   Map<int, int> notificationRegionMap =
-  {}; // regionId -> notification_region_id
+      {}; // regionId -> notification_region_id
 
   final Map<int, String> regionIdToName = {
     // 서울특별시
@@ -343,7 +343,7 @@ class _RegionCategoryPageState extends State<RegionCategoryPage> {
     '광주광역시': ['광산구', '남구', '동구', '북구', '서구'],
     '대전광역시': ['대덕구', '동구', '서구', '중구', '유성구'],
     '울산광역시': ['남구', '동구', '북구', '울주군', '중구'],
-    '세종특별자치시': [],
+    '세종특별자치시': ['세종특별자치시'],
     '경기도': [
       '가평군',
       '고양시',
@@ -610,9 +610,7 @@ class _RegionCategoryPageState extends State<RegionCategoryPage> {
   @override
   Widget build(BuildContext context) {
     final visibleRegions =
-    regionData.entries
-        .where((e) => e.value.isNotEmpty || e.key == '세종특별자치시')
-        .toList();
+        regionData.entries.where((e) => e.value.isNotEmpty).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -630,13 +628,7 @@ class _RegionCategoryPageState extends State<RegionCategoryPage> {
       backgroundColor: const Color(0xFFF9FAFB),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.3,
-          ),
+        child: ListView.builder(
           itemCount: visibleRegions.length,
           itemBuilder: (context, index) {
             final regionName = visibleRegions[index].key;
@@ -645,33 +637,23 @@ class _RegionCategoryPageState extends State<RegionCategoryPage> {
                 regionIdToName.entries
                     .firstWhere(
                       (e) => e.value == regionName,
-                  orElse: () => const MapEntry(-1, ''),
-                )
+                      orElse: () => const MapEntry(-1, ''),
+                    )
                     .key;
             final isSelected = notificationRegionMap.containsKey(regionId);
 
             return GestureDetector(
               onTap: () async {
-                if (regionName == '세종특별자치시') {
-                  if (regionId == -1) return;
-
-                  if (isSelected) {
-                    await _deleteNotificationRegion(regionId);
-                  } else {
-                    await _addNotificationRegion(regionId);
-                  }
-
-                  setState(() {});
-                } else {
-                  _showSubRegionModal(context, regionName);
-                }
+                _showSubRegionModal(context, regionName);
               },
               child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 20,
+                ),
                 decoration: BoxDecoration(
-                  color:
-                  regionName == '세종특별자치시'
-                      ? (isSelected ? Colors.lightBlue[100] : Colors.white)
-                      : Colors.white,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: const [
                     BoxShadow(
@@ -681,14 +663,15 @@ class _RegionCategoryPageState extends State<RegionCategoryPage> {
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const SizedBox(height: 8),
                     Text(
                       regionName,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     if (subCount > 0)
                       Text(
@@ -717,111 +700,111 @@ class _RegionCategoryPageState extends State<RegionCategoryPage> {
       ),
       builder:
           (context) => StatefulBuilder(
-        builder:
-            (context, setModalState) => DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.6,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
-          builder:
-              (context, scrollController) => SingleChildScrollView(
-            controller: scrollController,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 20,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      regionName,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  '원하는 지역을 선택해주세요',
-                  style: TextStyle(fontSize: 15),
-                ),
-                const SizedBox(height: 20),
-                Align(
-                  alignment: Alignment.center,
-                  child: Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 35,
-                    runSpacing: 20,
-                    children:
-                    subRegions.map((sub) {
-                      final matched = regionIdToName.entries
-                          .firstWhere(
-                            (e) => e.value == sub,
-                        orElse:
-                            () => const MapEntry(-1, ''),
-                      );
-                      final regionId = matched.key;
-                      final isNotified = notificationRegionMap
-                          .containsKey(regionId);
-
-                      return GestureDetector(
-                        onTap: () async {
-                          if (regionId == -1) return;
-
-                          if (isNotified) {
-                            await _deleteNotificationRegion(
-                              regionId,
-                            );
-                          } else {
-                            await _addNotificationRegion(
-                              regionId,
-                            );
-                          }
-                          setModalState(() {});
-                        },
-                        child: Container(
-                          width: 140,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 14,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                            isNotified
-                                ? Colors.lightBlue[100]
-                                : Colors.grey[200],
-                            borderRadius: BorderRadius.circular(
-                              10,
+            builder:
+                (context, setModalState) => DraggableScrollableSheet(
+                  expand: false,
+                  initialChildSize: 0.6,
+                  minChildSize: 0.4,
+                  maxChildSize: 0.9,
+                  builder:
+                      (context, scrollController) => SingleChildScrollView(
+                        controller: scrollController,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 20,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  regionName,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                              ],
                             ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              sub,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 14,
+                            const SizedBox(height: 4),
+                            const Text(
+                              '원하는 지역을 선택해주세요',
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            const SizedBox(height: 20),
+                            Align(
+                              alignment: Alignment.center,
+                              child: Wrap(
+                                alignment: WrapAlignment.center,
+                                spacing: 35,
+                                runSpacing: 20,
+                                children:
+                                    subRegions.map((sub) {
+                                      final matched = regionIdToName.entries
+                                          .firstWhere(
+                                            (e) => e.value == sub,
+                                            orElse:
+                                                () => const MapEntry(-1, ''),
+                                          );
+                                      final regionId = matched.key;
+                                      final isNotified = notificationRegionMap
+                                          .containsKey(regionId);
+
+                                      return GestureDetector(
+                                        onTap: () async {
+                                          if (regionId == -1) return;
+
+                                          if (isNotified) {
+                                            await _deleteNotificationRegion(
+                                              regionId,
+                                            );
+                                          } else {
+                                            await _addNotificationRegion(
+                                              regionId,
+                                            );
+                                          }
+                                          setModalState(() {});
+                                        },
+                                        child: Container(
+                                          width: 140,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 14,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                isNotified
+                                                    ? Colors.lightBlue[100]
+                                                    : Colors.grey[200],
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              sub,
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                      );
-                    }).toList(),
-                  ),
+                      ),
                 ),
-              ],
-            ),
           ),
-        ),
-      ),
     );
   }
 }
