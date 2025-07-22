@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'disaster_guide_page.dart';
+<<<<<<< HEAD
 import 'checklist.dart';
+=======
+import 'all_disaster_types.dart';
+>>>>>>> 6c8b1a7 (comments)
 
 class DisasterMenuPage extends StatelessWidget {
   const DisasterMenuPage({super.key});
@@ -70,13 +74,21 @@ class DisasterMenuPage extends StatelessWidget {
                   final isFirst = index == 0;
                   return GestureDetector(
                     onTap: () {
-                      if (item['title'] == '대피 방법') {
+                      if (item['title'] == '재난 정보') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AllDisasterTypeListPage(),
+                          ),
+                        );
+                      } else if (item['title'] == '대피 방법') {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) => DisasterGuidePage(initialIndex: 0),
                           ),
                         );
+<<<<<<< HEAD
 
                       } else if (item['title'] == '체크리스트') {
                         Navigator.push(
@@ -89,6 +101,9 @@ class DisasterMenuPage extends StatelessWidget {
                   Navigator.pushNamed(context, '/news');
                 }
 
+=======
+                      }
+>>>>>>> 6c8b1a7 (comments)
                     },
                     child: Container(
                       height: 100,

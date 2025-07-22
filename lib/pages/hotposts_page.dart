@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'all_post_detail_page.dart';
+
 class HotPostsPage extends StatefulWidget {
   const HotPostsPage({super.key});
 
@@ -202,30 +204,7 @@ class _HotPostsPageState extends State<HotPostsPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder:
-                      (_) => Scaffold(
-                    appBar: AppBar(
-                      title: const Text('상세 페이지'),
-                      backgroundColor: Colors.white,
-                      iconTheme: const IconThemeData(
-                        color: Colors.black87,
-                      ),
-                      titleTextStyle: const TextStyle(
-                        color: Colors.black87,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      leading: IconButton(
-                        icon: const Icon(
-                          Icons.chevron_left,
-                          size: 35,
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      elevation: 0,
-                    ),
-                    body: const Center(child: Text('상세 페이지 구현 예정')),
-                  ),
+                  builder: (_) => AllPostDetailPage(post: post),
                 ),
               );
             },
