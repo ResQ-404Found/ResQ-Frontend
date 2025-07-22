@@ -31,6 +31,11 @@ class AllDisasterTypeListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('전체 재난정보'),
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 35),
+          onPressed: () => Navigator.pop(context),
+        ),
+
       ),
       body: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
