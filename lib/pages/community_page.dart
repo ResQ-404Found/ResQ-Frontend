@@ -248,7 +248,7 @@ class CommunityMainPageState extends State<CommunityMainPage> {
         onPressed: () => Navigator.pushNamed(context, '/createpost'),
         backgroundColor: Colors.redAccent,
         shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white, size: 32),
+        child: const Icon(Icons.edit, color: Colors.white, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
