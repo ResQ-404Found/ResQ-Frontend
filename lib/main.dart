@@ -7,7 +7,7 @@ import 'routes.dart';
 import 'pages/disaster_detail_page.dart';
 import 'pages/map_page.dart';
 import 'pages/initial_page.dart';
-
+import 'pages/all_disaster_type_message.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 final mockDisaster = Disaster(
@@ -124,6 +124,7 @@ class _MyAppState extends State<MyApp> {
         ...routes,
         '/initial': (context) => const InitialPage(),
       },
+
       onGenerateRoute: (settings) {
         if (settings.name == '/disasterDetail') {
           final disaster = settings.arguments as Disaster;
@@ -131,8 +132,21 @@ class _MyAppState extends State<MyApp> {
             builder: (context) => DisasterDetailPage(disaster: disaster),
           );
         }
-        return null;
+
+        if (settings.name == '/disastertypedetail') {
+          final disasterType = settings.arguments as String;
+          return MaterialPageRoute(
+            builder: (context) => AllDisasterTypeDetailPage(disasterType: disasterType),
+          );
+        }
+
+        return MaterialPageRoute(
+          builder: (context) => const Scaffold(
+            body: Center(child: Text('페이지를 찾을 수 없습니다')),
+          ),
+        );
       },
+
     );
   }
 }

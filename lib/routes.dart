@@ -57,7 +57,6 @@ final Map<String, WidgetBuilder> routes = {
   '/postDetail': (context) => const PostDetailPage(),
   '/postEdit': (context) => const PostEditPage(),
   '/alldisastertypes': (context) => AllDisasterTypeListPage(),
-  '/'
   '/disastertypedetail': (context) {
     final args = ModalRoute.of(context)!.settings.arguments as String;
     return AllDisasterTypeDetailPage(disasterType: args);
