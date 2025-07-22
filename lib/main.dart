@@ -3,8 +3,6 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'pages/all_post_detail_page.dart';
-import 'pages/my_post_edit_page.dart';
 import 'routes.dart';
 import 'pages/disaster_detail_page.dart';
 import 'pages/map_page.dart';
@@ -134,19 +132,6 @@ class _MyAppState extends State<MyApp> {
           );
         }
 
-        if (settings.name == '/postDetail') {
-          final post = settings.arguments as Map<String, dynamic>;
-          return MaterialPageRoute(
-            builder: (context) => AllPostDetailPage(post: post),
-          );
-        }
-
-        if (settings.name == '/postEdit') {
-          final post = settings.arguments as Map<String, dynamic>;
-          return MaterialPageRoute(
-            builder: (context) => PostEditPage(post: post),
-          );
-        }
 
         return MaterialPageRoute(
           builder: (context) => const Scaffold(

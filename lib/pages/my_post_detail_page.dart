@@ -89,6 +89,7 @@ class PostDetailPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('${post['region_id'] ?? '재난'} 커뮤니티'),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.more_horiz),

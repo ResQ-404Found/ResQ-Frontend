@@ -227,10 +227,11 @@ class _AllPostsPageState extends State<AllPostsPage> {
                   final imageUrl = resolveImageUrl(post['post_imageURLs']);
                   return GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(
+                      Navigator.push(
                         context,
-                        '/postDetail',
-                        arguments: post['id'],
+                        MaterialPageRoute(
+                          builder: (_) => AllPostDetailPage(post: post),
+                        ),
                       );
                     },
                     child: PostCard(

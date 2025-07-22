@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:resq_frontend/pages/edit_post_page.dart';
 import 'pages/disaster_guide_page.dart';
 import 'pages/disastertype_filtering_page.dart';
 import 'pages/region_category_page.dart';
@@ -13,12 +14,20 @@ import 'pages/writepost_page.dart';
 import 'pages/hotposts_page.dart';
 import 'pages/withdrawl_page.dart';
 import 'pages/disaster_menu_page.dart';
+import 'pages/fire_page.dart';
+import 'pages/landslide_page.dart';
+import 'pages/flood_page.dart';
+import 'pages/typhoon_page.dart';
+import 'pages/earthquake_page.dart';
+import 'pages/coldwave_page.dart';
 import 'pages/password_reset_new_page.dart';
 import 'pages/password_reset_request_page.dart';
 import 'pages/password_reset_verify_page.dart';
 import 'pages/initial_page.dart';
 import 'pages/checklist.dart';
 import 'pages/news_page.dart';
+import 'pages/my_post_detail_page.dart';
+import 'pages/my_post_edit_page.dart';
 import 'pages/all_disaster_type_detail_page.dart';
 final Map<String, WidgetBuilder> routes = {
   '/all-disasters': (context) => const AllDisasterTypeDetailPage(),
@@ -45,6 +54,8 @@ final Map<String, WidgetBuilder> routes = {
   '/disasterlist': (context) => DisasterGuidePage(initialIndex: 0),
   '/checklist' : (context) => const ChecklistPage(),
   '/news': (context) => NewsPage(),
+  '/postDetail': (context) => const PostDetailPage(),
+  '/postEdit': (context) => const EditPostPage(),
 
   '/password_reset_request' : (context) => const PasswordResetRequestPage(),
   '/password_reset_verify': (context) {
