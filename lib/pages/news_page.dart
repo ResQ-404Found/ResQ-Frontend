@@ -65,7 +65,7 @@ class _NewsPageState extends State<NewsPage> {
   }
 
   Future<void> fetchYoutubeVideos() async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/youtube?query=재난');
+    final url = Uri.parse('http://54.253.211.96:8000/api/youtube?query=재난&channel=KBS News');
 
     final response = await http.get(
       url,
