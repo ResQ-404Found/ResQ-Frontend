@@ -177,6 +177,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                       const Padding(padding: EdgeInsets.only(bottom: 4)),
                       Row(
                         children: [
+                          const SizedBox(width: 16),
                           Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
@@ -195,7 +196,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                             ),
                           ),
 
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 12),
                           const Text(
                             '재난 전문 챗봇',
                             style: TextStyle(
@@ -207,7 +208,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
                         ],
                       ),
 
-                      const SizedBox(height: 6),
                       messageWidget,
                     ],
                   );
