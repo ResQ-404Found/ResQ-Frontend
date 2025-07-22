@@ -85,7 +85,9 @@ class DisasterMenuPage extends StatelessWidget {
                             builder: (_) => const ChecklistPage(),
                           ),
                         );
-                      }
+                      } else if (item['title'] == '뉴스') {
+                  Navigator.pushNamed(context, '/news');
+                }
 
                     },
                     child: Container(
