@@ -61,14 +61,14 @@ class _MyPostsPageState extends State<MyPostsPage> {
     );
 
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('게시글이 삭제되었습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('게시글이 삭제되었습니다.')));
       fetchMyPosts();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('게시글 삭제에 실패했습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('게시글 삭제에 실패했습니다.')));
     }
   }
 
@@ -85,174 +85,244 @@ class _MyPostsPageState extends State<MyPostsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('내가 작성한 글', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          '내가 작성한 글',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left, size: 35),
           onPressed: () => Navigator.pop(context),
         ),
+        backgroundColor: Colors.grey[50],
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : posts.isEmpty
-          ? const Center(child: Text('작성한 글이 없습니다.'))
-          : Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: ListView.builder(
-          itemCount: posts.length,
-          itemBuilder: (context, index) {
-            final post = posts[index];
-            final content = post['content'] ?? '';
-            final createdAt = post['created_at'] ?? '';
-            final images = post['post_imageURLs'] ?? [];
-            final author = post['author'] ?? {};
-            final profile = author['profile_imageURL'] ?? '';
-            final nickname = author['username'] ?? '작성자';
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : posts.isEmpty
+              ? const Center(child: Text('작성한 글이 없습니다.'))
+              : ListView.builder(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                itemCount: posts.length,
+                itemBuilder: (context, index) {
+                  final post = posts[index];
+                  final content = post['content'] ?? '';
+                  final createdAt = post['created_at'] ?? '';
+                  final images = post['post_imageURLs'] ?? [];
+                  final title = post['title'] ?? '(제목 없음)';
+                  final likeCount = post['like_count'] ?? 0;
+                  final commentCount = post['comment_count'] ?? 0;
 
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 상단: 프로필, 닉네임, 작성일
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundImage: NetworkImage(
-                            profile.isNotEmpty
-                                ? profile
-                                : 'https://via.placeholder.com/150',
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
+                  // 이미지 URL 처리
+                  String? imageUrl;
+                  if (images.isNotEmpty) {
+                    final rawUrl = images[0];
+                    if (rawUrl.startsWith('http')) {
+                      imageUrl = rawUrl;
+                    } else {
+                      imageUrl = 'http://54.253.211.96:8000$rawUrl';
+                    }
+                  }
+
+                  return Card(
+                    color: Colors.white,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 10,
+                    ),
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 18, 24, 18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 제목 + 시간 + 메뉴
+                          Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(nickname,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold)),
-                              Text(
-                                formatTime(createdAt),
-                                style: const TextStyle(
-                                    fontSize: 12, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                        PopupMenuButton<String>(
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      PostEditPage(post: post),
-                                ),
-                              ).then((_) => fetchMyPosts());
-                            } else if (value == 'delete') {
-                              showDialog(
-                                context: context,
-                                builder: (_) => AlertDialog(
-                                  title: const Text('게시글 삭제'),
-                                  content:
-                                  const Text('정말 삭제하시겠습니까?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context),
-                                      child: const Text('취소'),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
                                     ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        deletePost(post['id']);
-                                      },
-                                      child: const Text('삭제',
-                                          style: TextStyle(
-                                              color: Colors.red)),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      formatTime(createdAt),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                   ],
                                 ),
-                              );
-                            }
-                          },
-                          itemBuilder: (context) => const [
-                            PopupMenuItem(
-                                value: 'edit', child: Text('수정')),
-                            PopupMenuItem(
-                                value: 'delete', child: Text('삭제')),
-                          ],
-                          icon: const Icon(Icons.more_vert),
-                        ),
-                      ],
-                    ),
+                              ),
+                              PopupMenuButton<String>(
+                                color: Colors.white,
 
-                    const SizedBox(height: 12),
-
-                    // 본문
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (images.isNotEmpty)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              images[0],
-                              width: 80,
-                              height: 80,
-                              fit: BoxFit.cover,
-                            ),
+                                onSelected: (value) {
+                                  if (value == 'edit') {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (_) => PostEditPage(post: post),
+                                      ),
+                                    ).then((_) => fetchMyPosts());
+                                  } else if (value == 'delete') {
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (_) => AlertDialog(
+                                            title: const Text('게시글 삭제'),
+                                            content: const Text('정말 삭제하시겠습니까?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed:
+                                                    () =>
+                                                        Navigator.pop(context),
+                                                child: const Text('취소'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                  deletePost(post['id']);
+                                                },
+                                                child: const Text(
+                                                  '삭제',
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+                                  }
+                                },
+                                itemBuilder:
+                                    (context) => const [
+                                      PopupMenuItem(
+                                        value: 'edit',
+                                        child: Text('수정'),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'delete',
+                                        child: Text('삭제'),
+                                      ),
+                                    ],
+                                icon: const Icon(Icons.more_vert),
+                              ),
+                            ],
                           ),
-                        if (images.isNotEmpty) const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            content,
-                            style: const TextStyle(fontSize: 14),
-                            maxLines: 4,
-                            overflow: TextOverflow.ellipsis,
+
+                          const SizedBox(height: 12),
+
+                          // 본문 + 이미지
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (imageUrl != null)
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    imageUrl,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              if (imageUrl != null) const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  content,
+                                  style: const TextStyle(fontSize: 14),
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
 
-                    const SizedBox(height: 12),
+                          const SizedBox(height: 8),
 
-                    // View 버튼
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  AllPostDetailPage(post: post),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          'View Post',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue),
-                        ),
+                          // 좋아요/댓글 수 + 원문 보기 버튼
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.favorite_border,
+                                    size: 18,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '$likeCount',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  const Icon(
+                                    Icons.mode_comment_outlined,
+                                    size: 18,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '$commentCount',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ],
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) => AllPostDetailPage(post: post),
+                                    ),
+                                  );
+                                },
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(0, 0),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text(
+                                  '원문 보기',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blueAccent,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
-        ),
-      ),
     );
   }
 }
