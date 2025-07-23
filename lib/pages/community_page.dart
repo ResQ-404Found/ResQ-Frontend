@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 
 class CommunityMainPage extends StatefulWidget {
   const CommunityMainPage({super.key});
 
   @override
-  CommunityMainPageState createState() => CommunityMainPageState();
+  State<CommunityMainPage> createState() => _CommunityMainPageState();
 }
 
 const Map<int, String> regionNames = {
@@ -29,13 +30,12 @@ const Map<int, String> regionNames = {
   11977: '제주도',
 };
 
-class CommunityMainPageState extends State<CommunityMainPage> {
+class _CommunityMainPageState extends State<CommunityMainPage> {
   List<dynamic> posts = [];
   List<dynamic> popularPosts = [];
+  final _searchController = TextEditingController();
   List<dynamic> searchResults = [];
-  final TextEditingController _searchController = TextEditingController();
   bool isSearching = false;
-  bool searchPerformed = false;
 
   @override
   void initState() {
@@ -45,73 +45,41 @@ class CommunityMainPageState extends State<CommunityMainPage> {
   }
 
   Future<void> fetchPosts() async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts');
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          posts = data;
-        });
-      } else {
-        print('게시글 불러오기 실패: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('오류 발생: $e');
+    final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts'));
+    if (response.statusCode == 200) {
+      setState(() {
+        posts = jsonDecode(response.body);
+      });
     }
   }
 
   Future<void> fetchPopularPosts() async {
-    final url = Uri.parse(
-      'http://54.253.211.96:8000/api/posts?sort=like_count',
-    );
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          popularPosts = data;
-        });
-      } else {
-        print('인기글 불러오기 실패: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('인기글 오류 발생: $e');
+    final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts?sort=like_count'));
+    if (response.statusCode == 200) {
+      setState(() {
+        popularPosts = jsonDecode(response.body);
+      });
     }
   }
 
   Future<void> searchPosts(String term) async {
     if (term.trim().isEmpty) return;
-
     setState(() {
-      searchResults.clear();
       isSearching = true;
-      searchPerformed = false;
     });
-
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts?term=$term');
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          searchResults = data;
-          searchPerformed = true;
-        });
-      } else {
-        print('검색 실패: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('검색 중 오류 발생: $e');
+    final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts?term=$term'));
+    if (response.statusCode == 200) {
+      setState(() {
+        searchResults = jsonDecode(response.body);
+      });
     }
   }
 
   void cancelSearch() {
     setState(() {
       isSearching = false;
-      searchPerformed = false;
-      _searchController.clear();
       searchResults.clear();
+      _searchController.clear();
     });
   }
 
@@ -127,110 +95,202 @@ class CommunityMainPageState extends State<CommunityMainPage> {
     return null;
   }
 
+  String parseTimeAgo(String time) {
+    final dateTime = DateTime.parse(time).toLocal();
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+
+    if (diff.inSeconds < 60) return '${diff.inSeconds}초 전';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
+    if (diff.inHours < 24) return '${diff.inHours}시간 전';
+    if (diff.inDays == 1) return '어제';
+    return '${diff.inDays}일 전';
+  }
+
+  Widget sectionHeader(String title, String route, IconData icon) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(children: [
+          Icon(icon, color: Colors.redAccent),
+          const SizedBox(width: 6),
+          Text(title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        ]),
+        InkWell(
+          onTap: () => Navigator.pushNamed(context, route),
+          child: const Padding(
+            padding: EdgeInsets.only(right: 10),
+            child: Icon(Icons.arrow_forward_ios, size: 16),
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget buildPostList(List<dynamic> list) {
+    return SizedBox(
+      height: 260,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: list.length,
+        itemBuilder: (context, index) {
+          final post = list[index];
+          final region = regionNames[int.tryParse('${post['region_id']}')] ?? '알 수 없음';
+          final imageUrl = resolveImageUrl(post['post_imageURLs']);
+          final nickname = post['username'] ?? '익명';
+          final likeCount = post['like_count'] ?? 0;
+          final commentCount = post['comment_count'] ?? 0;
+          final time = post['created_at'] ?? '';
+          final title = post['title'] ?? '';
+
+          return Container(
+            width: 200,
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[200]!),
+              borderRadius: BorderRadius.circular(16),
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                )
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(region,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 4),
+                Text(parseTimeAgo(time),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                const SizedBox(height: 4),
+                Text(title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 15)),
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: imageUrl != null
+                      ? Image.network(imageUrl,
+                      width: double.infinity,
+                      height: 100,
+                      fit: BoxFit.cover)
+                      : Container(
+                      width: double.infinity,
+                      height: 100,
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.image, color: Colors.grey)),
+                ),
+                const SizedBox(height: 6),
+                Text('by $nickname',
+                    style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const Icon(Icons.favorite_border, size: 16),
+                    const SizedBox(width: 4),
+                    Text('$likeCount', style: const TextStyle(fontSize: 12)),
+                    const SizedBox(width: 10),
+                    const Icon(Icons.chat_bubble_outline, size: 16),
+                    const SizedBox(width: 4),
+                    Text('$commentCount', style: const TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
         elevation: 0,
-        title: Container(
-          color: Colors.white,
-          child: Row(
+        backgroundColor: Colors.white,
+        title: TextField(
+          controller: _searchController,
+          onSubmitted: searchPosts,
+          decoration: InputDecoration(
+            hintText: '검색하기',
+            prefixIcon: const Icon(Icons.search, color: Colors.redAccent),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: const BorderSide(color: Colors.redAccent),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: const BorderSide(color: Colors.redAccent),
+            ),
+          ),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: isSearching
+            ? ListView(
+          children: searchResults
+              .map((post) => ListTile(
+            title: Text(post['title'] ?? ''),
+            subtitle: Text(
+              regionNames[int.tryParse('${post['region_id']}')] ?? '',
+            ),
+          ))
+              .toList(),
+        )
+            : SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (isSearching)
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  onPressed: cancelSearch,
-                ),
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  onSubmitted: searchPosts,
-                  decoration: InputDecoration(
-                    hintText: '검색하기',
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: () => searchPosts(_searchController.text),
-                    ),
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                    enabledBorder: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                      borderSide: BorderSide(color: Colors.grey),
-                    ),
-                    focusedBorder: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                  ),
-                ),
-              ),
+              sectionHeader('인기글', '/hotposts', Icons.local_fire_department),
+              const SizedBox(height: 10),
+              buildPostList(popularPosts),
+              const SizedBox(height: 30),
+              sectionHeader('전체글', '/allposts', Icons.list_alt),
+              const SizedBox(height: 10),
+              buildPostList(posts),
             ],
           ),
         ),
       ),
-      body:
-          isSearching
-              ? Padding(
-                padding: const EdgeInsets.all(16),
-                child:
-                    searchResults.isNotEmpty
-                        ? ListView.builder(
-                          itemCount: searchResults.length,
-                          itemBuilder: (context, index) {
-                            final post = searchResults[index];
-                            return Container(
-                              margin: const EdgeInsets.symmetric(vertical: 8),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Colors.grey[300]!),
-                              ),
-                              child: Row(
-                                children: [
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          post['title'],
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          "작성자: ${post['author']?['username'] ?? post['user_id'] ?? '알 수 없음'}",
-                                          style: const TextStyle(
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        )
-                        : const Center(child: Text('검색결과가 없습니다')),
-              )
-              : buildDefaultContent(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.pushNamed(context, '/createpost'),
+        backgroundColor: Colors.redAccent,
+        child: const Icon(Icons.edit),
+      ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         elevation: 0,
-        type: BottomNavigationBarType.fixed,
         currentIndex: 2,
+        selectedItemColor: Colors.redAccent,
+        unselectedItemColor: Colors.grey[300],
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        selectedIconTheme: const IconThemeData(size: 30),
+        unselectedIconTheme: const IconThemeData(size: 30),
         onTap: (index) {
           switch (index) {
             case 0:
@@ -249,162 +309,13 @@ class CommunityMainPageState extends State<CommunityMainPage> {
               break;
           }
         },
-        selectedItemColor: Colors.redAccent,
-        unselectedItemColor: Colors.grey[300],
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        selectedIconTheme: const IconThemeData(size: 30),
-        unselectedIconTheme: const IconThemeData(size: 30),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.place), label: '지도'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: '채팅'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: '챗봇'),
           BottomNavigationBarItem(icon: Icon(Icons.groups), label: '커뮤니티'),
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: '재난메뉴'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
-            label: '마이',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: '마이'),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, '/createpost'),
-        backgroundColor: Colors.redAccent,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.edit, color: Colors.white, size: 30),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    );
-  }
-
-  Widget buildDefaultContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 35),
-          sectionHeader('인기글', '/hotposts'),
-          const SizedBox(height: 10),
-          buildHorizontalPostList(popularPosts),
-          const SizedBox(height: 35),
-          sectionHeader('전체글', '/allposts'),
-          const SizedBox(height: 10),
-          buildHorizontalPostList(posts),
-        ],
-      ),
-    );
-  }
-
-  Widget sectionHeader(String title, String route) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(right: 15),
-          child: InkWell(
-            onTap: () => Navigator.pushNamed(context, route),
-            child: const Icon(Icons.arrow_forward_ios, size: 16),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget buildHorizontalPostList(List<dynamic> postsList) {
-    if (postsList.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        child: Text('게시글이 없습니다'),
-      );
-    }
-
-    return SizedBox(
-      height: 250,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: postsList.length,
-        itemBuilder: (context, index) {
-          final post = postsList[index];
-          final regionId = int.tryParse('${post['region_id']}');
-          final imageUrl = resolveImageUrl(post['post_imageURLs']);
-
-          return Container(
-            width: 180,
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  blurRadius: 5,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child:
-                        imageUrl != null
-                            ? Image.network(
-                              imageUrl,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder:
-                                  (_, __, ___) =>
-                                      const Icon(Icons.broken_image),
-                            )
-                            : Container(
-                              width: double.infinity,
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.image, size: 48),
-                            ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  color: Colors.white,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        regionNames[regionId] ?? '알 수 없음',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      Text(
-                        post['title'],
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        '작성자 ${post['author']?['username'] ?? post['user_id'] ?? '알 수 없음'}',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }

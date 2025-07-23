@@ -50,16 +50,13 @@ class _HotPostsPageState extends State<HotPostsPage> {
   }
 
   Future<void> fetchPosts() async {
-    final url = Uri.parse(
-      'http://54.253.211.96:8000/api/posts?sort=like_count',
-    );
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts?sort=like_count');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         posts = data;
-        likeCountList =
-            posts.map<int>((post) => post['like_count'] ?? 0).toList();
+        likeCountList = posts.map<int>((post) => post['like_count'] ?? 0).toList();
         isLikedList = List.filled(posts.length, false);
         setState(() {});
         for (int i = 0; i < posts.length; i++) {
@@ -76,9 +73,7 @@ class _HotPostsPageState extends State<HotPostsPage> {
   }
 
   Future<bool> fetchLikeStatus(int postId) async {
-    final url = Uri.parse(
-      'http://54.253.211.96:8000/api/posts/$postId/like/status',
-    );
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like/status');
     try {
       final response = await http.get(
         url,
@@ -98,22 +93,15 @@ class _HotPostsPageState extends State<HotPostsPage> {
     final isLiked = isLikedList[index];
     final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like');
     try {
-      final response =
-          isLiked
-              ? await http.delete(
-                url,
-                headers: {'Authorization': 'Bearer $accessToken'},
-              )
-              : await http.post(
-                url,
-                headers: {'Authorization': 'Bearer $accessToken'},
-              );
+      final response = isLiked
+          ? await http.delete(url, headers: {'Authorization': 'Bearer $accessToken'})
+          : await http.post(url, headers: {'Authorization': 'Bearer $accessToken'});
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
           isLikedList[index] = !isLiked;
-          likeCountList[index] =
-              data['data']['like_count'] ?? likeCountList[index];
+          likeCountList[index] = data['data']['like_count'] ?? likeCountList[index];
         });
       }
     } catch (e) {
@@ -150,41 +138,40 @@ class _HotPostsPageState extends State<HotPostsPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text('인기글', style: TextStyle(color: Colors.black)),
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body:
-          (posts.isEmpty || isLikedList.length != posts.length)
-              ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                itemCount: posts.length,
-                itemBuilder: (context, index) {
-                  final post = posts[index];
-                  final imageUrl = resolveImageUrl(post['post_imageURLs']);
-                  return GestureDetector(
-                    onTap:
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AllPostDetailPage(post: post),
-                          ),
-                        ),
-                    child: PostCard(
-                      username: post['author']?['username'] ?? '알 수 없음',
-                      timeAgo: parseTimeAgo(post['created_at']),
-                      description: post['content'] ?? '',
-                      location: regionNames[post['region_id']] ?? '지역 정보 없음',
-                      likes: likeCountList[index],
-                      comments: post['view_count'] ?? 0,
-                      isLiked: isLikedList[index],
-                      imageUrl: imageUrl,
-                      onLikePressed: () => toggleLike(index),
-                    ),
-                  );
-                },
-              ),
+      body: (posts.isEmpty || isLikedList.length != posts.length)
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+        itemCount: posts.length,
+        itemBuilder: (context, index) {
+          final post = posts[index];
+          final imageUrl = resolveImageUrl(post['post_imageURLs']);
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => AllPostDetailPage(post: post)),
+              );
+            },
+            child: PostCard(
+              username: post['author']?['username'] ?? '알 수 없음',
+              timeAgo: parseTimeAgo(post['created_at']),
+              description: post['content'] ?? '',
+              location: regionNames[post['region_id']] ?? '지역 정보 없음',
+              likes: likeCountList[index],
+              comments: post['view_count'] ?? 0,
+              isLiked: isLikedList[index],
+              imageUrl: imageUrl,
+              onLikePressed: () => toggleLike(index),
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -212,129 +199,100 @@ class PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
+      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.redAccent, width: 1),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 8.0, right: 12.0),
-            child: CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.grey,
-              child: Icon(Icons.person, color: Colors.white),
-            ),
+          Row(
+            children: [
+              const CircleAvatar(
+                radius: 16,
+                backgroundColor: Color(0xFFECE2F0),
+                child: Icon(Icons.person, color: Colors.white),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(username, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  Text(timeAgo, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                ],
+              ),
+            ],
           ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Text(description, style: const TextStyle(fontSize: 14)),
+          ),
+          if (imageUrl != null) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                imageUrl!,
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.image_not_supported,
+                  size: 100,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: onLikePressed,
+                child: Row(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          username,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              timeAgo,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(
-                              Icons.location_pin,
-                              size: 16,
-                              color: Colors.red,
-                            ),
-                            Text(
-                              location,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                    Icon(
+                      isLiked ? Icons.favorite : Icons.favorite_border,
+                      color: Colors.redAccent,
+                      size: 20,
                     ),
-                    const Icon(Icons.more_vert, color: Colors.black54),
+                    const SizedBox(width: 4),
+                    Text('$likes', style: const TextStyle(fontWeight: FontWeight.w600)),
                   ],
                 ),
-                const SizedBox(height: 6),
-                imageUrl != null
-                    ? Center(
-                      child: Image.network(
-                        imageUrl!,
-                        width: 300,
-                        height: 300,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (context, error, stackTrace) => const Icon(
-                              Icons.image_not_supported,
-                              size: 300,
-                              color: Colors.grey,
-                            ),
-                      ),
-                    )
-                    : Center(
-                      child: Icon(
-                        Icons.image,
-                        size: 300,
-                        color: Colors.grey[400],
-                      ),
-                    ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  child: Text(
-                    description,
-                    style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(width: 16),
+              const Icon(Icons.comment, size: 20, color: Colors.blueAccent),
+              const SizedBox(width: 4),
+              Text('$comments', style: const TextStyle(fontWeight: FontWeight.w600)),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  location,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: onLikePressed,
-                      child: Icon(
-                        isLiked ? Icons.favorite : Icons.favorite_border,
-                        size: 25,
-                        color: isLiked ? Colors.red : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$likes',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Icon(Icons.comment, size: 25),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$comments',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
