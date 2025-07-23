@@ -1,3 +1,4 @@
+// 디자인 개선 + 댓글/대댓글 인터랙션 구현 + 댓글 입력 상태 복구 및 외부 터치 시 댓글 모드 복귀 + 댓글 좋아요 상태 반영 + 단일 댓글 카드 좋아요 버튼 추가 + 댓글 작성자 이름 표시 및 프로필 이미지 반영 + 게시글 제목 표시
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -14,83 +15,96 @@ class AllPostDetailPage extends StatefulWidget {
 class _AllPostDetailPageState extends State<AllPostDetailPage> {
   final storage = const FlutterSecureStorage();
   final TextEditingController commentController = TextEditingController();
-  final TextEditingController replyController = TextEditingController();
-  final TextEditingController editPostContentController = TextEditingController();
+  final FocusNode commentFocusNode = FocusNode();
+  int? replyingToCommentId;
 
   List<dynamic> comments = [];
   bool isLoading = true;
-  int? myUserId;
-  bool isPostLiked = false;
-  Map<int, bool> commentLikeStatus = {};
-  int? replyingToCommentId;
+  Set<int> likedCommentIds = {};
+  String postAuthor = '';
+  String postTitle = '';
 
   @override
   void initState() {
     super.initState();
-    fetchUserId();
+    fetchPostData();
     fetchComments();
-    fetchPostLikeStatus();
+
+    commentFocusNode.addListener(() {
+      if (!commentFocusNode.hasFocus) {
+        setState(() => replyingToCommentId = null);
+      }
+    });
   }
 
-  Future<void> fetchUserId() async {
+  @override
+  void dispose() {
+    commentController.dispose();
+    commentFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> fetchPostData() async {
     final token = await storage.read(key: 'accessToken');
-    if (token != null) {
-      final response = await http.get(
-        Uri.parse('http://54.253.211.96:8000/api/users/me'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
+    final postId = widget.post['id'];
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId');
+
+    try {
+      final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
-          myUserId = data['data']['id'];
+          postAuthor = data['author']?['username'] ?? '';
+          postTitle = data['title'] ?? '';
         });
       }
-    }
+    } catch (_) {}
   }
 
   Future<void> fetchComments() async {
     final postId = widget.post['id'];
+    final token = await storage.read(key: 'accessToken');
     final url = Uri.parse('http://54.253.211.96:8000/api/comments/$postId');
 
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
           comments = data;
           isLoading = false;
         });
-        fetchAllCommentLikeStatus();
+
+        for (final comment in data) {
+          _checkIfLiked(comment);
+          for (final reply in comment['replies'] ?? []) {
+            _checkIfLiked(reply);
+          }
+        }
       }
     } catch (e) {
       print('댓글 API 오류: $e');
     }
   }
 
-  Future<void> submitComment(String content) async {
+  Future<void> _checkIfLiked(dynamic comment) async {
     final token = await storage.read(key: 'accessToken');
-    final url = Uri.parse('http://54.253.211.96:8000/api/comments');
-
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'post_id': widget.post['id'],
-        'content': content,
-        'parent_comment_id': null,
-      }),
-    );
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      commentController.clear();
-      fetchComments();
-    }
+    final url = Uri.parse('http://54.253.211.96:8000/api/comments/${comment['id']}/like/status');
+    try {
+      final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final liked = data['data']['liked'] ?? false;
+        if (liked) {
+          setState(() {
+            likedCommentIds.add(comment['id']);
+          });
+        }
+      }
+    } catch (_) {}
   }
 
-  Future<void> submitReply(String content, int parentId) async {
+  Future<void> submitComment(String content, {int? parentId}) async {
     final token = await storage.read(key: 'accessToken');
     final url = Uri.parse('http://54.253.211.96:8000/api/comments');
 
@@ -108,177 +122,30 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      replyController.clear();
-      setState(() {
-        replyingToCommentId = null;
-      });
+      commentController.clear();
+      setState(() => replyingToCommentId = null);
       fetchComments();
     }
   }
 
-  Future<void> deleteComment(int commentId) async {
-    final token = await storage.read(key: 'accessToken');
-    final url = Uri.parse('http://54.253.211.96:8000/api/comments/$commentId/delete');
-
-    final response = await http.patch(url, headers: {'Authorization': 'Bearer $token'});
-    if (response.statusCode == 200) fetchComments();
-  }
-
-  Future<void> editComment(int commentId, String newContent) async {
-    final token = await storage.read(key: 'accessToken');
-    final url = Uri.parse('http://54.253.211.96:8000/api/comments/$commentId');
-
-    final response = await http.patch(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'content': newContent}),
-    );
-
-    if (response.statusCode == 200) fetchComments();
-  }
-
-  Future<void> fetchPostLikeStatus() async {
-    final token = await storage.read(key: 'accessToken');
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts/${widget.post['id']}/like/status');
-
-    final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      setState(() {
-        isPostLiked = data['data']['liked'];
-      });
-    }
-  }
-
-  Future<void> togglePostLike() async {
-    final token = await storage.read(key: 'accessToken');
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts/${widget.post['id']}/like');
-
-    final response = await (isPostLiked
-        ? http.delete(url, headers: {'Authorization': 'Bearer $token'})
-        : http.post(url, headers: {'Authorization': 'Bearer $token'}));
-
-    if (response.statusCode == 200) {
-      setState(() {
-        isPostLiked = !isPostLiked;
-        widget.post['like_count'] += isPostLiked ? 1 : -1;
-      });
-    }
-  }
-
-  Future<void> fetchLikeStatusForComment(int id, String token) async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/comments/$id/like/status');
-    final res = await http.get(url, headers: {'Authorization': 'Bearer $token'});
-    if (res.statusCode == 200) {
-      final data = jsonDecode(res.body);
-      setState(() {
-        commentLikeStatus[id] = data['data']['liked'];
-      });
-    }
-  }
-
-  Future<void> fetchAllCommentLikeStatus() async {
-    final token = await storage.read(key: 'accessToken');
-    for (final comment in comments) {
-      await fetchLikeStatusForComment(comment['id'], token!);
-      if (comment['replies'] != null) {
-        for (final reply in comment['replies']) {
-          await fetchLikeStatusForComment(reply['id'], token);
-        }
-      }
-    }
-  }
-
-  Future<void> toggleCommentLike(int commentId) async {
+  Future<void> toggleLike(int commentId) async {
     final token = await storage.read(key: 'accessToken');
     final url = Uri.parse('http://54.253.211.96:8000/api/comments/$commentId/like');
-    final liked = commentLikeStatus[commentId] ?? false;
 
-    final response = await (liked
-        ? http.delete(url, headers: {'Authorization': 'Bearer $token'})
-        : http.post(url, headers: {'Authorization': 'Bearer $token'}));
-
-    if (response.statusCode == 200) fetchComments();
-  }
-
-  void showEditDialog(int commentId, String currentContent) {
-    final controller = TextEditingController(text: currentContent);
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('댓글 수정'),
-        content: TextField(controller: controller),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await editComment(commentId, controller.text.trim());
-            },
-            child: const Text('수정'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void showEditPostDialog(String currentContent) {
-    editPostContentController.text = currentContent;
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('게시글 수정'),
-        content: TextField(controller: editPostContentController, maxLines: 5),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
-          TextButton(
-            onPressed: () async {
-              final text = editPostContentController.text.trim();
-              if (text.isNotEmpty) {
-                Navigator.pop(context);
-                await editPost(text);
-              }
-            },
-            child: const Text('수정'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> deletePost() async {
-    final token = await storage.read(key: 'accessToken');
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts/${widget.post['id']}');
-    final response = await http.delete(url, headers: {'Authorization': 'Bearer $token'});
-    if (response.statusCode == 200) {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('게시글이 삭제되었습니다.')));
-      }
-    }
-  }
-
-  Future<void> editPost(String newContent) async {
-    final token = await storage.read(key: 'accessToken');
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts/${widget.post['id']}');
-
-    final response = await http.patch(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'content': newContent}),
-    );
+    final isLiked = likedCommentIds.contains(commentId);
+    final response = isLiked
+        ? await http.delete(url, headers: {'Authorization': 'Bearer $token'})
+        : await http.post(url, headers: {'Authorization': 'Bearer $token'});
 
     if (response.statusCode == 200) {
       setState(() {
-        widget.post['content'] = newContent;
+        if (isLiked) {
+          likedCommentIds.remove(commentId);
+        } else {
+          likedCommentIds.add(commentId);
+        }
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('게시글이 수정되었습니다.')));
+      fetchComments();
     }
   }
 
@@ -296,199 +163,193 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
   @override
   Widget build(BuildContext context) {
     final post = widget.post;
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text('재난 커뮤니티', style: TextStyle(color: Colors.black)),
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left, size: 35),
-          onPressed: () => Navigator.pop(context),
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+        setState(() => replyingToCommentId = null);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          centerTitle: true,
+          title: const Text('게시글', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+          iconTheme: const IconThemeData(color: Colors.black),
         ),
-        actions: [
-          if (post['author']?['id'] == myUserId) ...[
-            IconButton(icon: const Icon(Icons.edit, color: Colors.black), onPressed: () => showEditPostDialog(post['content'] ?? '')),
-            IconButton(icon: const Icon(Icons.delete, color: Colors.black), onPressed: deletePost),
-          ]
-        ],
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Row(
-                  children: [
-                    const CircleAvatar(child: Icon(Icons.person)),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(post['author']?['username'] ?? '알 수 없음', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        Text(parseTimeAgo(post['created_at']), style: TextStyle(color: Colors.grey[600])),
-                      ],
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: Icon(
-                        isPostLiked ? Icons.favorite : Icons.favorite_border,
-                        color: isPostLiked ? Colors.pink : Colors.grey,
-                      ),
-                      onPressed: togglePostLike,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (post['image'] != null)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(post['image']),
-                  ),
-                const SizedBox(height: 12),
-                Text(post['content'] ?? '', style: const TextStyle(fontSize: 16)),
-                const Divider(height: 30),
-                for (final comment in comments) _buildCommentItem(comment),
-              ],
-            ),
-          ),
-          SafeArea(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: const BoxDecoration(border: Border(top: BorderSide(color: Colors.grey))),
-              child: Row(
+        backgroundColor: Colors.white,
+        body: Column(
+          children: [
+            Expanded(
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView(
+                padding: const EdgeInsets.all(16),
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: commentController,
-                      decoration: InputDecoration(
-                        hintText: '댓글을 입력하세요',
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
-                        filled: true,
-                        fillColor: Colors.grey[200],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () {
-                      final text = commentController.text.trim();
-                      if (text.isNotEmpty) {
-                        submitComment(text);
-                      }
-                    },
-                    child: CircleAvatar(
-                      backgroundColor: Colors.pink[200],
-                      child: const Icon(Icons.send, color: Colors.white),
-                    ),
-                  ),
+                  _buildPostCard(post),
+                  const SizedBox(height: 20),
+                  const Text('댓글', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  ...comments.map<Widget>((c) => _buildCommentItem(c)),
+                  const SizedBox(height: 10),
                 ],
               ),
             ),
-          ),
-        ],
+            SafeArea(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                color: Colors.grey.shade100,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: commentController,
+                        focusNode: commentFocusNode,
+                        decoration: InputDecoration(
+                          hintText: replyingToCommentId != null ? '대댓글을 입력하세요.' : '댓글을 입력하세요.',
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.send, color: Colors.red),
+                      onPressed: () {
+                        final text = commentController.text.trim();
+                        if (text.isNotEmpty) {
+                          submitComment(text, parentId: replyingToCommentId);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildCommentItem(dynamic comment) {
+  Widget _buildPostCard(Map<String, dynamic> post) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.pink[50], borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5)],
+      ),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const CircleAvatar(backgroundColor: Colors.grey, child: Icon(Icons.person, color: Colors.white)),
+              const CircleAvatar(child: Icon(Icons.person)),
               const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(comment['author']?['username'] ?? '알 수 없음', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text(parseTimeAgo(comment['created_at']), style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                    const SizedBox(height: 4),
-                    Text(comment['content']),
-                  ],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(postAuthor, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(parseTimeAgo(post['created_at']), style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                ],
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          Text(postTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(
-                  (commentLikeStatus[comment['id']] ?? false) ? Icons.favorite : Icons.favorite_border,
-                  size: 18,
-                  color: (commentLikeStatus[comment['id']] ?? false) ? Colors.pink : Colors.grey,
-                ),
-                onPressed: () => toggleCommentLike(comment['id']),
+          if (post['post_imageURLs'] != null && post['post_imageURLs'].isNotEmpty)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                post['post_imageURLs'][0],
+                errorBuilder: (context, error, stackTrace) => const Text('이미지를 불러올 수 없습니다.'),
               ),
-              Text('${comment['like_count']} likes', style: const TextStyle(fontSize: 12)),
-              const Spacer(),
-              TextButton(
-                onPressed: () => setState(() => replyingToCommentId = comment['id']),
-                child: const Text('Reply', style: TextStyle(color: Colors.red)),
-              ),
-              if (comment['user_id'] == myUserId) ...[
-                IconButton(icon: const Icon(Icons.edit, size: 18), onPressed: () => showEditDialog(comment['id'], comment['content'])),
-                IconButton(icon: const Icon(Icons.delete, size: 18), onPressed: () => deleteComment(comment['id'])),
-              ],
-            ],
-          ),
-          if (replyingToCommentId == comment['id']) ...[
-            TextField(controller: replyController, decoration: const InputDecoration(hintText: 'Write a reply...', border: OutlineInputBorder())),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            ),
+          if (post['post_imageURLs'] != null && post['post_imageURLs'].isNotEmpty)
+            const SizedBox(height: 12),
+          Text(post['content'] ?? '', style: const TextStyle(fontSize: 16)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCommentItem(dynamic comment, {int indent = 0}) {
+    final replies = comment['replies'] ?? [];
+    final isLiked = likedCommentIds.contains(comment['id']);
+    final isReply = indent > 0;
+    final authorName = comment['author']?['username'] ?? '익명';
+
+    return Padding(
+      padding: EdgeInsets.only(left: indent.toDouble(), bottom: isReply ? 6 : 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: isReply ? Colors.grey.shade50 : Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextButton(onPressed: () => setState(() => replyingToCommentId = null), child: const Text('Cancel')),
-                TextButton(
-                  onPressed: () {
-                    final text = replyController.text.trim();
-                    if (text.isNotEmpty) submitReply(text, comment['id']);
-                  },
-                  child: const Text('Reply'),
-                ),
-              ],
-            )
-          ],
-          if (comment['replies'] != null)
-            ...comment['replies'].map<Widget>((reply) => Padding(
-              padding: const EdgeInsets.only(left: 40, top: 8),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: Colors.pink[100], borderRadius: BorderRadius.circular(10)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text(reply['author']?['username'] ?? '알 수 없음', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text(parseTimeAgo(reply['created_at']), style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                    const SizedBox(height: 4),
-                    Text(reply['content']),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            (commentLikeStatus[reply['id']] ?? false) ? Icons.favorite : Icons.favorite_border,
-                            size: 18,
-                            color: (commentLikeStatus[reply['id']] ?? false) ? Colors.pink : Colors.grey,
-                          ),
-                          onPressed: () => toggleCommentLike(reply['id']),
-                        ),
-                        Text('${reply['like_count']} likes', style: const TextStyle(fontSize: 12)),
-                      ],
+                    if (isReply) const Icon(Icons.subdirectory_arrow_right, size: 16, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.person, size: 16, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(
+                      authorName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const Spacer(),
+                    Text(
+                      parseTimeAgo(comment['created_at']),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 ),
-              ),
-            )),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: EdgeInsets.only(left: isReply ? 16.0 : 0.0),
+                  child: Text(comment['content'], style: const TextStyle(fontSize: 14)),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        isLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
+                        color: isLiked ? Colors.red : Colors.grey,
+                        size: 18,
+                      ),
+                      onPressed: () => toggleLike(comment['id']),
+                    ),
+                    Text('${comment['like_count']}', style: const TextStyle(fontSize: 12)),
+                    if (!isReply)
+                      TextButton(
+                        onPressed: () {
+                          setState(() => replyingToCommentId = comment['id']);
+                          FocusScope.of(context).requestFocus(commentFocusNode);
+                        },
+                        child: const Text('댓글 달기', style: TextStyle(color: Colors.red)),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          for (final reply in replies)
+            _buildCommentItem(reply, indent: indent + 12),
         ],
       ),
     );
