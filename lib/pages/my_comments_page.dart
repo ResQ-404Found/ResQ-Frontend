@@ -88,67 +88,73 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('댓글 수정'),
-        content: TextField(
-          controller: controller,
-          maxLines: null,
-          decoration: const InputDecoration(hintText: '수정할 댓글 내용을 입력하세요'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final newContent = controller.text.trim();
-              if (newContent.isEmpty) return;
+      builder:
+          (context) => AlertDialog(
+            title: const Text('댓글 수정'),
+            content: TextField(
+              controller: controller,
+              maxLines: null,
+              decoration: const InputDecoration(hintText: '수정할 댓글 내용을 입력하세요'),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('취소'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final newContent = controller.text.trim();
+                  if (newContent.isEmpty) return;
 
-              final storage = FlutterSecureStorage();
-              final token = await storage.read(key: 'accessToken');
+                  final storage = FlutterSecureStorage();
+                  final token = await storage.read(key: 'accessToken');
 
-              final response = await http.patch(
-                Uri.parse('http://54.253.211.96:8000/api/comments/$commentId'),
-                headers: {
-                  'Authorization': 'Bearer $token',
-                  'Content-Type': 'application/json',
+                  final response = await http.patch(
+                    Uri.parse(
+                      'http://54.253.211.96:8000/api/comments/$commentId',
+                    ),
+                    headers: {
+                      'Authorization': 'Bearer $token',
+                      'Content-Type': 'application/json',
+                    },
+                    body: jsonEncode({'content': newContent}),
+                  );
+
+                  if (response.statusCode == 200) {
+                    Navigator.pop(context);
+                    fetchMyComments();
+                  } else {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(const SnackBar(content: Text('댓글 수정 실패')));
+                  }
                 },
-                body: jsonEncode({'content': newContent}),
-              );
-
-              if (response.statusCode == 200) {
-                Navigator.pop(context);
-                fetchMyComments();
-              } else {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('댓글 수정 실패')),
-                );
-              }
-            },
-            child: const Text('저장'),
+                child: const Text('저장'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
   void _deleteComment(int commentId) async {
     final confirm = await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('댓글 삭제'),
-        content: const Text('정말 삭제하시겠습니까?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('취소')),
-          ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('삭제')),
-        ],
-      ),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('댓글 삭제'),
+            content: const Text('정말 삭제하시겠습니까?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('취소'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('삭제'),
+              ),
+            ],
+          ),
     );
 
     if (confirm != true) return;
@@ -164,136 +170,195 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
     if (response.statusCode == 200) {
       fetchMyComments();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('댓글 삭제 실패')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('댓글 삭제 실패')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('내가 작성한 댓글', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          '내가 작성한 댓글',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left, size: 35),
           onPressed: () => Navigator.pop(context),
         ),
+        backgroundColor: Colors.grey[50],
+        elevation: 0.0,
+        scrolledUnderElevation: 0,
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : comments.isEmpty
-          ? const Center(child: Text('작성한 댓글이 없습니다.'))
-          : Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: ListView.builder(
-          itemCount: comments.length,
-          itemBuilder: (context, index) {
-            final comment = comments[index];
-            final postId = comment['post_id'];
-            final post = postInfoCache[postId];
-
-            final title = (post != null && post['title'] != null)
-                ? post['title']
-                : '(제목 없음)';
-
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 상단 제목 + 시간
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Text(
-                          formatTime(comment['created_at']),
-                          style: const TextStyle(
-                              fontSize: 12, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-
-                    // 댓글 내용
-                    Text(
-                      comment['content'] ?? '',
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 하단 버튼
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(
-                          onPressed: () {
-                            if (post != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      AllPostDetailPage(post: post),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(
-                                const SnackBar(
-                                    content:
-                                    Text("게시글 정보를 불러올 수 없습니다.")),
-                              );
-                            }
-                          },
-                          child: const Text(
-                            'View Post',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue),
-                          ),
-                        ),
-                        PopupMenuButton<String>(
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              _showEditDialog(
-                                  comment['id'], comment['content']);
-                            } else if (value == 'delete') {
-                              _deleteComment(comment['id']);
-                            }
-                          },
-                          itemBuilder: (context) => const [
-                            PopupMenuItem(
-                                value: 'edit', child: Text('수정')),
-                            PopupMenuItem(
-                                value: 'delete', child: Text('삭제')),
-                          ],
-                          icon: const Icon(Icons.more_vert),
-                        ),
-                      ],
-                    ),
-                  ],
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : comments.isEmpty
+              ? const Center(child: Text('작성한 댓글이 없습니다.'))
+              : ListView.builder(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
+                itemCount: comments.length,
+                itemBuilder: (context, index) {
+                  final comment = comments[index];
+                  final postId = comment['post_id'];
+                  final post = postInfoCache[postId];
+                  final title =
+                      (post != null && post['title'] != null)
+                          ? post['title']
+                          : '(제목 없음)';
+
+                  return Card(
+                    color: Colors.white,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 10,
+                    ),
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 18, 18, 5),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 제목, 시간, 메뉴 한 줄로
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      formatTime(comment['created_at']),
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuButton<String>(
+                                color: Colors.white,
+                                onSelected: (value) {
+                                  if (value == 'edit') {
+                                    _showEditDialog(
+                                      comment['id'],
+                                      comment['content'],
+                                    );
+                                  } else if (value == 'delete') {
+                                    _deleteComment(comment['id']);
+                                  }
+                                },
+                                itemBuilder:
+                                    (context) => const [
+                                      PopupMenuItem(
+                                        value: 'edit',
+                                        child: Text('수정'),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'delete',
+                                        child: Text('삭제'),
+                                      ),
+                                    ],
+                                icon: const Icon(Icons.more_vert),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          // 댓글 내용
+                          Text(
+                            comment['content'] ?? '',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // 좋아요/댓글/원문 보기
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.favorite_border,
+                                    size: 18,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${post?['like_count'] ?? 0}',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  const Icon(
+                                    Icons.mode_comment_outlined,
+                                    size: 18,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${post?['comment_count'] ?? 0}',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ],
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  if (post != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (_) =>
+                                                AllPostDetailPage(post: post),
+                                      ),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("게시글 정보를 불러올 수 없습니다."),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: const Text(
+                                  '원문 보기',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blueAccent,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
-      ),
     );
   }
 }
