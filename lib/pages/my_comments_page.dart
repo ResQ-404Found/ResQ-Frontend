@@ -90,6 +90,8 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
       context: context,
       builder:
           (context) => AlertDialog(
+            backgroundColor: Colors.white,
+
             title: const Text('댓글 수정'),
             content: TextField(
               controller: controller,
@@ -99,9 +101,9 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('취소'),
+                child: const Text('취소', style: TextStyle(color: Colors.black)),
               ),
-              ElevatedButton(
+              TextButton(
                 onPressed: () async {
                   final newContent = controller.text.trim();
                   if (newContent.isEmpty) return;
@@ -130,7 +132,7 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                     ).showSnackBar(const SnackBar(content: Text('댓글 수정 실패')));
                   }
                 },
-                child: const Text('저장'),
+                child: const Text('저장', style: TextStyle(color: Colors.black)),
               ),
             ],
           ),
@@ -142,16 +144,17 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
       context: context,
       builder:
           (context) => AlertDialog(
+            backgroundColor: Colors.white,
             title: const Text('댓글 삭제'),
             content: const Text('정말 삭제하시겠습니까?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('취소'),
+                child: const Text('취소', style: TextStyle(color: Colors.black)),
               ),
-              ElevatedButton(
+              TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('삭제'),
+                child: const Text('삭제', style: TextStyle(color: Colors.black)),
               ),
             ],
           ),
