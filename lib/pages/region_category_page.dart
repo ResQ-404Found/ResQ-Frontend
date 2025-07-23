@@ -630,7 +630,7 @@ class _RegionCategoryPageState extends State<RegionCategoryPage> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             centerTitle: true,
-            title: const Text('지역 선택', style: TextStyle(color: Colors.black)),
+            title: Text('지역 선택', style: TextStyle(color:Colors.black)),
             foregroundColor: Colors.black,
             leading: IconButton(
               icon: const Icon(Icons.chevron_left, size: 35),
@@ -791,7 +791,7 @@ class _RegionCategoryPageState extends State<RegionCategoryPage> {
                             vertical: 14,
                           ),
                           decoration: BoxDecoration(
-                            color: isNotified ? Colors.lightBlue[100] : Colors.grey[200],
+                            color: isNotified ? Colors.red: Colors.grey[200],
                             borderRadius: BorderRadius.circular(
                               10,
                             ),
@@ -800,10 +800,13 @@ class _RegionCategoryPageState extends State<RegionCategoryPage> {
                             child: Text(
                               sub,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
+                                color: isNotified ? Colors.white : Colors.black,
+                                fontWeight:  isNotified ? FontWeight.bold : FontWeight.normal,
                               ),
                             ),
+
                           ),
                         ),
                       );
