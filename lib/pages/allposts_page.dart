@@ -52,7 +52,7 @@ class _AllPostsPageState extends State<AllPostsPage> {
 
   Future<void> fetchPosts({String? regionName}) async {
     final query =
-        regionName != null ? '?region=${Uri.encodeComponent(regionName)}' : '';
+    regionName != null ? '?region=${Uri.encodeComponent(regionName)}' : '';
     final url = Uri.parse('http://54.253.211.96:8000/api/posts$query');
     try {
       final response = await http.get(url);
@@ -108,16 +108,15 @@ class _AllPostsPageState extends State<AllPostsPage> {
     final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like');
 
     try {
-      final response =
-          isLiked
-              ? await http.delete(
-                url,
-                headers: {'Authorization': 'Bearer $accessToken'},
-              )
-              : await http.post(
-                url,
-                headers: {'Authorization': 'Bearer $accessToken'},
-              );
+      final response = isLiked
+          ? await http.delete(
+        url,
+        headers: {'Authorization': 'Bearer $accessToken'},
+      )
+          : await http.post(
+        url,
+        headers: {'Authorization': 'Bearer $accessToken'},
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -187,16 +186,14 @@ class _AllPostsPageState extends State<AllPostsPage> {
               onSelected: (String selectedRegion) async {
                 await fetchPosts(regionName: selectedRegion);
               },
-              itemBuilder:
-                  (BuildContext context) =>
-                      regionNames.values
-                          .map(
-                            (region) => PopupMenuItem<String>(
-                              value: region,
-                              child: Text(region),
-                            ),
-                          )
-                          .toList(),
+              itemBuilder: (BuildContext context) => regionNames.values
+                  .map(
+                    (region) => PopupMenuItem<String>(
+                  value: region,
+                  child: Text(region),
+                ),
+              )
+                  .toList(),
             ),
           ),
         ],
@@ -211,43 +208,43 @@ class _AllPostsPageState extends State<AllPostsPage> {
           ),
         ),
       ),
-      body:
-          (posts.isEmpty && isLikedList.isEmpty)
-              ? const Center(
-                child: Text('게시글이 없습니다.', style: TextStyle(fontSize: 18)),
-              )
-              : (isLikedList.length != posts.length)
-              ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                itemCount: posts.length,
-                itemBuilder: (context, index) {
-                  final post = posts[index];
-                  final regionId = post['region_id'];
-                  final regionName = regionNames[regionId] ?? '지역 정보 없음';
-                  final imageUrl = resolveImageUrl(post['post_imageURLs']);
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AllPostDetailPage(post: post),
-                        ),
-                      );
-                    },
-                    child: PostCard(
-                      username: '${post['author']?['nickname'] ?? '알 수 없음'}',
-                      timeAgo: parseTimeAgo(post['created_at']),
-                      description: post['content'] ?? '',
-                      location: regionName,
-                      likes: likeCountList[index],
-                      comments: post['view_count'] ?? 0,
-                      isLiked: isLikedList[index],
-                      imageUrl: imageUrl,
-                      onLikePressed: () => toggleLike(index),
-                    ),
-                  );
-                },
-              ),
+      body: (posts.isEmpty && isLikedList.isEmpty)
+          ? const Center(
+        child: Text('게시글이 없습니다.', style: TextStyle(fontSize: 18)),
+      )
+          : (isLikedList.length != posts.length)
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+        itemCount: posts.length,
+        itemBuilder: (context, index) {
+          final post = posts[index];
+          final regionId = post['region_id'];
+          final regionName =
+              regionNames[regionId] ?? '지역 정보 없음';
+          final imageUrl = resolveImageUrl(post['post_imageURLs']);
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AllPostDetailPage(post: post),
+                ),
+              );
+            },
+            child: PostCard(
+              username: '${post['author']?['username'] ?? '알 수 없음'}',
+              timeAgo: parseTimeAgo(post['created_at']),
+              description: post['content'] ?? '',
+              location: regionName,
+              likes: likeCountList[index],
+              comments: post['view_count'] ?? 0,
+              isLiked: isLikedList[index],
+              imageUrl: imageUrl,
+              onLikePressed: () => toggleLike(index),
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -342,26 +339,26 @@ class PostCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 imageUrl != null
                     ? Center(
-                      child: Image.network(
-                        imageUrl!,
-                        width: 300,
-                        height: 300,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (context, error, stackTrace) => const Icon(
-                              Icons.image_not_supported,
-                              size: 300,
-                              color: Colors.grey,
-                            ),
-                      ),
-                    )
-                    : Center(
-                      child: Icon(
-                        Icons.image,
-                        size: 300,
-                        color: Colors.grey[400],
-                      ),
+                  child: Image.network(
+                    imageUrl!,
+                    width: 300,
+                    height: 300,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                    const Icon(
+                      Icons.image_not_supported,
+                      size: 300,
+                      color: Colors.grey,
                     ),
+                  ),
+                )
+                    : Center(
+                  child: Icon(
+                    Icons.image,
+                    size: 300,
+                    color: Colors.grey[400],
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4.0),
                   child: Text(

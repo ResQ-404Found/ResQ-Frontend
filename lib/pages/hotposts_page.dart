@@ -172,7 +172,7 @@ class _HotPostsPageState extends State<HotPostsPage> {
                           ),
                         ),
                     child: PostCard(
-                      username: post['author']?['nickname'] ?? '알 수 없음',
+                      username: post['author']?['username'] ?? '알 수 없음',
                       timeAgo: parseTimeAgo(post['created_at']),
                       description: post['content'] ?? '',
                       location: regionNames[post['region_id']] ?? '지역 정보 없음',

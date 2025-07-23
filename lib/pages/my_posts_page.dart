@@ -50,22 +50,24 @@ class _MyPostsPageState extends State<MyPostsPage> {
   Future<void> deletePost(int postId) async {
     const storage = FlutterSecureStorage();
     final token = await storage.read(key: 'accessToken');
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId');
 
     final response = await http.delete(
-      Uri.parse('http://54.253.211.96:8000/api/posts/$postId'),
+      url,
       headers: {
         'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
       },
     );
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('삭제되었습니다.')),
+        const SnackBar(content: Text('게시글이 삭제되었습니다.')),
       );
       fetchMyPosts();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('삭제 실패: ${response.statusCode}')),
+        const SnackBar(content: Text('게시글 삭제에 실패했습니다.')),
       );
     }
   }
@@ -95,101 +97,161 @@ class _MyPostsPageState extends State<MyPostsPage> {
           ? const Center(child: CircularProgressIndicator())
           : posts.isEmpty
           ? const Center(child: Text('작성한 글이 없습니다.'))
-          : ListView.builder(
-        itemCount: posts.length,
-        itemBuilder: (context, index) {
-          final post = posts[index];
-          final content = post['content'] ?? '';
-          final createdAt = post['created_at'] ?? '';
-          final images = post['post_imageURLs'] ?? [];
-          final author = post['author'] ?? {};
-          final profile = author['profile_imageURL'] ?? '';
+          : Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: ListView.builder(
+          itemCount: posts.length,
+          itemBuilder: (context, index) {
+            final post = posts[index];
+            final content = post['content'] ?? '';
+            final createdAt = post['created_at'] ?? '';
+            final images = post['post_imageURLs'] ?? [];
+            final author = post['author'] ?? {};
+            final profile = author['profile_imageURL'] ?? '';
+            final nickname = author['username'] ?? '작성자';
 
-          return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => AllPostDetailPage(post: post),
-                ),
-              );
-            },
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(
-                profile.isNotEmpty ? profile : 'https://via.placeholder.com/150',
-              ),
-            ),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(author['username'] ?? '작성자',
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(formatTime(createdAt),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
-            ),
-            subtitle: Row(
-              children: [
-                if (images.isNotEmpty)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      images[0],
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                if (images.isNotEmpty) const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    content,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                  ),
-                ),
-              ],
-            ),
-            trailing: PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'edit') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PostEditPage(post: post),
-                    ),
-                  ).then((_) => fetchMyPosts());
-                } else if (value == 'delete') {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('게시글 삭제'),
-                      content: const Text('정말 삭제하시겠습니까?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('취소'),
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 상단: 프로필, 닉네임, 작성일
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(
+                            profile.isNotEmpty
+                                ? profile
+                                : 'https://via.placeholder.com/150',
+                          ),
                         ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            deletePost(post['id']);
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(nickname,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              Text(
+                                formatTime(createdAt),
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      PostEditPage(post: post),
+                                ),
+                              ).then((_) => fetchMyPosts());
+                            } else if (value == 'delete') {
+                              showDialog(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: const Text('게시글 삭제'),
+                                  content:
+                                  const Text('정말 삭제하시겠습니까?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context),
+                                      child: const Text('취소'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        deletePost(post['id']);
+                                      },
+                                      child: const Text('삭제',
+                                          style: TextStyle(
+                                              color: Colors.red)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
                           },
-                          child: const Text('삭제', style: TextStyle(color: Colors.red)),
+                          itemBuilder: (context) => const [
+                            PopupMenuItem(
+                                value: 'edit', child: Text('수정')),
+                            PopupMenuItem(
+                                value: 'delete', child: Text('삭제')),
+                          ],
+                          icon: const Icon(Icons.more_vert),
                         ),
                       ],
                     ),
-                  );
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(value: 'edit', child: Text('수정')),
-                const PopupMenuItem(value: 'delete', child: Text('삭제')),
-              ],
-            ),
-          );
-        },
+
+                    const SizedBox(height: 12),
+
+                    // 본문
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (images.isNotEmpty)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              images[0],
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        if (images.isNotEmpty) const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            content,
+                            style: const TextStyle(fontSize: 14),
+                            maxLines: 4,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // View 버튼
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  AllPostDetailPage(post: post),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'View Post',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

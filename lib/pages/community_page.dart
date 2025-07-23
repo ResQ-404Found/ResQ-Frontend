@@ -210,7 +210,7 @@ class CommunityMainPageState extends State<CommunityMainPage> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          "작성자: ${post['author']?['nickname'] ?? post['user_id'] ?? '알 수 없음'}",
+                                          "작성자: ${post['author']?['username'] ?? post['user_id'] ?? '알 수 없음'}",
                                           style: const TextStyle(
                                             color: Colors.grey,
                                           ),
@@ -392,7 +392,7 @@ class CommunityMainPageState extends State<CommunityMainPage> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        '작성자 ${post['author']?['nickname'] ?? post['user_id'] ?? '알 수 없음'}',
+                        '작성자 ${post['author']?['username'] ?? post['user_id'] ?? '알 수 없음'}',
                         style: const TextStyle(
                           fontSize: 15,
                           color: Colors.grey,

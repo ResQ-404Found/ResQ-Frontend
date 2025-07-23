@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:resq_frontend/pages/edit_post_page.dart';
 import 'pages/disaster_guide_page.dart';
 import 'pages/disastertype_filtering_page.dart';
 import 'pages/region_category_page.dart';
@@ -55,7 +54,6 @@ final Map<String, WidgetBuilder> routes = {
   '/checklist' : (context) => const ChecklistPage(),
   '/news': (context) => NewsPage(),
   '/postDetail': (context) => const PostDetailPage(),
-  '/postEdit': (context) => const EditPostPage(),
 
   '/password_reset_request' : (context) => const PasswordResetRequestPage(),
   '/password_reset_verify': (context) {
