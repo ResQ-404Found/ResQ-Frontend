@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'disaster_guide_page.dart';
 import 'checklist.dart';
 import 'all_disaster_type_detail_page.dart';
+import 'donation_list_page.dart';
 class DisasterMenuPage extends StatelessWidget {
   const DisasterMenuPage({super.key});
 
@@ -95,7 +96,12 @@ class DisasterMenuPage extends StatelessWidget {
                       } else if (item['title'] == '뉴스') {
                         Navigator.pushNamed(context, '/news');
                       } else if (item['title'] == '후원') {
-                        Navigator.pushNamed(context, '/sponsor');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DonationListPage(),
+                          ),
+                        );
                       }
                     },
                     child: Container(

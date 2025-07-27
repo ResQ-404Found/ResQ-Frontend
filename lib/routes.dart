@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:resq_frontend/pages/donation_list_page.dart';
 import 'pages/disaster_guide_page.dart';
 import 'pages/disastertype_filtering_page.dart';
+import 'pages/donation_detail_page.dart';
+import 'pages/donation_payment_page.dart';
 import 'pages/region_category_page.dart';
 import 'pages/signup_page.dart';
 import 'pages/login_page.dart';
@@ -54,6 +57,9 @@ final Map<String, WidgetBuilder> routes = {
   '/checklist' : (context) => const ChecklistPage(),
   '/news': (context) => NewsPage(),
   '/postDetail': (context) => const PostDetailPage(),
+  '/donation': (context) => DonationListPage(),
+  '/detail': (context) => DonationDetailPage(),
+  '/payment': (context) => DonationPaymentPage(),
 
   '/password_reset_request' : (context) => const PasswordResetRequestPage(),
   '/password_reset_verify': (context) {
