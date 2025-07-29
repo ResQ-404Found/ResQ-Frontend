@@ -162,7 +162,7 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final post = widget.post;
+    final post = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();

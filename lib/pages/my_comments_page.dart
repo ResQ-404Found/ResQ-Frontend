@@ -329,13 +329,10 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                               TextButton(
                                 onPressed: () {
                                   if (post != null) {
-                                    Navigator.push(
+                                    Navigator.pushNamed(
                                       context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (_) =>
-                                                AllPostDetailPage(post: post),
-                                      ),
+                                      '/allpostdetail',
+                                      arguments: post,
                                     );
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(

@@ -138,7 +138,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
           final post = list[index];
           final region = regionNames[int.tryParse('${post['region_id']}')] ?? '알 수 없음';
           final imageUrl = resolveImageUrl(post['post_imageURLs']);
-          final nickname = post['username'] ?? '익명';
+          final username = post['username'] ?? '익명';
           final likeCount = post['like_count'] ?? 0;
           final commentCount = post['comment_count'] ?? 0;
           final time = post['created_at'] ?? '';
@@ -199,7 +199,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
                       child: const Icon(Icons.image, color: Colors.grey)),
                 ),
                 const SizedBox(height: 6),
-                Text('by $nickname',
+                Text('by $username',
                     style: const TextStyle(fontSize: 12, color: Colors.black54)),
                 const SizedBox(height: 4),
                 Row(

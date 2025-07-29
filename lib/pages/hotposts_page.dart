@@ -153,9 +153,10 @@ class _HotPostsPageState extends State<HotPostsPage> {
           final imageUrl = resolveImageUrl(post['post_imageURLs']);
           return GestureDetector(
             onTap: () {
-              Navigator.push(
+              Navigator.pushNamed(
                 context,
-                MaterialPageRoute(builder: (_) => AllPostDetailPage(post: post)),
+                '/allpostdetail',
+                arguments: post,
               );
             },
             child: PostCard(

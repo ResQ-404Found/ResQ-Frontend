@@ -292,12 +292,10 @@ class _MyPostsPageState extends State<MyPostsPage> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  Navigator.push(
+                                  Navigator.pushNamed(
                                     context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (_) => AllPostDetailPage(post: post),
-                                    ),
+                                    '/allpostdetail',
+                                    arguments: post,
                                   );
                                 },
                                 style: TextButton.styleFrom(
