@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '/api/http_client.dart';
-import 'package:resq_frontend/pages/login_user_changePWD_page.dart';
-import 'package:resq_frontend/pages/change_nickname_page.dart';
-import 'package:resq_frontend/pages/withdrawl_page.dart';
-import '/pages/my_comments_page.dart';
-import '/pages/my_posts_page.dart';
+import 'login_user_changePWD_page.dart';
+import 'change_nickname_page.dart';
+import 'withdrawl_page.dart';
+import 'my_comments_page.dart';
+import 'my_posts_page.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
@@ -38,7 +38,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
 
     final response = await HttpClient.getUserProfile(token: token);
-    if (response != null && response['data'] != null) {
+    if (response['data'] != null) {
       final data = response['data']['data'];
       setState(() {
         username = data['username'] ?? '';
@@ -54,19 +54,55 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
+
     if (picked != null) {
+      final file = File(picked.path);
       setState(() {
-        _profileImage = File(picked.path);
+        _profileImage = file;
       });
+
+      const storage = FlutterSecureStorage();
+      final token = await storage.read(key: 'accessToken');
+      if (token != null) {
+        try {
+          final response = await HttpClient.uploadProfileImage(
+            token: token,
+            imageFile: file,
+          );
+
+          print('서버 응답: $response');
+
+          if (response['success'] == true) {
+            setState(() {
+              profileImageUrl = response['image_url'] ?? ''; // 삭제된 경우도 반영
+              _profileImage = null;
+            });
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('업로드 실패: ${response['message']}')),
+            );
+          }
+        } catch (e) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('에러 발생: $e')));
+        }
+      }
     }
   }
 
   void _onChangeNickname() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangeNicknamePage()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ChangeNicknamePage()),
+    );
   }
 
   void _onChangePassword() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => LoginUserChangePWDPage()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => LoginUserChangePWDPage()),
+    );
   }
 
   void _onRegionFilterSetting() {
@@ -87,15 +123,25 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void _onDeleteAccount() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const WithdrawalConfirmationPage()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const WithdrawalConfirmationPage()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading:null,
-        title: const Text('마이페이지', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600,fontSize: 20)),
+        leading: null,
+        title: const Text(
+          '마이페이지',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -108,13 +154,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              // border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 프로필 + 이메일
                 Row(
                   children: [
                     Stack(
@@ -123,11 +167,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           onTap: _pickImage,
                           child: CircleAvatar(
                             radius: 40,
-                            backgroundImage: _profileImage != null
-                                ? FileImage(_profileImage!)
-                                : (profileImageUrl.isNotEmpty
-                                ? NetworkImage(profileImageUrl)
-                                : const AssetImage('assets/sample_profile.jpg')) as ImageProvider,
+                            backgroundImage:
+                                _profileImage != null
+                                    ? FileImage(_profileImage!)
+                                    : (profileImageUrl.isNotEmpty
+                                            ? NetworkImage(profileImageUrl)
+                                            : const AssetImage(
+                                              'lib/asset/sample_profile.jpg',
+                                            ))
+                                        as ImageProvider,
                           ),
                         ),
                         Positioned(
@@ -142,7 +190,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                 shape: BoxShape.circle,
                                 border: Border.all(color: Colors.grey.shade300),
                               ),
-                              child: const Icon(Icons.camera_alt, size: 16, color: Colors.grey),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
                             ),
                           ),
                         ),
@@ -154,51 +206,116 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       children: [
                         Text(
                           username.isNotEmpty ? '$username 님' : '회원 님',
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 4),
-                        Text(email, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                        Text(
+                          email,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ],
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 _buildPointCard(),
-
                 const SizedBox(height: 24),
-                const Text('계정', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text(
+                  '계정',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 6),
-                _buildSectionCard(children: [
-                  _buildActionRow('닉네임 변경', onTap: _onChangeNickname),
-                  const Divider(height: 1, thickness: 0.8, indent: 10, endIndent: 10,color:Color(
-                      0xFFF6F6F6)),
-                  _buildActionRow('비밀번호 변경', onTap: _onChangePassword),
-                ]),
-
-                const Text('재난 문자 설정', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                _buildSectionCard(
+                  children: [
+                    _buildActionRow('닉네임 변경', onTap: _onChangeNickname),
+                    const Divider(
+                      height: 1,
+                      thickness: 0.8,
+                      indent: 10,
+                      endIndent: 10,
+                      color: Color(0xFFF6F6F6),
+                    ),
+                    _buildActionRow('비밀번호 변경', onTap: _onChangePassword),
+                  ],
+                ),
+                const Text(
+                  '재난 문자 설정',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 6),
-                _buildSectionCard(children: [
-                  _buildActionRow('지역 알림 설정', onTap: _onRegionFilterSetting),
-                  const Divider(height: 1, thickness: 0.8, indent: 10, endIndent: 10,color:Color(
-                      0xFFF6F6F6)),
-                  _buildActionRow('재난 유형 알림 설정', onTap: _onTypeFilterSetting),
-                ]),
-
-                const Text('기타', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                _buildSectionCard(
+                  children: [
+                    _buildActionRow('지역 알림 설정', onTap: _onRegionFilterSetting),
+                    const Divider(
+                      height: 1,
+                      thickness: 0.8,
+                      indent: 10,
+                      endIndent: 10,
+                      color: Color(0xFFF6F6F6),
+                    ),
+                    _buildActionRow('재난 유형 알림 설정', onTap: _onTypeFilterSetting),
+                  ],
+                ),
+                const Text(
+                  '기타',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 6),
-                _buildSectionCard(children: [
-                  _buildActionRow('내가 작성한 글', onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPostsPage()));
-                  }),const Divider(height: 1, thickness: 0.8, indent: 10, endIndent: 10,color:Color(
-                      0xFFF6F6F6)),
-                  _buildActionRow('내가 작성한 댓글', onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const MyCommentsPage()));
-                  }),const Divider(height: 1, thickness: 0.8, indent: 10, endIndent: 10,color:Color(
-                      0xFFF6F6F6)),
-                  _buildActionRow('로그아웃', onTap: _onLogout),const Divider(height: 1, thickness: 0.8, indent: 10, endIndent: 10,color:Color(
-                      0xFFF6F6F6)),
-                  _buildActionRow('회원탈퇴', onTap: _onDeleteAccount),
-                ]),
+                _buildSectionCard(
+                  children: [
+                    _buildActionRow(
+                      '내가 작성한 글',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MyPostsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(
+                      height: 1,
+                      thickness: 0.8,
+                      indent: 10,
+                      endIndent: 10,
+                      color: Color(0xFFF6F6F6),
+                    ),
+                    _buildActionRow(
+                      '내가 작성한 댓글',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MyCommentsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(
+                      height: 1,
+                      thickness: 0.8,
+                      indent: 10,
+                      endIndent: 10,
+                      color: Color(0xFFF6F6F6),
+                    ),
+                    _buildActionRow('로그아웃', onTap: _onLogout),
+                    const Divider(
+                      height: 1,
+                      thickness: 0.8,
+                      indent: 10,
+                      endIndent: 10,
+                      color: Color(0xFFF6F6F6),
+                    ),
+                    _buildActionRow('회원탈퇴', onTap: _onDeleteAccount),
+                  ],
+                ),
               ],
             ),
           ),
@@ -227,16 +344,28 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   color: Colors.deepPurple.shade100,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.savings, color: Colors.deepPurple, size: 22),
+                child: const Icon(
+                  Icons.savings,
+                  color: Colors.deepPurple,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 10),
               Column(
-
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('나의 포인트', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                  const Text(
+                    '나의 포인트',
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
                   const SizedBox(height: 4),
-                  Text('${_formatPoint(point)} P', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    '${_formatPoint(point)} P',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -250,7 +379,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget _buildBadge(int point) {
     String label = 'Bronze';
     Color color = Colors.brown;
-
     if (point >= 5000) {
       label = 'Platinum';
       color = Colors.blueGrey;
@@ -286,7 +414,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   String _formatPoint(int point) {
-    return point.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]},');
+    return point.toString().replaceAllMapped(
+      RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'),
+      (match) => '${match[1]},',
+    );
   }
 
   Widget _buildSectionCard({required List<Widget> children}) {
@@ -311,7 +442,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: const TextStyle(fontSize: 15, color: Colors.black)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 15, color: Colors.black),
+            ),
             const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
           ],
         ),
@@ -326,11 +460,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
       currentIndex: 4,
       onTap: (index) {
         switch (index) {
-          case 0: Navigator.pushNamed(context, '/map'); break;
-          case 1: Navigator.pushNamed(context, '/chatbot'); break;
-          case 2: Navigator.pushNamed(context, '/community'); break;
-          case 3: Navigator.pushNamed(context, '/disastermenu'); break;
-          case 4: break;
+          case 0:
+            Navigator.pushNamed(context, '/map');
+            break;
+          case 1:
+            Navigator.pushNamed(context, '/chatbot');
+            break;
+          case 2:
+            Navigator.pushNamed(context, '/community');
+            break;
+          case 3:
+            Navigator.pushNamed(context, '/disastermenu');
+            break;
+          case 4:
+            break;
         }
       },
       selectedItemColor: Colors.redAccent,
