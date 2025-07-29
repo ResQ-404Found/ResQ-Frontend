@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class HttpClient {
@@ -24,20 +25,16 @@ class HttpClient {
         return {'success': true};
       } else {
         final resData = jsonDecode(response.body);
-        return {
-          'success': false,
-          'message': resData['detail'] ?? '오류 발생',
-        };
+        return {'success': false, 'message': resData['detail'] ?? '오류 발생'};
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': '네트워크 오류: $e',
-      };
+      return {'success': false, 'message': '네트워크 오류: $e'};
     }
   }
 
-  static Future<Map<String, dynamic>> getUserProfile({required String token}) async {
+  static Future<Map<String, dynamic>> getUserProfile({
+    required String token,
+  }) async {
     final url = Uri.parse('$baseUrl/users/me');
 
     try {
@@ -51,10 +48,7 @@ class HttpClient {
 
       if (response.statusCode == 200) {
         final resData = jsonDecode(response.body);
-        return {
-          'success': true,
-          'data': resData,
-        };
+        return {'success': true, 'data': resData};
       } else {
         final resData = jsonDecode(response.body);
         return {
@@ -63,10 +57,36 @@ class HttpClient {
         };
       }
     } catch (e) {
+      return {'success': false, 'message': '네트워크 오류: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> uploadProfileImage({
+    required String token,
+    File? imageFile, // nullable → 삭제 지원
+  }) async {
+    final uri = Uri.parse('$baseUrl/users/update');
+    final request = http.MultipartRequest('PATCH', uri)
+      ..headers['Authorization'] = 'Bearer $token';
+
+    if (imageFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('files', imageFile.path),
+      );
+    }
+
+    try {
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      final data = jsonDecode(response.body);
+
       return {
-        'success': false,
-        'message': '네트워크 오류: $e',
+        'success': streamedResponse.statusCode == 200,
+        'image_url': data['image_url'], 
+        'message': data['message'] ?? '',
       };
+    } catch (e) {
+      return {'success': false, 'message': '네트워크 오류: $e'};
     }
   }
 }
