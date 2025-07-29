@@ -96,12 +96,7 @@ class DisasterMenuPage extends StatelessWidget {
                       } else if (item['title'] == '뉴스') {
                         Navigator.pushNamed(context, '/news');
                       } else if (item['title'] == '후원') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => DonationListPage(),
-                          ),
-                        );
+                        Navigator.pushNamed(context, '/donation');
                       }
                     },
                     child: Container(

@@ -29,16 +29,16 @@ class Donation {
 
   factory Donation.fromJson(Map<String, dynamic> json) {
     return Donation(
-      id: json['id'],
-      title: json['title'],
-      sponsorName: json['sponsor_name'],
-      disasterType: json['disaster_type'],
-      content: json['content'],
-      startDate: json['start_date'],
-      dueDate: json['due_date'],
-      targetMoney: json['target_money'],
-      currentMoney: json['current_money'],
-      imageUrl: json['image_url'],
+      id: json['id'] ?? 0,
+      title: json['title'] ?? '',
+      sponsorName: json['sponsor_name'] ?? '',
+      disasterType: json['disaster_type'] ?? '',
+      content: json['content'] ?? '',
+      startDate: json['start_date'] ?? '',
+      dueDate: json['due_date'] ?? '',
+      targetMoney: json['target_money'] ?? 0,
+      currentMoney: json['current_money'] ?? 0,
+      imageUrl: json['image_url'] ?? '',
     );
   }
 
@@ -64,13 +64,32 @@ class _DonationListPageState extends State<DonationListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('후원 목록', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: AppBar(
+        leading: Navigator.canPop(context)
+            ? IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        )
+            : null,
+        title: Text('후원 목록', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+        automaticallyImplyLeading: true,
+      ),
       body: FutureBuilder<List<Donation>>(
         future: fetchDonations(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
-          if (snapshot.hasError) return Center(child: Text('에러: ${snapshot.error}'));
+          if (snapshot.connectionState == ConnectionState.waiting)
+            return Center(child: CircularProgressIndicator());
+          if (snapshot.hasError)
+            return Center(child: Text('에러: ${snapshot.error}'));
+          if (!snapshot.hasData || snapshot.data!.isEmpty)
+            return Center(child: Text('등록된 후원 정보가 없습니다.'));
+
           final donations = snapshot.data!;
+
           return ListView.builder(
             padding: EdgeInsets.all(16),
             itemCount: donations.length,
@@ -79,13 +98,28 @@ class _DonationListPageState extends State<DonationListPage> {
               return GestureDetector(
                 onTap: () => Navigator.pushNamed(context, '/detail', arguments: d),
                 child: Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   margin: EdgeInsets.only(bottom: 20),
                   clipBehavior: Clip.antiAlias,
+                  elevation: 3,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.network(d.imageUrl, height: 180, width: double.infinity, fit: BoxFit.cover),
+                      Image.network(
+                        d.imageUrl,
+                        height: 180,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 180,
+                            color: Colors.grey[200],
+                            child: Center(child: Icon(Icons.image_not_supported)),
+                          );
+                        },
+                      ),
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -99,39 +133,55 @@ class _DonationListPageState extends State<DonationListPage> {
                                     color: Colors.red[100],
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Text('${d.disasterType}', style: TextStyle(color: Colors.red, fontSize: 12)),
+                                  child: Text(
+                                    d.disasterType,
+                                    style: TextStyle(color: Colors.red, fontSize: 12),
+                                  ),
                                 ),
                                 SizedBox(width: 8),
                                 Text('~ ${d.dueDate}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                               ],
                             ),
                             SizedBox(height: 8),
-                            Text(d.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            Text(d.title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                             SizedBox(height: 4),
                             Text(d.sponsorName, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                             SizedBox(height: 12),
                             Row(
                               children: [
-                                Text('${d.currentMoney ~/ 10000}만원', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text(
+                                  '${d.currentMoney ~/ 10000}만원',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.blue),
+                                ),
                                 Spacer(),
-                                Text('목표 ${d.targetMoney ~/ 10000}만원', style: TextStyle(color: Colors.grey)),
+                                Text('목표 ${d.targetMoney ~/ 10000}만원', style: TextStyle(color: Colors.grey[700])),
                               ],
                             ),
                             SizedBox(height: 6),
-                            LinearProgressIndicator(
-                              value: d.progress,
-                              backgroundColor: Colors.grey[300],
-                              color: Colors.blue,
-                              minHeight: 6,
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: d.progress,
+                                backgroundColor: Colors.grey[300],
+                                color: Colors.redAccent,
+                                minHeight: 6,
+                              ),
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: 6),
                             Text('${(d.progress * 100).toStringAsFixed(0)}%', style: TextStyle(color: Colors.grey)),
-                            SizedBox(height: 8),
+                            SizedBox(height: 12),
                             SizedBox(
                               width: double.infinity,
+                              height: 45,
                               child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.redAccent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
                                 onPressed: () => Navigator.pushNamed(context, '/detail', arguments: d),
-                                child: Text('후원하기'),
+                                child: Text('후원하기', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white )),
                               ),
                             )
                           ],
