@@ -6,14 +6,33 @@ class AllDisasterTypeDetailPage extends StatefulWidget {
   const AllDisasterTypeDetailPage({super.key});
 
   @override
-  State<AllDisasterTypeDetailPage> createState() => _AllDisasterTypeDetailPageState();
+  State<AllDisasterTypeDetailPage> createState() =>
+      _AllDisasterTypeDetailPageState();
 }
 
 class _AllDisasterTypeDetailPageState extends State<AllDisasterTypeDetailPage> {
   final List<String> disasterTypes = [
-    '전체', '화재', '산사태', '홍수', '지진', '태풍', '호우', '강풍', '황사', '해일',
-    '폭염', '한파', '대설', '가뭄', '산불', '붕괴', '전기/가스 사고',
-    '환경오염 사고', '유해물질 누출', '교통사고', '테러/전쟁/범죄',
+    '전체',
+    '화재',
+    '산사태',
+    '홍수',
+    '지진',
+    '태풍',
+    '호우',
+    '강풍',
+    '황사',
+    '해일',
+    '폭염',
+    '한파',
+    '대설',
+    '가뭄',
+    '산불',
+    '붕괴',
+    '전기/가스 사고',
+    '환경오염 사고',
+    '유해물질 누출',
+    '교통사고',
+    '테러/전쟁/범죄',
   ];
 
   final Map<String, IconData> iconMap = {
@@ -80,18 +99,23 @@ class _AllDisasterTypeDetailPageState extends State<AllDisasterTypeDetailPage> {
             boxShadow: [
               BoxShadow(
                 color: Colors.grey, // 그림자 색
-                blurRadius: 2,          // 퍼짐 정도
+                blurRadius: 2, // 퍼짐 정도
                 offset: Offset(0, -2),
               ),
             ],
           ),
           child: AppBar(
             backgroundColor: Color(0xFFFFFFFF),
+            scrolledUnderElevation: 0,
             elevation: 0, // 기본 그림자 제거
             iconTheme: const IconThemeData(color: Colors.black),
             title: const Text(
               '전체 재난정보',
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600,fontSize: 20),
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+              ),
             ),
             leading: IconButton(
               icon: const Icon(Icons.chevron_left, size: 35),
@@ -131,7 +155,10 @@ class _AllDisasterTypeDetailPageState extends State<AllDisasterTypeDetailPage> {
                       const SizedBox(width: 6),
                       Text(
                         '$selectedType 재난 문자',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
@@ -139,99 +166,125 @@ class _AllDisasterTypeDetailPageState extends State<AllDisasterTypeDetailPage> {
                 Padding(
                   padding: const EdgeInsets.only(right: 4),
                   child: GestureDetector(
-                    child: const Icon(Icons.filter_alt_rounded, color: Colors.black87, size: 28),
+                    child: const Icon(
+                      Icons.filter_alt_rounded,
+                      color: Colors.black87,
+                      size: 28,
+                    ),
                     onTap: () {
                       showDialog(
                         context: context,
-                        builder: (context) => Dialog(
-                          backgroundColor: Colors.transparent,
-                          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Material(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            clipBehavior: Clip.antiAlias, // 💥 꼭 추가
-                            child: Container(
-                              constraints: const BoxConstraints(maxHeight: 500),
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                // 여긴 borderRadius 필요 없음 (Material에 이미 있음)
+                        builder:
+                            (context) => Dialog(
+                              backgroundColor: Colors.transparent,
+                              insetPadding: const EdgeInsets.symmetric(
+                                horizontal: 24,
                               ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: double.infinity,
-                                    color: Colors.grey[100],
-                                    padding: const EdgeInsets.only(top: 22, bottom: 12),
-                                    child: Column(
-                                      children: [
-                                        const Text(
-                                          '재난 유형 변경',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4), // 텍스트와 Divider 사이 공백
-                                        // const Divider(height: 1, thickness: 0.5),
-                                      ],
-                                    ),
+                              child: Material(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                clipBehavior: Clip.antiAlias, // 💥 꼭 추가
+                                child: Container(
+                                  constraints: const BoxConstraints(
+                                    maxHeight: 500,
                                   ),
-
-
-                                  Flexible(
-                                    child: ListView.builder(
-                                      shrinkWrap: true,
-                                      itemCount: disasterTypes.length,
-                                      itemBuilder: (context, index) {
-                                        final type = disasterTypes[index];
-                                        final icon = iconMap[type] ?? Icons.more_horiz;
-                                        final color = colorMap[type] ?? Colors.grey;
-
-                                        return Column(
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    // 여긴 borderRadius 필요 없음 (Material에 이미 있음)
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: double.infinity,
+                                        color: Colors.grey[100],
+                                        padding: const EdgeInsets.only(
+                                          top: 22,
+                                          bottom: 12,
+                                        ),
+                                        child: Column(
                                           children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(left: 8.0),
-                                              child: ListTile(
-                                                tileColor: Colors.white,
-                                                leading: Icon(icon, color: color),
-                                                title: Text(
-                                                  type,
-                                                  style: TextStyle(
-                                                    fontWeight: type == selectedType
-                                                        ? FontWeight.bold
-                                                        : FontWeight.normal,
-                                                    color: type == selectedType
-                                                        ? Colors.black
-                                                        : Colors.grey[600],
-                                                  ),
-                                                ),
-                                                onTap: () {
-                                                  setState(() {
-                                                    selectedType = type;
-                                                  });
-                                                  Navigator.pop(context);
-                                                },
+                                            const Text(
+                                              '재난 유형 변경',
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
                                               ),
                                             ),
-                                            const Divider(height: 1, thickness: 0.5),
+                                            const SizedBox(
+                                              height: 4,
+                                            ), // 텍스트와 Divider 사이 공백
+                                            // const Divider(height: 1, thickness: 0.5),
                                           ],
-                                        );
-                                      },
-                                    ),
+                                        ),
+                                      ),
+
+                                      Flexible(
+                                        child: ListView.builder(
+                                          shrinkWrap: true,
+                                          itemCount: disasterTypes.length,
+                                          itemBuilder: (context, index) {
+                                            final type = disasterTypes[index];
+                                            final icon =
+                                                iconMap[type] ??
+                                                Icons.more_horiz;
+                                            final color =
+                                                colorMap[type] ?? Colors.grey;
+
+                                            return Column(
+                                              children: [
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 8.0,
+                                                      ),
+                                                  child: ListTile(
+                                                    tileColor: Colors.white,
+                                                    leading: Icon(
+                                                      icon,
+                                                      color: color,
+                                                    ),
+                                                    title: Text(
+                                                      type,
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            type == selectedType
+                                                                ? FontWeight
+                                                                    .bold
+                                                                : FontWeight
+                                                                    .normal,
+                                                        color:
+                                                            type == selectedType
+                                                                ? Colors.black
+                                                                : Colors
+                                                                    .grey[600],
+                                                      ),
+                                                    ),
+                                                    onTap: () {
+                                                      setState(() {
+                                                        selectedType = type;
+                                                      });
+                                                      Navigator.pop(context);
+                                                    },
+                                                  ),
+                                                ),
+                                                const Divider(
+                                                  height: 1,
+                                                  thickness: 0.5,
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
-                        )
-
-
-
                       );
                     },
-
                   ),
                 ),
               ],
@@ -291,16 +344,16 @@ class _DisasterTypeDetailViewState extends State<DisasterTypeDetailView> {
     });
 
     final baseUrl = 'http://54.253.211.96:8000/api/disasters';
-    final url = widget.disasterType == '전체'
-        ? '$baseUrl?active_only=true'
-        : '$baseUrl?disaster_type=${Uri.encodeComponent(widget.disasterType)}&active_only=true';
+    final url =
+        widget.disasterType == '전체'
+            ? '$baseUrl?active_only=true'
+            : '$baseUrl?disaster_type=${Uri.encodeComponent(widget.disasterType)}&active_only=true';
 
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         final List<dynamic> rawList = decoded['data'];
-
 
         final List<dynamic> allDisasters = [];
         for (var item in rawList) {
@@ -326,8 +379,6 @@ class _DisasterTypeDetailViewState extends State<DisasterTypeDetailView> {
     final color = widget.colorMap[disasterType] ?? Colors.grey;
     return Icon(icon, color: color, size: 20);
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -387,12 +438,18 @@ class _DisasterTypeDetailViewState extends State<DisasterTypeDetailView> {
                         const SizedBox(height: 2),
                         Text(
                           startTimeFormatted,
-                          style: const TextStyle(fontSize: 13, color: Colors.red),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.red,
+                          ),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           region,
-                          style: const TextStyle(fontSize: 14, color: Colors.grey),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
                         ),
                       ],
                     ),
@@ -402,10 +459,6 @@ class _DisasterTypeDetailViewState extends State<DisasterTypeDetailView> {
             ),
           ),
         );
-
-
-
-
       },
     );
   }
