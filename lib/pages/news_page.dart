@@ -283,6 +283,16 @@ class _NewsPageState extends State<NewsPage> {
                       ),
                     ),
                     const SizedBox(height: 10),
+                    SmoothPageIndicator(
+                      controller: _pageController,
+                      count: youtubeVideos.length,
+                      effect: WormEffect(
+                        dotHeight: 8,
+                        dotWidth: 8,
+                        activeDotColor: Colors.black,
+                        dotColor: Colors.grey[300]!,
+                      ),
+                    ),
                     const SizedBox(height: 16),
 
                     Padding(

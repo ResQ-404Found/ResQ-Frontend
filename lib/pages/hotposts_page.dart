@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'all_post_detail_page.dart';
 
 const Map<int, String> regionNames = {
   1: '서울특별시',
@@ -35,6 +34,8 @@ class _HotPostsPageState extends State<HotPostsPage> {
   List<dynamic> posts = [];
   List<bool> isLikedList = [];
   List<int> likeCountList = [];
+  List<int> commentCountList = [];
+
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   String? accessToken;
 
@@ -58,11 +59,17 @@ class _HotPostsPageState extends State<HotPostsPage> {
         posts = data;
         likeCountList = posts.map<int>((post) => post['like_count'] ?? 0).toList();
         isLikedList = List.filled(posts.length, false);
+        commentCountList = List.filled(posts.length, 0);
         setState(() {});
+
         for (int i = 0; i < posts.length; i++) {
           final liked = await fetchLikeStatus(posts[i]['id']);
+          final commentCount = await fetchCommentCount(posts[i]['id']);
           if (!mounted) return;
-          setState(() => isLikedList[i] = liked);
+          setState(() {
+            isLikedList[i] = liked;
+            commentCountList[i] = commentCount;
+          });
         }
       } else {
         print('게시글 불러오기 실패: ${response.statusCode}');
@@ -70,6 +77,20 @@ class _HotPostsPageState extends State<HotPostsPage> {
     } catch (e) {
       print('오류 발생: $e');
     }
+  }
+
+  Future<int> fetchCommentCount(int postId) async {
+    final url = Uri.parse('http://54.253.211.96:8000/api/comments/$postId');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return (data as List).length;
+      }
+    } catch (e) {
+      print('❌ 댓글 수 조회 오류: $e');
+    }
+    return 0;
   }
 
   Future<bool> fetchLikeStatus(int postId) async {
@@ -174,10 +195,11 @@ class _HotPostsPageState extends State<HotPostsPage> {
               username: username,
               point: point,
               timeAgo: parseTimeAgo(post['created_at']),
+              title: post['title'] ?? '', // ✅ 제목 추가
               description: post['content'] ?? '',
               location: regionNames[post['region_id']] ?? '지역 정보 없음',
               likes: likeCountList[index],
-              comments: post['view_count'] ?? 0,
+              comments: commentCountList[index], // ✅ 정확한 댓글 수
               isLiked: isLikedList[index],
               imageUrl: imageUrl,
               onLikePressed: () => toggleLike(index),
@@ -191,7 +213,7 @@ class _HotPostsPageState extends State<HotPostsPage> {
 }
 
 class PostCard extends StatelessWidget {
-  final String username, timeAgo, description, location, badgeLabel;
+  final String username, title, timeAgo, description, location, badgeLabel;
   final int likes, comments, point;
   final bool isLiked;
   final String? imageUrl;
@@ -200,6 +222,7 @@ class PostCard extends StatelessWidget {
   const PostCard({
     super.key,
     required this.username,
+    required this.title,
     required this.timeAgo,
     required this.description,
     required this.location,
@@ -245,9 +268,7 @@ class PostCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(username,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text(username, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -266,13 +287,17 @@ class PostCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Text(timeAgo,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  Text(timeAgo, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 6),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: Text(description, style: const TextStyle(fontSize: 14)),
@@ -307,16 +332,14 @@ class PostCard extends StatelessWidget {
                       size: 20,
                     ),
                     const SizedBox(width: 4),
-                    Text('$likes',
-                        style: const TextStyle(fontWeight: FontWeight.w600)),
+                    Text('$likes', style: const TextStyle(fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
               const SizedBox(width: 16),
               const Icon(Icons.comment, size: 20, color: Colors.blueAccent),
               const SizedBox(width: 4),
-              Text('$comments',
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text('$comments', style: const TextStyle(fontWeight: FontWeight.w600)),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

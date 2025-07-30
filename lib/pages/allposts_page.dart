@@ -34,6 +34,7 @@ class _AllPostsPageState extends State<AllPostsPage> {
   List<dynamic> posts = [];
   List<bool> isLikedList = [];
   List<int> likeCountList = [];
+  List<int> commentCountList = [];
 
   final storage = const FlutterSecureStorage();
   String? accessToken;
@@ -64,18 +65,37 @@ class _AllPostsPageState extends State<AllPostsPage> {
         posts = data;
         likeCountList = posts.map<int>((post) => post['like_count'] ?? 0).toList();
         isLikedList = List.filled(posts.length, false);
+        commentCountList = List.filled(posts.length, 0);
         setState(() {});
 
         for (int i = 0; i < posts.length; i++) {
           final liked = await fetchLikeStatus(posts[i]['id']);
+          final commentCount = await fetchCommentCount(posts[i]['id']);
           if (mounted) {
-            setState(() => isLikedList[i] = liked);
+            setState(() {
+              isLikedList[i] = liked;
+              commentCountList[i] = commentCount;
+            });
           }
         }
       }
     } catch (e) {
       print('❌ 오류: $e');
     }
+  }
+
+  Future<int> fetchCommentCount(int postId) async {
+    final url = Uri.parse('http://54.253.211.96:8000/api/comments/$postId');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return (data as List).length;
+      }
+    } catch (e) {
+      print('❌ 댓글 수 조회 오류: $e');
+    }
+    return 0;
   }
 
   Future<bool> fetchLikeStatus(int postId) async {
@@ -186,14 +206,15 @@ class _AllPostsPageState extends State<AllPostsPage> {
               username: username,
               point: point,
               timeAgo: parseTimeAgo(post['created_at']),
+              title: post['title'] ?? '',
               description: post['content'] ?? '',
-              location: regionNames[post['region_id']] ?? '지역 정보 없음',
+              location: regionName,
               likes: likeCountList[index],
-              comments: post['view_count'] ?? 0,
+              comments: commentCountList[index],
               isLiked: isLikedList[index],
               imageUrl: imageUrl,
               onLikePressed: () => toggleLike(index),
-              badgeLabel: getBadgeLabel(point), title: '',
+              badgeLabel: getBadgeLabel(point),
             ),
           );
         },
@@ -202,6 +223,7 @@ class _AllPostsPageState extends State<AllPostsPage> {
   }
 }
 
+// PostCard 위젯은 그대로 사용하면 됩니다
 class PostCard extends StatelessWidget {
   final String username;
   final int point;
