@@ -111,13 +111,14 @@ class _ChecklistPageState extends State<ChecklistPage> {
       });
     }
   }
+
   @override
   void initState() {
     super.initState();
-    checkedStates = sections.map((s) => List.filled(s.items.length, false)).toList();
+    checkedStates =
+        sections.map((s) => List.filled(s.items.length, false)).toList();
     loadChecklistState(); // 상태 불러오기
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +132,15 @@ class _ChecklistPageState extends State<ChecklistPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('재난 대비 체크리스트',style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600,fontSize: 20)),
+        scrolledUnderElevation: 0,
+        title: const Text(
+          '재난 대비 체크리스트',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -152,19 +161,18 @@ class _ChecklistPageState extends State<ChecklistPage> {
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, sectionIndex) {
                   final section = sections[sectionIndex];
-                  final sectionDone = checkedStates[sectionIndex].where((e) => e).length;
+                  final sectionDone =
+                      checkedStates[sectionIndex].where((e) => e).length;
                   final sectionTotal = section.items.length;
-                  final sectionPercent = sectionTotal == 0 ? 0 : (sectionDone / sectionTotal);
+                  final sectionPercent =
+                      sectionTotal == 0 ? 0 : (sectionDone / sectionTotal);
                   final isSectionCompleted = sectionDone == sectionTotal;
                   return Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color:  Color(0x54BFBFBF),
-                        width: 1.5,
-                      ),
+                      border: Border.all(color: Color(0x54BFBFBF), width: 1.5),
 
                       // 빨간 테두리 추가
                     ),
@@ -177,65 +185,105 @@ class _ChecklistPageState extends State<ChecklistPage> {
                           Row(
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(left: 8.0, right: 12.0), // 왼쪽 8, 오른쪽 12 간격 추가
+                                padding: const EdgeInsets.only(
+                                  left: 8.0,
+                                  right: 12.0,
+                                ), // 왼쪽 8, 오른쪽 12 간격 추가
                                 child: CircleAvatar(
-                                  backgroundColor: section.title.contains('가방') ? Colors.redAccent :
-                                  section.title.contains('집') ? Colors.orangeAccent :
-                                  section.title.contains('의약품') ? Colors.green :
-                                  section.title.contains('마을') ? Colors.blueAccent :
-                                  section.title.contains('화생방') ? Colors.deepPurple :
-                                  Colors.indigo,
-                                  child: Icon(section.icon, color: Colors.white),
+                                  backgroundColor:
+                                      section.title.contains('가방')
+                                          ? Colors.redAccent
+                                          : section.title.contains('집')
+                                          ? Colors.orangeAccent
+                                          : section.title.contains('의약품')
+                                          ? Colors.green
+                                          : section.title.contains('마을')
+                                          ? Colors.blueAccent
+                                          : section.title.contains('화생방')
+                                          ? Colors.deepPurple
+                                          : Colors.indigo,
+                                  child: Icon(
+                                    section.icon,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(section.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    Text(
+                                      section.title,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                     const SizedBox(height: 4),
-                                    Text('$sectionDone/$sectionTotal 완료 (${(sectionPercent * 100).round()}%)', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                    Text(
+                                      '$sectionDone/$sectionTotal 완료 (${(sectionPercent * 100).round()}%)',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
-                              Text('${(sectionPercent * 100).round()}%', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                              Text(
+                                '${(sectionPercent * 100).round()}%',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Padding(
-                          padding: const EdgeInsets.only(left: 56),
-                          child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                          value: sectionPercent.toDouble(),
-                          minHeight: 6,
-                              color: section.title.contains('가방') ? Colors.redAccent :
-                              section.title.contains('집') ? Colors.orangeAccent :
-                              section.title.contains('의약품') ? Colors.green :
-                              section.title.contains('마을') ? Colors.blueAccent :
-                              section.title.contains('화생방') ? Colors.deepPurple :
-                              Colors.indigo,
-                              backgroundColor: Colors.grey.shade300,
+                            padding: const EdgeInsets.only(left: 56),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: LinearProgressIndicator(
+                                value: sectionPercent.toDouble(),
+                                minHeight: 6,
+                                color:
+                                    section.title.contains('가방')
+                                        ? Colors.redAccent
+                                        : section.title.contains('집')
+                                        ? Colors.orangeAccent
+                                        : section.title.contains('의약품')
+                                        ? Colors.green
+                                        : section.title.contains('마을')
+                                        ? Colors.blueAccent
+                                        : section.title.contains('화생방')
+                                        ? Colors.deepPurple
+                                        : Colors.indigo,
+                                backgroundColor: Colors.grey.shade300,
+                              ),
                             ),
-                          ),
                           ),
                         ],
                       ),
 
-
-                      children: List.generate(section.items.length, (itemIndex) {
+                      children: List.generate(section.items.length, (
+                        itemIndex,
+                      ) {
                         final item = section.items[itemIndex];
                         return Container(
                           margin: const EdgeInsets.symmetric(vertical: 4),
                           decoration: BoxDecoration(
-                            color: checkedStates[sectionIndex][itemIndex]
-                                ? Colors.grey.shade100   // 체크되면 연한 회색 배경
-                                : Colors.white,          // 체크 안 됐으면 흰색
+                            color:
+                                checkedStates[sectionIndex][itemIndex]
+                                    ? Colors
+                                        .grey
+                                        .shade100 // 체크되면 연한 회색 배경
+                                    : Colors.white, // 체크 안 됐으면 흰색
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: checkedStates[sectionIndex][itemIndex]
-                                  ?  Color(0xAAAAAA)
-                                  :  Color(0x54BFBFBF) ,
+                              color:
+                                  checkedStates[sectionIndex][itemIndex]
+                                      ? Color(0x00aaaaaa)
+                                      : Color(0x54BFBFBF),
                               width: 1.5,
                             ),
                           ),
@@ -243,26 +291,32 @@ class _ChecklistPageState extends State<ChecklistPage> {
                             title: Text(
                               item,
                               style: TextStyle(
-                                decoration: checkedStates[sectionIndex][itemIndex]
-                                    ? TextDecoration.lineThrough  // 체크되면 줄긋기
-                                    : TextDecoration.none,
+                                decoration:
+                                    checkedStates[sectionIndex][itemIndex]
+                                        ? TextDecoration
+                                            .lineThrough // 체크되면 줄긋기
+                                        : TextDecoration.none,
                               ),
                             ),
                             value: checkedStates[sectionIndex][itemIndex],
-                            activeColor: Color(0xFFFF4242),  // 체크 시 빨간색
-                            checkColor: Colors.white,       // 체크한 아이콘 색상
+                            activeColor: Color(0xFFFF4242), // 체크 시 빨간색
+                            checkColor: Colors.white, // 체크한 아이콘 색상
                             onChanged: (val) {
                               setState(() {
-                                checkedStates[sectionIndex][itemIndex] = val ?? false;
+                                checkedStates[sectionIndex][itemIndex] =
+                                    val ?? false;
                               });
-                              saveChecklistState();  // 변경 후 저장
+                              saveChecklistState(); // 변경 후 저장
                             },
 
                             controlAffinity: ListTileControlAffinity.leading,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 0,
+                            ),
                           ),
                         );
                       }),
@@ -282,11 +336,11 @@ class _ChecklistPageState extends State<ChecklistPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,  // 박스 안은 흰색
+        color: Colors.white, // 박스 안은 흰색
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.redAccent.withOpacity(0.5),  // 빨간색 그림자
+            color: Colors.redAccent.withOpacity(0.5), // 빨간색 그림자
             blurRadius: 8,
             spreadRadius: 2,
           ),
@@ -299,7 +353,7 @@ class _ChecklistPageState extends State<ChecklistPage> {
               Padding(
                 padding: const EdgeInsets.only(left: 13), // 진행 바 오른쪽으로 이동
                 child: Stack(
-                  alignment: Alignment.center,  // Stack 내의 요소들이 겹치지 않도록 중앙 정렬
+                  alignment: Alignment.center, // Stack 내의 요소들이 겹치지 않도록 중앙 정렬
                   children: [
                     SizedBox(
                       width: 80,
@@ -308,7 +362,9 @@ class _ChecklistPageState extends State<ChecklistPage> {
                         value: progress,
                         strokeWidth: 6,
                         backgroundColor: Colors.grey[300],
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.redAccent),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Colors.redAccent,
+                        ),
                       ),
                     ),
                     // 원형 안에 텍스트 추가
@@ -335,7 +391,7 @@ class _ChecklistPageState extends State<ChecklistPage> {
                   ],
                 ),
               ),
-              const SizedBox(width: 32),  // 텍스트 오른쪽으로 이동
+              const SizedBox(width: 32), // 텍스트 오른쪽으로 이동
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,13 +414,6 @@ class _ChecklistPageState extends State<ChecklistPage> {
       ),
     );
   }
-
-
-
-
-
-
-
 }
 
 class ChecklistSection {
@@ -372,5 +421,9 @@ class ChecklistSection {
   final IconData icon;
   final List<String> items;
 
-  ChecklistSection({required this.title, required this.icon, required this.items});
+  ChecklistSection({
+    required this.title,
+    required this.icon,
+    required this.items,
+  });
 }

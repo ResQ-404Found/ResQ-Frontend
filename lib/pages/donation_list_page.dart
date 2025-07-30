@@ -46,13 +46,17 @@ class Donation {
 }
 
 class DonationListPage extends StatefulWidget {
+  const DonationListPage({super.key});
+
   @override
   State<DonationListPage> createState() => _DonationListPageState();
 }
 
 class _DonationListPageState extends State<DonationListPage> {
   Future<List<Donation>> fetchDonations() async {
-    final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/sponsor'));
+    final response = await http.get(
+      Uri.parse('http://54.253.211.96:8000/api/sponsor'),
+    );
     if (response.statusCode == 200) {
       List data = jsonDecode(utf8.decode(response.bodyBytes));
       return data.map((e) => Donation.fromJson(e)).toList();
@@ -64,18 +68,21 @@ class _DonationListPageState extends State<DonationListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: Navigator.canPop(context)
-            ? IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        )
-            : null,
+        scrolledUnderElevation: 0,
+        leading:
+            Navigator.canPop(context)
+                ? IconButton(
+                  icon: Icon(Icons.arrow_back),
+                  onPressed: () => Navigator.pop(context),
+                )
+                : null,
         title: Text('후원 목록', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        elevation: 1,
+        elevation: 0,
         automaticallyImplyLeading: true,
       ),
       body: FutureBuilder<List<Donation>>(
@@ -96,8 +103,10 @@ class _DonationListPageState extends State<DonationListPage> {
             itemBuilder: (context, index) {
               final d = donations[index];
               return GestureDetector(
-                onTap: () => Navigator.pushNamed(context, '/detail', arguments: d),
+                onTap:
+                    () => Navigator.pushNamed(context, '/detail', arguments: d),
                 child: Card(
+                  color: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -116,7 +125,9 @@ class _DonationListPageState extends State<DonationListPage> {
                           return Container(
                             height: 180,
                             color: Colors.grey[200],
-                            child: Center(child: Icon(Icons.image_not_supported)),
+                            child: Center(
+                              child: Icon(Icons.image_not_supported),
+                            ),
                           );
                         },
                       ),
@@ -128,33 +139,64 @@ class _DonationListPageState extends State<DonationListPage> {
                             Row(
                               children: [
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.red[100],
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     d.disasterType,
-                                    style: TextStyle(color: Colors.red, fontSize: 12),
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ),
                                 SizedBox(width: 8),
-                                Text('~ ${d.dueDate}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                                Text(
+                                  '~ ${d.dueDate}',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ],
                             ),
                             SizedBox(height: 8),
-                            Text(d.title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                            Text(
+                              d.title,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             SizedBox(height: 4),
-                            Text(d.sponsorName, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                            Text(
+                              d.sponsorName,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 13,
+                              ),
+                            ),
                             SizedBox(height: 12),
                             Row(
                               children: [
                                 Text(
                                   '${d.currentMoney ~/ 10000}만원',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.blue),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                    color: Colors.blue,
+                                  ),
                                 ),
                                 Spacer(),
-                                Text('목표 ${d.targetMoney ~/ 10000}만원', style: TextStyle(color: Colors.grey[700])),
+                                Text(
+                                  '목표 ${d.targetMoney ~/ 10000}만원',
+                                  style: TextStyle(color: Colors.grey[700]),
+                                ),
                               ],
                             ),
                             SizedBox(height: 6),
@@ -168,7 +210,10 @@ class _DonationListPageState extends State<DonationListPage> {
                               ),
                             ),
                             SizedBox(height: 6),
-                            Text('${(d.progress * 100).toStringAsFixed(0)}%', style: TextStyle(color: Colors.grey)),
+                            Text(
+                              '${(d.progress * 100).toStringAsFixed(0)}%',
+                              style: TextStyle(color: Colors.grey),
+                            ),
                             SizedBox(height: 12),
                             SizedBox(
                               width: double.infinity,
@@ -180,13 +225,25 @@ class _DonationListPageState extends State<DonationListPage> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                onPressed: () => Navigator.pushNamed(context, '/detail', arguments: d),
-                                child: Text('후원하기', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white )),
+                                onPressed:
+                                    () => Navigator.pushNamed(
+                                      context,
+                                      '/detail',
+                                      arguments: d,
+                                    ),
+                                child: Text(
+                                  '후원하기',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
-                            )
+                            ),
                           ],
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),

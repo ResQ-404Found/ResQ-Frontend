@@ -126,6 +126,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                 ],
               ),
               child: AppBar(
+                scrolledUnderElevation: 0,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 title: const Padding(
