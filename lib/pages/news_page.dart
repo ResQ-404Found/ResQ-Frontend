@@ -398,7 +398,7 @@ class _NewsPageState extends State<NewsPage> {
     return BottomNavigationBar(
       backgroundColor: Colors.white,
       type: BottomNavigationBarType.fixed,
-      currentIndex: 4,
+      currentIndex: 3,
       onTap: (index) {
         switch (index) {
           case 0:
