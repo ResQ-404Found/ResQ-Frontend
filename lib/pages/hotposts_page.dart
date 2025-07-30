@@ -50,7 +50,7 @@ class _HotPostsPageState extends State<HotPostsPage> {
   }
 
   Future<void> fetchPosts() async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/posts?sort=like_count');
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts?type=disaster');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -132,6 +132,13 @@ class _HotPostsPageState extends State<HotPostsPage> {
     return '${diff.inDays}일 전';
   }
 
+  String getBadgeLabel(int point) {
+    if (point >= 5000) return 'Platinum';
+    if (point >= 3000) return 'Gold';
+    if (point >= 1000) return 'Silver';
+    return 'Bronze';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,7 +147,7 @@ class _HotPostsPageState extends State<HotPostsPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: const Text('인기글', style: TextStyle(color: Colors.black)),
+        title: const Text('재난게시글', style: TextStyle(color: Colors.black)),
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
@@ -151,6 +158,10 @@ class _HotPostsPageState extends State<HotPostsPage> {
         itemBuilder: (context, index) {
           final post = posts[index];
           final imageUrl = resolveImageUrl(post['post_imageURLs']);
+          final author = post['author'] ?? {};
+          final username = author['username'] ?? '알 수 없음';
+          final point = author['point'] ?? 0;
+
           return GestureDetector(
             onTap: () {
               Navigator.pushNamed(
@@ -160,7 +171,8 @@ class _HotPostsPageState extends State<HotPostsPage> {
               );
             },
             child: PostCard(
-              username: post['author']?['username'] ?? '알 수 없음',
+              username: username,
+              point: point,
               timeAgo: parseTimeAgo(post['created_at']),
               description: post['content'] ?? '',
               location: regionNames[post['region_id']] ?? '지역 정보 없음',
@@ -169,6 +181,7 @@ class _HotPostsPageState extends State<HotPostsPage> {
               isLiked: isLikedList[index],
               imageUrl: imageUrl,
               onLikePressed: () => toggleLike(index),
+              badgeLabel: getBadgeLabel(point),
             ),
           );
         },
@@ -178,8 +191,8 @@ class _HotPostsPageState extends State<HotPostsPage> {
 }
 
 class PostCard extends StatelessWidget {
-  final String username, timeAgo, description, location;
-  final int likes, comments;
+  final String username, timeAgo, description, location, badgeLabel;
+  final int likes, comments, point;
   final bool isLiked;
   final String? imageUrl;
   final VoidCallback onLikePressed;
@@ -195,6 +208,8 @@ class PostCard extends StatelessWidget {
     required this.isLiked,
     required this.imageUrl,
     required this.onLikePressed,
+    required this.point,
+    required this.badgeLabel,
   });
 
   @override
@@ -228,8 +243,31 @@ class PostCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(username, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                  Text(timeAgo, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  Row(
+                    children: [
+                      Text(username,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          badgeLabel,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(timeAgo,
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                 ],
               ),
             ],
@@ -269,14 +307,16 @@ class PostCard extends StatelessWidget {
                       size: 20,
                     ),
                     const SizedBox(width: 4),
-                    Text('$likes', style: const TextStyle(fontWeight: FontWeight.w600)),
+                    Text('$likes',
+                        style: const TextStyle(fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
               const SizedBox(width: 16),
               const Icon(Icons.comment, size: 20, color: Colors.blueAccent),
               const SizedBox(width: 4),
-              Text('$comments', style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text('$comments',
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

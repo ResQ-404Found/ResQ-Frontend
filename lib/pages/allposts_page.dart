@@ -1,9 +1,7 @@
-// ✅ all_posts_page.dart (전체글 페이지 + 카드 UI)
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'all_post_detail_page.dart';
 
 const Map<int, String> regionNames = {
   1: '서울특별시',
@@ -52,7 +50,11 @@ class _AllPostsPageState extends State<AllPostsPage> {
   }
 
   Future<void> fetchPosts({String? regionName}) async {
-    final query = regionName != null ? '?region=${Uri.encodeComponent(regionName)}' : '';
+    String query = '?type=normal';
+    if (regionName != null) {
+      query += '&region=${Uri.encodeComponent(regionName)}';
+    }
+
     final url = Uri.parse('http://54.253.211.96:8000/api/posts$query');
 
     try {
@@ -129,12 +131,19 @@ class _AllPostsPageState extends State<AllPostsPage> {
     return null;
   }
 
+  String getBadgeLabel(int point) {
+    if (point >= 5000) return 'Platinum';
+    if (point >= 3000) return 'Gold';
+    if (point >= 1000) return 'Silver';
+    return 'Bronze';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('전체글', style: TextStyle(color: Colors.black87)),
+        title: const Text('자유게시글', style: TextStyle(color: Colors.black87)),
         backgroundColor: Colors.white,
         centerTitle: true,
         elevation: 0,
@@ -161,8 +170,14 @@ class _AllPostsPageState extends State<AllPostsPage> {
           final post = posts[index];
           final regionName = regionNames[post['region_id']] ?? '지역 정보 없음';
           final imageUrl = resolveImageUrl(post['post_imageURLs']);
+          final author = post['author'] ?? {};
+          final username = author['username'] ?? '알 수 없음';
+          final point = author['point'] ?? 0;
+
           return PostCard(
-            username: post['author']?['username'] ?? '알 수 없음',
+            username: username,
+            point: point,
+            badgeLabel: getBadgeLabel(point),
             timeAgo: parseTimeAgo(post['created_at']),
             title: post['title'] ?? '',
             description: post['content'] ?? '',
@@ -181,6 +196,8 @@ class _AllPostsPageState extends State<AllPostsPage> {
 
 class PostCard extends StatelessWidget {
   final String username;
+  final int point;
+  final String badgeLabel;
   final String timeAgo;
   final String title;
   final String description;
@@ -194,6 +211,8 @@ class PostCard extends StatelessWidget {
   const PostCard({
     super.key,
     required this.username,
+    required this.point,
+    required this.badgeLabel,
     required this.timeAgo,
     required this.title,
     required this.description,
@@ -236,7 +255,27 @@ class PostCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(username, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  Row(
+                    children: [
+                      Text(username, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          badgeLabel,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   Text(timeAgo, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                 ],
               ),
@@ -245,8 +284,7 @@ class PostCard extends StatelessWidget {
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.only(left: 12.0),
-            child: Text(title,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 6),
           Padding(
@@ -283,22 +321,14 @@ class PostCard extends StatelessWidget {
                       size: 20,
                     ),
                     const SizedBox(width: 4),
-                    Text('$likes',
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w600,
-                        )),
+                    Text('$likes', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
               const SizedBox(width: 16),
               const Icon(Icons.comment, size: 20, color: Colors.blueAccent),
               const SizedBox(width: 4),
-              Text('$comments',
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                  )),
+              Text('$comments', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

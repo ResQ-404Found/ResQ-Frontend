@@ -1,3 +1,4 @@
+// ✅ community_main_page.dart (with badge grade display)
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -40,24 +41,26 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
   @override
   void initState() {
     super.initState();
-    fetchPosts();
-    fetchPopularPosts();
+    fetchDisaterPosts();
+    fetchNormalPosts();
   }
 
-  Future<void> fetchPosts() async {
-    final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts'));
+  Future<void> fetchDisaterPosts() async {
+    final response = await http.get(Uri.parse(
+        'http://54.253.211.96:8000/api/posts?type=disaster'));
     if (response.statusCode == 200) {
       setState(() {
-        posts = jsonDecode(response.body);
+        popularPosts = jsonDecode(response.body);
       });
     }
   }
 
-  Future<void> fetchPopularPosts() async {
-    final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts?sort=like_count'));
+  Future<void> fetchNormalPosts() async {
+    final response = await http.get(Uri.parse(
+        'http://54.253.211.96:8000/api/posts?type=normal'));
     if (response.statusCode == 200) {
       setState(() {
-        popularPosts = jsonDecode(response.body);
+        posts = jsonDecode(response.body);
       });
     }
   }
@@ -107,6 +110,13 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
     return '${diff.inDays}일 전';
   }
 
+  String getBadgeLabel(int point) {
+    if (point >= 5000) return 'Platinum';
+    if (point >= 3000) return 'Gold';
+    if (point >= 1000) return 'Silver';
+    return 'Bronze';
+  }
+
   Widget sectionHeader(String title, String route, IconData icon) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -138,7 +148,10 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
           final post = list[index];
           final region = regionNames[int.tryParse('${post['region_id']}')] ?? '알 수 없음';
           final imageUrl = resolveImageUrl(post['post_imageURLs']);
-          final username = post['username'] ?? '익명';
+          final author = post['author'] ?? {};
+          final username = author['username'] ?? '익명';
+          final point = author['point'] ?? 0;
+          final badgeLabel = getBadgeLabel(point);
           final likeCount = post['like_count'] ?? 0;
           final commentCount = post['comment_count'] ?? 0;
           final time = post['created_at'] ?? '';
@@ -199,8 +212,28 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
                       child: const Icon(Icons.image, color: Colors.grey)),
                 ),
                 const SizedBox(height: 6),
-                Text('by $username',
-                    style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                Row(
+                  children: [
+                    Text('by $username',
+                        style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        badgeLabel,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -265,11 +298,11 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              sectionHeader('인기글', '/hotposts', Icons.local_fire_department),
+              sectionHeader('재난게시글', '/hotposts', Icons.local_fire_department),
               const SizedBox(height: 10),
               buildPostList(popularPosts),
               const SizedBox(height: 30),
-              sectionHeader('전체글', '/allposts', Icons.list_alt),
+              sectionHeader('자유게시글 ', '/allposts', Icons.list_alt),
               const SizedBox(height: 10),
               buildPostList(posts),
             ],
