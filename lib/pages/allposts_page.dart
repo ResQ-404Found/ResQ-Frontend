@@ -174,19 +174,27 @@ class _AllPostsPageState extends State<AllPostsPage> {
           final username = author['username'] ?? '알 수 없음';
           final point = author['point'] ?? 0;
 
-          return PostCard(
-            username: username,
-            point: point,
-            badgeLabel: getBadgeLabel(point),
-            timeAgo: parseTimeAgo(post['created_at']),
-            title: post['title'] ?? '',
-            description: post['content'] ?? '',
-            location: regionName,
-            likes: likeCountList[index],
-            comments: post['view_count'] ?? 0,
-            isLiked: isLikedList[index],
-            imageUrl: imageUrl,
-            onLikePressed: () => toggleLike(index),
+          return GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/allpostdetail',
+                arguments: post,
+              );
+            },
+            child: PostCard(
+              username: username,
+              point: point,
+              timeAgo: parseTimeAgo(post['created_at']),
+              description: post['content'] ?? '',
+              location: regionNames[post['region_id']] ?? '지역 정보 없음',
+              likes: likeCountList[index],
+              comments: post['view_count'] ?? 0,
+              isLiked: isLikedList[index],
+              imageUrl: imageUrl,
+              onLikePressed: () => toggleLike(index),
+              badgeLabel: getBadgeLabel(point), title: '',
+            ),
           );
         },
       ),

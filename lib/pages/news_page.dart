@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:html/parser.dart' as html_parser;
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 String decodeHtmlEntities(String htmlString) {
   final document = html_parser.parse(htmlString);
@@ -284,16 +283,6 @@ class _NewsPageState extends State<NewsPage> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    SmoothPageIndicator(
-                      controller: _pageController,
-                      count: youtubeVideos.length,
-                      effect: WormEffect(
-                        dotHeight: 8,
-                        dotWidth: 8,
-                        activeDotColor: Colors.black,
-                        dotColor: Colors.grey[300]!,
-                      ),
-                    ),
                     const SizedBox(height: 16),
 
                     Padding(
