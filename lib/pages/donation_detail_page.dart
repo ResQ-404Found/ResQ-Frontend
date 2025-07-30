@@ -3,12 +3,18 @@ import 'dart:math';
 import 'donation_list_page.dart';
 
 class DonationDetailPage extends StatelessWidget {
+  const DonationDetailPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final donation = ModalRoute.of(context)!.settings.arguments as Donation;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: Text('후원 상세'),
         centerTitle: true,
       ),
@@ -84,7 +90,10 @@ class DonationDetailPage extends StatelessWidget {
                     builder: (context, constraints) {
                       final double fullWidth = constraints.maxWidth;
                       final double progressWidth =
-                      max(0, fullWidth * donation.progress).toDouble(); // ✅ 수정 완료
+                          max(
+                            0,
+                            fullWidth * donation.progress,
+                          ).toDouble(); // ✅ 수정 완료
 
                       return Stack(
                         children: [
@@ -149,17 +158,19 @@ class DonationDetailPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () => Navigator.pushNamed(
-                    context,
-                    '/payment',
-                    arguments: donation,
-                  ),
+                  onPressed:
+                      () => Navigator.pushNamed(
+                        context,
+                        '/payment',
+                        arguments: donation,
+                      ),
                   child: const Text(
                     '후원하기',
                     style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
