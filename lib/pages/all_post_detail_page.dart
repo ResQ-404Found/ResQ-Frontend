@@ -1,4 +1,3 @@
-// 디자인 개선 + 댓글/대댓글 인터랙션 구현 + 댓글 입력 상태 복구 및 외부 터치 시 댓글 모드 복귀 + 댓글 좋아요 상태 반영 + 단일 댓글 카드 좋아요 버튼 추가 + 댓글 작성자 이름 표시 및 프로필 이미지 반영 + 게시글 제목 표시
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -320,20 +319,31 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
+
+          // 이미지 여러 개 표시
           if (widget.post['post_imageURLs'] != null &&
               widget.post['post_imageURLs'].isNotEmpty)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                widget.post['post_imageURLs'][0],
-                errorBuilder:
-                    (context, error, stackTrace) =>
-                        const Text('이미지를 불러올 수 없습니다.'),
-              ),
+            Column(
+              children:
+                  (widget.post['post_imageURLs'] as List)
+                      .map<Widget>(
+                        (url) => Padding(
+                          padding: const EdgeInsets.only(bottom: 10.0),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              url,
+                              errorBuilder:
+                                  (context, error, stackTrace) =>
+                                      const Text('이미지를 불러올 수 없습니다.'),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
             ),
-          if (widget.post['post_imageURLs'] != null &&
-              widget.post['post_imageURLs'].isNotEmpty)
-            const SizedBox(height: 12),
+
+          const SizedBox(height: 12),
           Text(
             widget.post['content'] ?? '',
             style: const TextStyle(fontSize: 16),
