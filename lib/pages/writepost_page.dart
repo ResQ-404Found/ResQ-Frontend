@@ -19,20 +19,48 @@ class _PostCreatePageState extends State<PostCreatePage> {
   final TextEditingController contentController = TextEditingController();
   String? selectedRegion;
   String? selectedPostType;
-  File? _image;
+  List<File> _images = [];
 
   final List<String> regions = [
-    '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종',
-    '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주',
+    '서울',
+    '부산',
+    '대구',
+    '인천',
+    '광주',
+    '대전',
+    '울산',
+    '세종',
+    '경기',
+    '강원',
+    '충북',
+    '충남',
+    '전북',
+    '전남',
+    '경북',
+    '경남',
+    '제주',
   ];
 
   final List<String> postTypes = ['재난 게시글', '잡담 게시글'];
 
   final Map<String, int> regionIdMap = {
-    '서울': 1, '부산': 2559, '대구': 2784, '인천': 2011, '광주': 3235,
-    '대전': 3481, '울산': 3664, '세종': 3759, '경기': 3793, '강원': 5660,
-    '충북': 6129, '충남': 6580, '전북': 7376, '전남': 8143,
-    '경북': 9073, '경남': 10404, '제주': 11977,
+    '서울': 1,
+    '부산': 2559,
+    '대구': 2784,
+    '인천': 2011,
+    '광주': 3235,
+    '대전': 3481,
+    '울산': 3664,
+    '세종': 3759,
+    '경기': 3793,
+    '강원': 5660,
+    '충북': 6129,
+    '충남': 6580,
+    '전북': 7376,
+    '전남': 8143,
+    '경북': 9073,
+    '경남': 10404,
+    '제주': 11977,
   };
 
   final FlutterSecureStorage storage = FlutterSecureStorage();
@@ -46,41 +74,42 @@ class _PostCreatePageState extends State<PostCreatePage> {
 
   Future<void> _loadToken() async {
     accessToken = await storage.read(key: 'accessToken');
-    print('📦 accessToken: $accessToken');
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImages() async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
+    final picked = await picker.pickMultiImage();
+    if (picked.isNotEmpty) {
       setState(() {
-        _image = File(picked.path);
+        _images = picked.map((x) => File(x.path)).toList();
       });
     }
   }
 
   Future<void> submitPost(BuildContext context) async {
     if (accessToken == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('로그인이 필요합니다')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('로그인이 필요합니다')));
       return;
     }
 
     final uri = Uri.parse('http://54.253.211.96:8000/api/posts');
-    final request = http.MultipartRequest('POST', uri)
-      ..headers['Authorization'] = 'Bearer $accessToken'
-      ..fields['title'] = titleController.text
-      ..fields['content'] = contentController.text
-      ..fields['region_id'] = (regionIdMap[selectedRegion] ?? 0).toString()
-      ..fields['type'] = selectedPostType == '재난 게시글' ? 'disaster' : 'normal';
+    final request =
+        http.MultipartRequest('POST', uri)
+          ..headers['Authorization'] = 'Bearer $accessToken'
+          ..fields['title'] = titleController.text
+          ..fields['content'] = contentController.text
+          ..fields['region_id'] = (regionIdMap[selectedRegion] ?? 0).toString()
+          ..fields['type'] =
+              selectedPostType == '재난 게시글' ? 'disaster' : 'normal';
 
-    if (_image != null) {
+    for (final image in _images) {
       request.files.add(
         await http.MultipartFile.fromPath(
           'files',
-          _image!.path,
-          filename: basename(_image!.path),
+          image.path,
+          filename: basename(image.path),
           contentType: parser.MediaType('image', 'png'),
         ),
       );
@@ -94,7 +123,9 @@ class _PostCreatePageState extends State<PostCreatePage> {
 
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
-        final Map<String, dynamic> createdPost = Map<String, dynamic>.from(jsonResponse);
+        final Map<String, dynamic> createdPost = Map<String, dynamic>.from(
+          jsonResponse,
+        );
 
         Navigator.pushNamedAndRemoveUntil(
           context,
@@ -108,16 +139,59 @@ class _PostCreatePageState extends State<PostCreatePage> {
         );
         Navigator.pushReplacementNamed(context, '/login');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('게시 실패: 데이터를 다시 확인해주세요.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('게시 실패: 데이터를 다시 확인해주세요.')));
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('에러 발생: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('에러 발생: $e')));
     }
+  }
+
+  Widget _buildImagePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: _pickImages,
+          child: Container(
+            width: 110,
+            height: 110,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Center(
+              child: Icon(Icons.add_a_photo, size: 36, color: Colors.white),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        if (_images.isNotEmpty)
+          SizedBox(
+            height: 80,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _images.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    _images[index],
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
   }
 
   @override
@@ -156,60 +230,33 @@ class _PostCreatePageState extends State<PostCreatePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 이미지 업로드
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                width: 110,
-                height: 110,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: _image == null
-                    ? const Center(
-                  child: Icon(Icons.add_a_photo, size: 36, color: Colors.white),
-                )
-                    : ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.file(_image!, fit: BoxFit.cover),
-                ),
-              ),
-            ),
+            _buildImagePicker(),
             const SizedBox(height: 24),
-
-            // 제목 입력
             TextField(
               controller: titleController,
               decoration: InputDecoration(
                 hintText: '제목을 입력해주세요.',
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 filled: true,
                 fillColor: Colors.grey[100],
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
             const SizedBox(height: 20),
-
-            // 게시판 선택
             _buildDropdown('게시판 선택', postTypes, selectedPostType, (val) {
-              setState(() {
-                selectedPostType = val;
-              });
+              setState(() => selectedPostType = val);
             }),
-
             const SizedBox(height: 14),
-
-            // 지역 선택
             _buildDropdown('지역 선택', regions, selectedRegion, (val) {
-              setState(() {
-                selectedRegion = val;
-              });
+              setState(() => selectedRegion = val);
             }),
-
             const SizedBox(height: 20),
-
-            // 내용 입력
             TextField(
               controller: contentController,
               maxLines: 10,
@@ -218,12 +265,13 @@ class _PostCreatePageState extends State<PostCreatePage> {
                 contentPadding: const EdgeInsets.all(16),
                 filled: true,
                 fillColor: const Color(0xFFF2F2F2),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
             const SizedBox(height: 30),
-
-            // 작성 버튼
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -232,7 +280,9 @@ class _PostCreatePageState extends State<PostCreatePage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   elevation: 3,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: const Text(
                   '작성 완료',
@@ -246,8 +296,12 @@ class _PostCreatePageState extends State<PostCreatePage> {
     );
   }
 
-  // 드롭다운 공통 위젯
-  Widget _buildDropdown(String hint, List<String> items, String? selectedValue, ValueChanged<String?> onChanged) {
+  Widget _buildDropdown(
+    String hint,
+    List<String> items,
+    String? selectedValue,
+    ValueChanged<String?> onChanged,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
@@ -260,12 +314,10 @@ class _PostCreatePageState extends State<PostCreatePage> {
           value: selectedValue,
           hint: Text(hint),
           isExpanded: true,
-          items: items.map((item) {
-            return DropdownMenuItem(
-              value: item,
-              child: Text(item),
-            );
-          }).toList(),
+          items:
+              items.map((item) {
+                return DropdownMenuItem(value: item, child: Text(item));
+              }).toList(),
           onChanged: onChanged,
         ),
       ),
