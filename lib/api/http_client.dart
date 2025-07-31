@@ -63,28 +63,48 @@ class HttpClient {
 
   static Future<Map<String, dynamic>> uploadProfileImage({
     required String token,
-    File? imageFile, // nullable → 삭제 지원
+    required File imageFile,
+    required String imageUrl, 
   }) async {
-    final uri = Uri.parse('$baseUrl/users/update');
-    final request = http.MultipartRequest('PATCH', uri)
-      ..headers['Authorization'] = 'Bearer $token';
+    final uri = Uri.parse('$baseUrl/users/profile-image');
+    final request =
+        http.MultipartRequest('PATCH', uri)
+          ..headers['Authorization'] = 'Bearer $token'
+          ..fields['image_url'] = imageUrl; 
 
-    if (imageFile != null) {
-      request.files.add(
-        await http.MultipartFile.fromPath('files', imageFile.path),
-      );
+    final exists = await imageFile.exists();
+    final fileSize = await imageFile.length();
+
+    if (!exists || fileSize == 0) {
+      return {'success': false, 'message': '유효하지 않은 이미지 파일입니다.'};
     }
+
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file', 
+        imageFile.path,
+      ),
+    );
 
     try {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      final data = jsonDecode(response.body);
+      print('상태 코드: ${response.statusCode}');
+      print('응답 본문: ${response.body}');
 
-      return {
-        'success': streamedResponse.statusCode == 200,
-        'image_url': data['image_url'], 
-        'message': data['message'] ?? '',
-      };
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'image_url': data['image_url'],
+          'message': data['message'] ?? '',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': '서버 오류 (${response.statusCode}): ${response.body}',
+        };
+      }
     } catch (e) {
       return {'success': false, 'message': '네트워크 오류: $e'};
     }
