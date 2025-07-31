@@ -23,6 +23,7 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
   Set<int> likedCommentIds = {};
   String postAuthor = '';
   String postTitle = '';
+  String postProfileImageUrl = '';
 
   @override
   void initState() {
@@ -50,11 +51,15 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
     final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId');
 
     try {
-      final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
           postAuthor = data['author']?['username'] ?? '';
+          postProfileImageUrl = data['author']?['profile_imageURL'] ?? '';
           postTitle = data['title'] ?? '';
         });
       }
@@ -67,7 +72,10 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
     final url = Uri.parse('http://54.253.211.96:8000/api/comments/$postId');
 
     try {
-      final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
@@ -89,9 +97,14 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
 
   Future<void> _checkIfLiked(dynamic comment) async {
     final token = await storage.read(key: 'accessToken');
-    final url = Uri.parse('http://54.253.211.96:8000/api/comments/${comment['id']}/like/status');
+    final url = Uri.parse(
+      'http://54.253.211.96:8000/api/comments/${comment['id']}/like/status',
+    );
     try {
-      final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final liked = data['data']['liked'] ?? false;
@@ -130,12 +143,18 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
 
   Future<void> toggleLike(int commentId) async {
     final token = await storage.read(key: 'accessToken');
-    final url = Uri.parse('http://54.253.211.96:8000/api/comments/$commentId/like');
+    final url = Uri.parse(
+      'http://54.253.211.96:8000/api/comments/$commentId/like',
+    );
 
     final isLiked = likedCommentIds.contains(commentId);
-    final response = isLiked
-        ? await http.delete(url, headers: {'Authorization': 'Bearer $token'})
-        : await http.post(url, headers: {'Authorization': 'Bearer $token'});
+    final response =
+        isLiked
+            ? await http.delete(
+              url,
+              headers: {'Authorization': 'Bearer $token'},
+            )
+            : await http.post(url, headers: {'Authorization': 'Bearer $token'});
 
     if (response.statusCode == 200) {
       setState(() {
@@ -162,7 +181,6 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final post = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -174,30 +192,43 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
           elevation: 0,
           scrolledUnderElevation: 0,
           centerTitle: true,
-          title: const Text('게시글', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+          title: const Text(
+            '게시글',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+          ),
           iconTheme: const IconThemeData(color: Colors.black),
         ),
         backgroundColor: Colors.white,
         body: Column(
           children: [
             Expanded(
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _buildPostCard(post),
-                  const SizedBox(height: 20),
-                  const Text('댓글', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  ...comments.map<Widget>((c) => _buildCommentItem(c)),
-                  const SizedBox(height: 10),
-                ],
-              ),
+              child:
+                  isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ListView(
+                        padding: const EdgeInsets.all(16),
+                        children: [
+                          _buildPostCard(),
+                          const SizedBox(height: 20),
+                          const Text(
+                            '댓글',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ...comments.map<Widget>((c) => _buildCommentItem(c)),
+                          const SizedBox(height: 10),
+                        ],
+                      ),
             ),
             SafeArea(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 color: Colors.grey.shade100,
                 child: Row(
                   children: [
@@ -206,10 +237,15 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
                         controller: commentController,
                         focusNode: commentFocusNode,
                         decoration: InputDecoration(
-                          hintText: replyingToCommentId != null ? '대댓글을 입력하세요.' : '댓글을 입력하세요.',
+                          hintText:
+                              replyingToCommentId != null
+                                  ? '대댓글을 입력하세요.'
+                                  : '댓글을 입력하세요.',
                           filled: true,
                           fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
                             borderSide: BorderSide.none,
@@ -230,19 +266,23 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
                   ],
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPostCard(Map<String, dynamic> post) {
+  Widget _buildPostCard() {
+    final hasProfileImage = postProfileImageUrl.isNotEmpty;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5)],
+        boxShadow: [
+          BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5),
+        ],
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -250,31 +290,54 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
         children: [
           Row(
             children: [
-              const CircleAvatar(child: Icon(Icons.person)),
+              CircleAvatar(
+                radius: 20,
+                backgroundImage:
+                    hasProfileImage
+                        ? NetworkImage(postProfileImageUrl)
+                        : const AssetImage('lib/asset/sample_profile.jpg')
+                            as ImageProvider,
+              ),
               const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(postAuthor, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text(parseTimeAgo(post['created_at']), style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                  Text(
+                    postAuthor,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    parseTimeAgo(widget.post['created_at']),
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(postTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(
+            postTitle,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
-          if (post['post_imageURLs'] != null && post['post_imageURLs'].isNotEmpty)
+          if (widget.post['post_imageURLs'] != null &&
+              widget.post['post_imageURLs'].isNotEmpty)
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
-                post['post_imageURLs'][0],
-                errorBuilder: (context, error, stackTrace) => const Text('이미지를 불러올 수 없습니다.'),
+                widget.post['post_imageURLs'][0],
+                errorBuilder:
+                    (context, error, stackTrace) =>
+                        const Text('이미지를 불러올 수 없습니다.'),
               ),
             ),
-          if (post['post_imageURLs'] != null && post['post_imageURLs'].isNotEmpty)
+          if (widget.post['post_imageURLs'] != null &&
+              widget.post['post_imageURLs'].isNotEmpty)
             const SizedBox(height: 12),
-          Text(post['content'] ?? '', style: const TextStyle(fontSize: 16)),
+          Text(
+            widget.post['content'] ?? '',
+            style: const TextStyle(fontSize: 16),
+          ),
         ],
       ),
     );
@@ -287,7 +350,10 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
     final authorName = comment['author']?['username'] ?? '익명';
 
     return Padding(
-      padding: EdgeInsets.only(left: indent.toDouble(), bottom: isReply ? 6 : 10),
+      padding: EdgeInsets.only(
+        left: indent.toDouble(),
+        bottom: isReply ? 6 : 10,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -303,7 +369,12 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
               children: [
                 Row(
                   children: [
-                    if (isReply) const Icon(Icons.subdirectory_arrow_right, size: 16, color: Colors.grey),
+                    if (isReply)
+                      const Icon(
+                        Icons.subdirectory_arrow_right,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
                     const SizedBox(width: 4),
                     const Icon(Icons.person, size: 16, color: Colors.grey),
                     const SizedBox(width: 4),
@@ -321,7 +392,10 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
                 const SizedBox(height: 4),
                 Padding(
                   padding: EdgeInsets.only(left: isReply ? 16.0 : 0.0),
-                  child: Text(comment['content'], style: const TextStyle(fontSize: 14)),
+                  child: Text(
+                    comment['content'],
+                    style: const TextStyle(fontSize: 14),
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Row(
@@ -334,14 +408,20 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
                       ),
                       onPressed: () => toggleLike(comment['id']),
                     ),
-                    Text('${comment['like_count']}', style: const TextStyle(fontSize: 12)),
+                    Text(
+                      '${comment['like_count']}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
                     if (!isReply)
                       TextButton(
                         onPressed: () {
                           setState(() => replyingToCommentId = comment['id']);
                           FocusScope.of(context).requestFocus(commentFocusNode);
                         },
-                        child: const Text('댓글 달기', style: TextStyle(color: Colors.red)),
+                        child: const Text(
+                          '댓글 달기',
+                          style: TextStyle(color: Colors.red),
+                        ),
                       ),
                   ],
                 ),
