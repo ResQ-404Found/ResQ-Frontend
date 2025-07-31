@@ -67,7 +67,6 @@ class Hospital {
   final double longitude;
   final double distance;
 
-
   Hospital({
     required this.id,
     required this.name,
@@ -75,7 +74,6 @@ class Hospital {
     required this.latitude,
     required this.longitude,
     required this.distance,
-
   });
 
   factory Hospital.fromJson(Map<String, dynamic> json) {
@@ -86,11 +84,9 @@ class Hospital {
       latitude: json['latitude'],
       longitude: json['longitude'],
       distance: json['distance_km'],
-
     );
   }
 }
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -129,10 +125,14 @@ class _MapPageState extends State<MapPage> {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) return;
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever)
+        return;
     }
 
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
     final userLatLng = NLatLng(position.latitude, position.longitude);
 
     if (_controller != null) {
@@ -146,7 +146,6 @@ class _MapPageState extends State<MapPage> {
         id: 'user_location',
         position: userLatLng,
         icon: NOverlayImage.fromAssetImage('lib/asset/user_marker.png'),
-
       );
       _controller!.addOverlay(userMarker);
     }
@@ -156,8 +155,12 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _getAddress(Position position) async {
-    final url = 'https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${position.longitude}&y=${position.latitude}';
-    final response = await http.get(Uri.parse(url), headers: {'Authorization': kakaoRestApiKey});
+    final url =
+        'https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${position.longitude}&y=${position.latitude}';
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {'Authorization': kakaoRestApiKey},
+    );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -178,8 +181,13 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _fetchNearbyShelters(Position position) async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/shelters/nearby?latitude=${position.latitude}&longitude=${position.longitude}&limit=10');
-    final response = await http.get(url, headers: {'accept': 'application/json'});
+    final url = Uri.parse(
+      'http://54.253.211.96:8000/api/shelters/nearby?latitude=${position.latitude}&longitude=${position.longitude}&limit=10',
+    );
+    final response = await http.get(
+      url,
+      headers: {'accept': 'application/json'},
+    );
 
     if (response.statusCode == 200) {
       final jsonBody = json.decode(utf8.decode(response.bodyBytes));
@@ -197,7 +205,8 @@ class _MapPageState extends State<MapPage> {
         );
         marker.setOnTapListener((m) {
           setState(() {
-            _selectedShelter = (_selectedShelter?.name == shelter.name) ? null : shelter;
+            _selectedShelter =
+                (_selectedShelter?.name == shelter.name) ? null : shelter;
           });
         });
         _shelterMarkers.add(marker);
@@ -205,7 +214,9 @@ class _MapPageState extends State<MapPage> {
 
       if (_controller != null) {
         await _controller!.clearOverlays();
-        await _controller!.addOverlayAll(_shelterMarkers.map((m) => m as NAddableOverlay).toSet());
+        await _controller!.addOverlayAll(
+          _shelterMarkers.map((m) => m as NAddableOverlay).toSet(),
+        );
         await _zoomToFitAllMarkers();
       }
     }
@@ -213,13 +224,21 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> _fetchDisasters() async {
     if (_sido == null || _sigungu == null || _eupmyeondong == null) return;
-    final queryUri = Uri.parse('http://54.253.211.96:8000/api/disasters?sido=$_sido&sigungu=$_sigungu&eupmyeondong=$_eupmyeondong&active_only=true');
-    final response = await http.get(queryUri, headers: {'accept': 'application/json'});
+    final queryUri = Uri.parse(
+      'http://54.253.211.96:8000/api/disasters?sido=$_sido&sigungu=$_sigungu&eupmyeondong=$_eupmyeondong&active_only=true',
+    );
+    final response = await http.get(
+      queryUri,
+      headers: {'accept': 'application/json'},
+    );
 
     if (response.statusCode == 200) {
       final jsonBody = json.decode(utf8.decode(response.bodyBytes));
       final summary = jsonBody['data'][0]['summary'] as Map<String, dynamic>;
-      final total = summary.values.fold<int>(0, (sum, val) => sum + (val as int));
+      final total = summary.values.fold<int>(
+        0,
+        (sum, val) => sum + (val as int),
+      );
       final List<dynamic> data = jsonBody['data'][0]['disasters'];
 
       setState(() {
@@ -231,8 +250,13 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _fetchNearbyHospitals(Position position) async {
-    final url = Uri.parse('http://54.253.211.96:8000/api/hospital/nearby?latitude=${position.latitude}&longitude=${position.longitude}&limit=10');
-    final response = await http.get(url, headers: {'accept': 'application/json'});
+    final url = Uri.parse(
+      'http://54.253.211.96:8000/api/hospital/nearby?latitude=${position.latitude}&longitude=${position.longitude}&limit=10',
+    );
+    final response = await http.get(
+      url,
+      headers: {'accept': 'application/json'},
+    );
 
     if (response.statusCode == 200) {
       final jsonBody = json.decode(utf8.decode(response.bodyBytes));
@@ -250,7 +274,8 @@ class _MapPageState extends State<MapPage> {
         );
         marker.setOnTapListener((m) {
           setState(() {
-            _selectedHospital = (_selectedHospital?.name == hospital.name) ? null : hospital;
+            _selectedHospital =
+                (_selectedHospital?.name == hospital.name) ? null : hospital;
           });
         });
         _hospitalMarkers.add(marker);
@@ -258,7 +283,9 @@ class _MapPageState extends State<MapPage> {
 
       if (_controller != null) {
         await _controller!.clearOverlays();
-        await _controller!.addOverlayAll(_hospitalMarkers.map((m) => m as NAddableOverlay).toSet()); // ✅ hospitalMarkers로 바꿈
+        await _controller!.addOverlayAll(
+          _hospitalMarkers.map((m) => m as NAddableOverlay).toSet(),
+        ); // ✅ hospitalMarkers로 바꿈
         await _zoomToFitMarkers(_hospitalMarkers);
       }
     }
@@ -266,26 +293,36 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> _zoomToFitAllMarkers() async {
     if (_shelterMarkers.isEmpty || _controller == null) return;
-    final bounds = _calculateBounds(_shelterMarkers.map((m) => m.position).toList());
-    await _controller!.updateCamera(NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80)));
+    final bounds = _calculateBounds(
+      _shelterMarkers.map((m) => m.position).toList(),
+    );
+    await _controller!.updateCamera(
+      NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80)),
+    );
   }
 
   Future<void> _zoomToFitMarkers(List<NMarker> markers) async {
     if (markers.isEmpty || _controller == null) return;
     final bounds = _calculateBounds(markers.map((m) => m.position).toList());
-    await _controller!.updateCamera(NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80)));
+    await _controller!.updateCamera(
+      NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80)),
+    );
   }
 
   NLatLngBounds _calculateBounds(List<NLatLng> positions) {
     double minLat = positions.first.latitude, maxLat = positions.first.latitude;
-    double minLng = positions.first.longitude, maxLng = positions.first.longitude;
+    double minLng = positions.first.longitude,
+        maxLng = positions.first.longitude;
     for (var p in positions) {
       if (p.latitude < minLat) minLat = p.latitude;
       if (p.latitude > maxLat) maxLat = p.latitude;
       if (p.longitude < minLng) minLng = p.longitude;
       if (p.longitude > maxLng) maxLng = p.longitude;
     }
-    return NLatLngBounds(southWest: NLatLng(minLat, minLng), northEast: NLatLng(maxLat, maxLng));
+    return NLatLngBounds(
+      southWest: NLatLng(minLat, minLng),
+      northEast: NLatLng(maxLat, maxLng),
+    );
   }
 
   @override
@@ -300,7 +337,10 @@ class _MapPageState extends State<MapPage> {
             _buildStatusBanner(),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: Stack(
@@ -327,9 +367,33 @@ class _MapPageState extends State<MapPage> {
                           });
                         },
                       ),
-                      if (_selectedShelter != null) _buildShelterDetailSheet(),
-                      if (_selectedMenu == 'disaster' && _showDisasterSheet) _buildDisasterInfoSheet(),
-                      if (_selectedHospital != null) _buildHospitalDetailSheet(),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                        bottom: _selectedShelter != null ? 0 : -400,
+                        left: 0,
+                        right: 0,
+                        child: _buildShelterDetailSheet(),
+                      ),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                        bottom:
+                            (_selectedMenu == 'disaster' && _showDisasterSheet)
+                                ? 0
+                                : -400,
+                        left: 0,
+                        right: 0,
+                        child: _buildDisasterInfoSheet(),
+                      ),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                        bottom: _selectedHospital != null ? 0 : -400,
+                        left: 0,
+                        right: 0,
+                        child: _buildHospitalDetailSheet(),
+                      ),
                       Positioned(
                         bottom: 16,
                         right: 16,
@@ -337,20 +401,29 @@ class _MapPageState extends State<MapPage> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
-                            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 6)],
+                            boxShadow: [
+                              BoxShadow(color: Colors.black26, blurRadius: 6),
+                            ],
                           ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.add, color: Colors.black),
+                                icon: const Icon(
+                                  Icons.add,
+                                  color: Colors.black,
+                                ),
                                 onPressed: () async {
                                   if (_controller != null) {
-                                    final pos = await _controller!.getCameraPosition();
+                                    final pos =
+                                        await _controller!.getCameraPosition();
                                     final zoom = pos.zoom + 1;
                                     await _controller!.updateCamera(
                                       NCameraUpdate.fromCameraPosition(
-                                        NCameraPosition(target: pos.target, zoom: zoom),
+                                        NCameraPosition(
+                                          target: pos.target,
+                                          zoom: zoom,
+                                        ),
                                       ),
                                     );
                                   }
@@ -362,14 +435,21 @@ class _MapPageState extends State<MapPage> {
                                 color: Colors.grey[300], // 구분선 색상
                               ),
                               IconButton(
-                                icon: const Icon(Icons.remove, color: Colors.black),
+                                icon: const Icon(
+                                  Icons.remove,
+                                  color: Colors.black,
+                                ),
                                 onPressed: () async {
                                   if (_controller != null) {
-                                    final pos = await _controller!.getCameraPosition();
+                                    final pos =
+                                        await _controller!.getCameraPosition();
                                     final zoom = pos.zoom - 1;
                                     await _controller!.updateCamera(
                                       NCameraUpdate.fromCameraPosition(
-                                        NCameraPosition(target: pos.target, zoom: zoom),
+                                        NCameraPosition(
+                                          target: pos.target,
+                                          zoom: zoom,
+                                        ),
                                       ),
                                     );
                                   }
@@ -379,19 +459,13 @@ class _MapPageState extends State<MapPage> {
                           ),
                         ),
                       ),
-
-
                     ],
                   ),
-
                 ),
               ),
-
             ),
-
           ],
         ),
-
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -435,23 +509,38 @@ class _MapPageState extends State<MapPage> {
           unselectedIconTheme: IconThemeData(size: 30),
           items: const [
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.place),
+              ),
               label: '지도',
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.chat),
+              ),
               label: '채팅',
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.groups),
+              ),
               label: '커뮤니티',
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.dashboard),
+              ),
               label: '재난메뉴',
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.favorite_border),
+              ),
               label: '마이',
             ),
           ],
@@ -462,40 +551,43 @@ class _MapPageState extends State<MapPage> {
 
   Widget _buildLocationBox() {
     return Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
-        ),
-        child:Row(
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 2), // 📍 아이콘 약간 오른쪽
-              child: Icon(Icons.location_on, color: Colors.redAccent,size:30),
-            ),
-            const SizedBox(width: 12),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+      ),
+      child: Row(
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 2), // 📍 아이콘 약간 오른쪽
+            child: Icon(Icons.location_on, color: Colors.redAccent, size: 30),
+          ),
+          const SizedBox(width: 12),
 
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: Text(
-                  _currentAddress ?? '주소 불러오는 중...',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500,color:Colors.grey),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Text(
+                _currentAddress ?? '주소 불러오는 중...',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey,
                 ),
               ),
             ),
+          ),
 
-            IconButton(
-              icon: const Icon(Icons.my_location, color: Colors.grey),
-              onPressed: () async {
-                await _getAndMoveToCurrentLocation();
-              },
-            ),
-          ],
-        )
-
+          IconButton(
+            icon: const Icon(Icons.my_location, color: Colors.grey),
+            onPressed: () async {
+              await _getAndMoveToCurrentLocation();
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -511,79 +603,84 @@ class _MapPageState extends State<MapPage> {
       height: 48,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: buttons.map((b) {
-          final selected = _selectedMenu == b['value'];
+        children:
+            buttons.map((b) {
+              final selected = _selectedMenu == b['value'];
 
-          return Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              child: GestureDetector(
-                onTap: () async {
-                  setState(() {
-                    if (_selectedMenu == b['value']) {
-                      _selectedMenu = '';
-                      _selectedHospital = null;
-                      _selectedShelter = null;
-                      _showDisasterSheet = false;
-                    } else {
-                      _selectedMenu = b['value'] as String;
-                      _selectedHospital = null;
-                      _selectedShelter = null;
-                      _showDisasterSheet = b['value'] == 'disaster';
-                    }
-                  });
-
-                  Position pos = await Geolocator.getCurrentPosition();
-                  if (_selectedMenu == 'shelter') await _fetchNearbyShelters(pos);
-                  if (_selectedMenu == 'hospital') await _fetchNearbyHospitals(pos);
-                  if (_selectedMenu == 'disaster') await _fetchDisasters();
-                },
+              return Expanded(
                 child: Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: selected ? Colors.red.shade400 : Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: selected ? Colors.red : Colors.grey.shade300,
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      if (selected)
-                        const BoxShadow(
-                          color: Colors.black26,
-                          offset: Offset(0, 2),
-                          blurRadius: 4,
-                        )
-                    ],
-                  ),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  child: GestureDetector(
+                    onTap: () async {
+                      setState(() {
+                        if (_selectedMenu == b['value']) {
+                          _selectedMenu = '';
+                          _selectedHospital = null;
+                          _selectedShelter = null;
+                          _showDisasterSheet = false;
+                        } else {
+                          _selectedMenu = b['value'] as String;
+                          _selectedHospital = null;
+                          _selectedShelter = null;
+                          _showDisasterSheet = b['value'] == 'disaster';
+                        }
+                      });
 
-                  child: Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(b['icon'] as IconData,
-                            color: selected ? Colors.white : Colors.black),
-                        const SizedBox(width: 6),
-                        Text(
-                          b['label'] as String,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: selected ? Colors.white : Colors.black,
-                          ),
+                      Position pos = await Geolocator.getCurrentPosition();
+                      if (_selectedMenu == 'shelter')
+                        await _fetchNearbyShelters(pos);
+                      if (_selectedMenu == 'hospital')
+                        await _fetchNearbyHospitals(pos);
+                      if (_selectedMenu == 'disaster') await _fetchDisasters();
+                    },
+                    child: Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color:
+                            selected ? Colors.red.shade400 : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: selected ? Colors.red : Colors.grey.shade300,
+                          width: 1,
                         ),
-                      ],
+                        boxShadow: [
+                          if (selected)
+                            const BoxShadow(
+                              color: Colors.black26,
+                              offset: Offset(0, 2),
+                              blurRadius: 4,
+                            ),
+                        ],
+                      ),
+
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              b['icon'] as IconData,
+                              color: selected ? Colors.white : Colors.black,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              b['label'] as String,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: selected ? Colors.white : Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          );
-        }).toList(),
+              );
+            }).toList(),
       ),
     );
   }
-
 
   Widget _buildStatusBanner() {
     String text;
@@ -594,13 +691,20 @@ class _MapPageState extends State<MapPage> {
     if (_hasDisasterMessage) {
       text = '재난 문자가 있습니다. 확인하세요';
       bgColor = Colors.redAccent;
-      leadingIcon = const Icon(Icons.warning_amber_rounded, color: Colors.white,size: 22);
+      leadingIcon = const Icon(
+        Icons.warning_amber_rounded,
+        color: Colors.white,
+        size: 22,
+      );
     } else {
       text = '재난 문자가 없습니다.';
       bgColor = Colors.green;
-      leadingIcon = const Icon(Icons.check_circle_rounded, color: Colors.white,size: 22);
+      leadingIcon = const Icon(
+        Icons.check_circle_rounded,
+        color: Colors.white,
+        size: 22,
+      );
     }
-
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -625,7 +729,6 @@ class _MapPageState extends State<MapPage> {
           ),
         ],
       ),
-
     );
   }
 
@@ -659,7 +762,8 @@ class _MapPageState extends State<MapPage> {
                 final lat = shelter.latitude;
                 final lng = shelter.longitude;
                 final name = Uri.encodeComponent(shelter.name);
-                final url = 'nmap://route/public?dlat=$lat&dlng=$lng&dname=$name&appname=com.pan.resq';
+                final url =
+                    'nmap://route/public?dlat=$lat&dlng=$lng&dname=$name&appname=com.pan.resq';
 
                 if (await canLaunchUrl(Uri.parse(url))) {
                   await launchUrl(Uri.parse(url));
@@ -674,7 +778,10 @@ class _MapPageState extends State<MapPage> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 minimumSize: const Size(double.infinity, 48),
               ),
-              child: const Text('길찾기 안내', style: TextStyle(color: Colors.white)),
+              child: const Text(
+                '길찾기 안내',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
@@ -705,7 +812,7 @@ class _MapPageState extends State<MapPage> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: const [
-                Icon(Icons.warning_amber_rounded, color: Colors.red, size:26),
+                Icon(Icons.warning_amber_rounded, color: Colors.red, size: 26),
                 SizedBox(width: 6),
                 Text(
                   '재난정보',
@@ -741,12 +848,18 @@ class _MapPageState extends State<MapPage> {
                         color: Colors.grey[100],
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.grey.shade300),
-                        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black12, blurRadius: 4),
+                        ],
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 28),
+                          const Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.redAccent,
+                            size: 28,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -754,12 +867,18 @@ class _MapPageState extends State<MapPage> {
                               children: [
                                 Text(
                                   entry.key,
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   first.startTime,
-                                  style: const TextStyle(fontSize: 13, color: Colors.grey),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -799,7 +918,10 @@ class _MapPageState extends State<MapPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('병원 상세 정보', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              '병원 상세 정보',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             _infoRow('이름', hospital.name),
             _infoRow('주소', hospital.address),
@@ -810,7 +932,8 @@ class _MapPageState extends State<MapPage> {
                 final lat = hospital.latitude;
                 final lng = hospital.longitude;
                 final name = Uri.encodeComponent(hospital.name);
-                final url = 'nmap://route/public?dlat=$lat&dlng=$lng&dname=$name&appname=com.pan.resq';
+                final url =
+                    'nmap://route/public?dlat=$lat&dlng=$lng&dname=$name&appname=com.pan.resq';
 
                 if (await canLaunchUrl(Uri.parse(url))) {
                   await launchUrl(Uri.parse(url));
@@ -825,7 +948,10 @@ class _MapPageState extends State<MapPage> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 minimumSize: const Size(double.infinity, 48),
               ),
-              child: const Text('길찾기 안내', style: TextStyle(color: Colors.white)),
+              child: const Text(
+                '길찾기 안내',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
@@ -838,11 +964,16 @@ class _MapPageState extends State<MapPage> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          SizedBox(width: 70, child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold))),
+          SizedBox(
+            width: 70,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
           Expanded(child: Text(value, overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
   }
 }
-
