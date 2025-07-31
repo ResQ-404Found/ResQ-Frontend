@@ -63,29 +63,28 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
       const storage = FlutterSecureStorage();
       final token = await storage.read(key: 'accessToken');
+
       if (token != null) {
-        try {
-          final response = await HttpClient.uploadProfileImage(
-            token: token,
-            imageFile: file,
+        final fileName = file.path.split('/').last;
+        final imageUrl = 'https://your-cdn.com/$fileName'; 
+
+        final response = await HttpClient.uploadProfileImage(
+          token: token,
+          imageFile: file,
+          imageUrl: imageUrl, 
+        );
+
+        print('서버 응답: $response');
+
+        if (response['success'] == true) {
+          setState(() {
+            profileImageUrl = response['image_url'] ?? '';
+            _profileImage = null;
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('업로드 실패: ${response['message']}')),
           );
-
-          print('서버 응답: $response');
-
-          if (response['success'] == true) {
-            setState(() {
-              profileImageUrl = response['image_url'] ?? ''; // 삭제된 경우도 반영
-              _profileImage = null;
-            });
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('업로드 실패: ${response['message']}')),
-            );
-          }
-        } catch (e) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('에러 발생: $e')));
         }
       }
     }
