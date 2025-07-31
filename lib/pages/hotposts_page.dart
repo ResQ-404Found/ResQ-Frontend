@@ -236,8 +236,8 @@ class _HotPostsPageState extends State<HotPostsPage>
           itemBuilder: (context, index) {
             final post = posts[index];
             final author = post['author'] ?? {};
-            final profileImageUrl = resolveImageUrl(author['profile_imageURL']); // ✅ 아바타용
-            final postImageUrl = resolveImageUrl(post['post_imageURLs']); // ✅ 게시글 이미지
+            final profileImageUrl = resolveImageUrl(author['profile_imageURL']);
+            final postImageUrl = resolveImageUrl(post['post_imageURLs']);
             final username = author['username'] ?? '알 수 없음';
             final point = author['point'] ?? 0;
 
@@ -255,7 +255,7 @@ class _HotPostsPageState extends State<HotPostsPage>
                 comments: commentCountList[index],
                 isLiked: isLikedList[index],
                 profileImageUrl: profileImageUrl,
-                postImageUrl: postImageUrl, // ✅ 추가 전달
+                postImageUrl: postImageUrl,
                 onLikePressed: () => toggleLike(index),
                 badgeLabel: getBadgeLabel(point),
               ),
@@ -272,7 +272,7 @@ class PostCard extends StatelessWidget {
   final int likes, comments, point;
   final bool isLiked;
   final String? profileImageUrl;
-  final String? postImageUrl; // ✅ 게시글 이미지
+  final String? postImageUrl;
   final VoidCallback onLikePressed;
 
   const PostCard({

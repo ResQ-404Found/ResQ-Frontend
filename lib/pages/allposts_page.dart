@@ -220,8 +220,8 @@ class _AllPostsPageState extends State<AllPostsPage> with TickerProviderStateMix
             final post = posts[index];
             final regionName = regionNames[post['region_id']] ?? '지역 정보 없음';
             final author = post['author'] ?? {};
-            final profileImageUrl = resolveImageUrl(author['profile_imageURL']); // ✅ 아바타용
-            final postImageUrl = resolveImageUrl(post['post_imageURLs']); // ✅ 게시글 이미지용
+            final profileImageUrl = resolveImageUrl(author['profile_imageURL']);
+            final postImageUrl = resolveImageUrl(post['post_imageURLs']);
             final username = author['username'] ?? '알 수 없음';
             final point = author['point'] ?? 0;
 
