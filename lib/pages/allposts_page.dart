@@ -30,8 +30,8 @@ class AllPostsPage extends StatefulWidget {
   State<AllPostsPage> createState() => _AllPostsPageState();
 }
 
-class _AllPostsPageState extends State<AllPostsPage>
-    with TickerProviderStateMixin {
+
+class _AllPostsPageState extends State<AllPostsPage> with TickerProviderStateMixin {
   List<dynamic> posts = [];
   List<bool> isLikedList = [];
   List<int> likeCountList = [];
@@ -68,8 +68,7 @@ class _AllPostsPageState extends State<AllPostsPage>
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         posts = data;
-        likeCountList =
-            posts.map<int>((post) => post['like_count'] ?? 0).toList();
+        likeCountList = posts.map<int>((post) => post['like_count'] ?? 0).toList();
         isLikedList = List.filled(posts.length, false);
         commentCountList = List.filled(posts.length, 0);
         setState(() {});
@@ -105,9 +104,7 @@ class _AllPostsPageState extends State<AllPostsPage>
   }
 
   Future<bool> fetchLikeStatus(int postId) async {
-    final url = Uri.parse(
-      'http://54.253.211.96:8000/api/posts/$postId/like/status',
-    );
+    final url = Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like/status');
     try {
       final response = await http.get(
         url,
@@ -127,22 +124,15 @@ class _AllPostsPageState extends State<AllPostsPage>
     final isLiked = isLikedList[index];
 
     try {
-      final response =
-          isLiked
-              ? await http.delete(
-                url,
-                headers: {'Authorization': 'Bearer $accessToken'},
-              )
-              : await http.post(
-                url,
-                headers: {'Authorization': 'Bearer $accessToken'},
-              );
+      final response = isLiked
+          ? await http.delete(url, headers: {'Authorization': 'Bearer $accessToken'})
+          : await http.post(url, headers: {'Authorization': 'Bearer $accessToken'});
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
           isLikedList[index] = !isLiked;
-          likeCountList[index] =
-              data['data']['like_count'] ?? likeCountList[index];
+          likeCountList[index] = data['data']['like_count'] ?? likeCountList[index];
         });
       }
     } catch (e) {
@@ -166,6 +156,10 @@ class _AllPostsPageState extends State<AllPostsPage>
       String url = urls.first;
       if (url.startsWith('/static')) return 'http://54.253.211.96:8000$url';
       if (url.startsWith('http')) return url;
+    }
+    if (urls is String && urls.isNotEmpty) {
+      if (urls.startsWith('/static')) return 'http://54.253.211.96:8000$urls';
+      if (urls.startsWith('http')) return urls;
     }
     return null;
   }
@@ -198,18 +192,10 @@ class _AllPostsPageState extends State<AllPostsPage>
           actions: [
             PopupMenuButton<String>(
               icon: const Icon(Icons.tune, color: Colors.black),
-              onSelected:
-                  (selectedRegion) => fetchPosts(regionName: selectedRegion),
-              itemBuilder:
-                  (context) =>
-                      regionNames.values
-                          .map(
-                            (region) => PopupMenuItem(
-                              value: region,
-                              child: Text(region),
-                            ),
-                          )
-                          .toList(),
+              onSelected: (selectedRegion) => fetchPosts(regionName: selectedRegion),
+              itemBuilder: (context) => regionNames.values
+                  .map((region) => PopupMenuItem(value: region, child: Text(region)))
+                  .toList(),
             ),
           ],
           bottom: TabBar(
@@ -223,10 +209,7 @@ class _AllPostsPageState extends State<AllPostsPage>
             indicatorWeight: 2.5,
             labelColor: Colors.black,
             unselectedLabelColor: Colors.grey,
-            labelStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
+            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             tabs: const [Tab(text: '전체글'), Tab(text: '인기글')],
           ),
         ),
@@ -236,18 +219,18 @@ class _AllPostsPageState extends State<AllPostsPage>
           itemBuilder: (context, index) {
             final post = posts[index];
             final regionName = regionNames[post['region_id']] ?? '지역 정보 없음';
-            final imageUrl = resolveImageUrl(post['post_imageURLs']);
             final author = post['author'] ?? {};
+            final profileImageUrl = resolveImageUrl(author['profile_imageURL']); // ✅ 아바타용
+            final postImageUrl = resolveImageUrl(post['post_imageURLs']); // ✅ 게시글 이미지용
             final username = author['username'] ?? '알 수 없음';
             final point = author['point'] ?? 0;
 
             return GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, '/allpostdetail', arguments: post);
-              },
+              onTap: () => Navigator.pushNamed(context, '/allpostdetail', arguments: post),
               child: PostCard(
                 username: username,
                 point: point,
+                badgeLabel: getBadgeLabel(point),
                 timeAgo: parseTimeAgo(post['created_at']),
                 title: post['title'] ?? '',
                 description: post['content'] ?? '',
@@ -255,9 +238,9 @@ class _AllPostsPageState extends State<AllPostsPage>
                 likes: likeCountList[index],
                 comments: commentCountList[index],
                 isLiked: isLikedList[index],
-                imageUrl: imageUrl,
+                imageUrl: postImageUrl,
+                profileImageUrl: profileImageUrl,
                 onLikePressed: () => toggleLike(index),
-                badgeLabel: getBadgeLabel(point),
               ),
             );
           },
@@ -279,6 +262,7 @@ class PostCard extends StatelessWidget {
   final int comments;
   final bool isLiked;
   final String? imageUrl;
+  final String? profileImageUrl;
   final VoidCallback onLikePressed;
 
   const PostCard({
@@ -294,6 +278,7 @@ class PostCard extends StatelessWidget {
     required this.comments,
     required this.isLiked,
     required this.imageUrl,
+    required this.profileImageUrl,
     required this.onLikePressed,
   });
 
@@ -319,10 +304,12 @@ class PostCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 16,
-                backgroundColor: Color(0xFFECE2F0),
-                child: Icon(Icons.person, color: Colors.white),
+                backgroundImage: profileImageUrl != null
+                    ? NetworkImage(profileImageUrl!)
+                    : const AssetImage('lib/asset/sample_profile.jpg') as ImageProvider,
+                backgroundColor: Colors.grey[300],
               ),
               const SizedBox(width: 10),
               Column(
@@ -330,38 +317,21 @@ class PostCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        username,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
+                      Text(username,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: Colors.redAccent.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Text(
-                          badgeLabel,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: Text(badgeLabel,
+                            style: const TextStyle(fontSize: 10, color: Colors.redAccent, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
-                  Text(
-                    timeAgo,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
+                  Text(timeAgo, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                 ],
               ),
             ],
@@ -369,10 +339,8 @@ class PostCard extends StatelessWidget {
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.only(left: 12.0),
-            child: Text(
-              title,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
+            child: Text(title,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 6),
           Padding(
@@ -388,12 +356,8 @@ class PostCard extends StatelessWidget {
                 height: 180,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder:
-                    (context, error, stackTrace) => const Icon(
-                      Icons.image_not_supported,
-                      size: 100,
-                      color: Colors.grey,
-                    ),
+                errorBuilder: (context, error, stackTrace) =>
+                const Icon(Icons.image_not_supported, size: 100, color: Colors.grey),
               ),
             ),
           ],
@@ -404,50 +368,28 @@ class PostCard extends StatelessWidget {
                 onTap: onLikePressed,
                 child: Row(
                   children: [
-                    Icon(
-                      isLiked ? Icons.favorite : Icons.favorite_border,
-                      color: Colors.redAccent,
-                      size: 20,
-                    ),
+                    Icon(isLiked ? Icons.favorite : Icons.favorite_border,
+                        color: Colors.redAccent, size: 20),
                     const SizedBox(width: 4),
-                    Text(
-                      '$likes',
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    Text('$likes',
+                        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
               const SizedBox(width: 16),
               const Icon(Icons.comment, size: 20, color: Colors.blueAccent),
               const SizedBox(width: 4),
-              Text(
-                '$comments',
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text('$comments',
+                  style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
-                  location,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.redAccent,
-                  ),
-                ),
+                child: Text(location,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.redAccent)),
               ),
             ],
           ),

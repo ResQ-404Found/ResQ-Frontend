@@ -1,7 +1,5 @@
-// ✅ community_main_page.dart (with badge grade display)
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 
 class CommunityMainPage extends StatefulWidget {
@@ -41,13 +39,12 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
   @override
   void initState() {
     super.initState();
-    fetchDisaterPosts();
+    fetchDisasterPosts();
     fetchNormalPosts();
   }
 
-  Future<void> fetchDisaterPosts() async {
-    final response = await http.get(Uri.parse(
-        'http://54.253.211.96:8000/api/posts?type=disaster'));
+  Future<void> fetchDisasterPosts() async {
+    final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts?type=disaster'));
     if (response.statusCode == 200) {
       setState(() {
         popularPosts = jsonDecode(response.body);
@@ -56,8 +53,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
   }
 
   Future<void> fetchNormalPosts() async {
-    final response = await http.get(Uri.parse(
-        'http://54.253.211.96:8000/api/posts?type=normal'));
+    final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts?type=normal'));
     if (response.statusCode == 200) {
       setState(() {
         posts = jsonDecode(response.body);
@@ -87,6 +83,14 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
   }
 
   String? resolveImageUrl(dynamic urls) {
+    if (urls is String && urls.isNotEmpty) {
+      if (urls.startsWith('/static')) {
+        return 'http://54.253.211.96:8000$urls';
+      } else if (urls.startsWith('http')) {
+        return urls;
+      }
+    }
+
     if (urls is List && urls.isNotEmpty) {
       final url = urls.first;
       if (url.startsWith('/static')) {
@@ -95,6 +99,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         return url;
       }
     }
+
     return null;
   }
 
@@ -124,8 +129,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         Row(children: [
           Icon(icon, color: Colors.redAccent),
           const SizedBox(width: 6),
-          Text(title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         ]),
         InkWell(
           onTap: () => Navigator.pushNamed(context, route),
@@ -147,8 +151,9 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         itemBuilder: (context, index) {
           final post = list[index];
           final region = regionNames[int.tryParse('${post['region_id']}')] ?? '알 수 없음';
-          final imageUrl = resolveImageUrl(post['post_imageURLs']);
           final author = post['author'] ?? {};
+          final profileImageUrl = resolveImageUrl(author['profile_imageURL']);
+          final postImageUrl = resolveImageUrl(post['post_imageURLs']);
           final username = author['username'] ?? '익명';
           final point = author['point'] ?? 0;
           final badgeLabel = getBadgeLabel(point);
@@ -200,20 +205,39 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
                 const SizedBox(height: 6),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: imageUrl != null
-                      ? Image.network(imageUrl,
-                      width: double.infinity,
-                      height: 100,
-                      fit: BoxFit.cover)
+                  child: postImageUrl != null
+                      ? Image.network(
+                    postImageUrl,
+                    width: double.infinity,
+                    height: 100,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: double.infinity,
+                        height: 100,
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.broken_image, color: Colors.grey),
+                      );
+                    },
+                  )
                       : Container(
-                      width: double.infinity,
-                      height: 100,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.image, color: Colors.grey)),
+                    width: double.infinity,
+                    height: 100,
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.image, color: Colors.grey),
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
+                    CircleAvatar(
+                      radius: 10,
+                      backgroundImage: profileImageUrl != null
+                          ? NetworkImage(profileImageUrl)
+                          : const AssetImage('lib/asset/sample_profile.jpg') as ImageProvider,
+                      backgroundColor: Colors.grey[200],
+                    ),
+                    const SizedBox(width: 6),
                     Text('by $username',
                         style: const TextStyle(fontSize: 12, color: Colors.black54)),
                     const SizedBox(width: 6),
@@ -262,6 +286,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 0,
+        scrolledUnderElevation: 0,
         backgroundColor: Colors.white,
         title: TextField(
           controller: _searchController,
@@ -312,43 +337,71 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pushNamed(context, '/createpost'),
         backgroundColor: Colors.redAccent,
-        child: const Icon(Icons.edit),
+        child: const Icon(Icons.edit, color: Colors.white),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        currentIndex: 2,
-        selectedItemColor: Colors.redAccent,
-        unselectedItemColor: Colors.grey[300],
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        selectedIconTheme: const IconThemeData(size: 30),
-        unselectedIconTheme: const IconThemeData(size: 30),
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushNamed(context, '/map');
-              break;
-            case 1:
-              Navigator.pushNamed(context, '/chatbot');
-              break;
-            case 2:
-              break;
-            case 3:
-              Navigator.pushNamed(context, '/disastermenu');
-              break;
-            case 4:
-              Navigator.pushNamed(context, '/user');
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.place), label: '지도'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: '챗봇'),
-          BottomNavigationBarItem(icon: Icon(Icons.groups), label: '커뮤니티'),
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: '재난메뉴'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: '마이'),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 2,
+              offset: const Offset(0, 0),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          currentIndex: 2, // 커뮤니티 탭 활성화
+          onTap: (index) {
+            switch (index) {
+              case 0:
+                Navigator.pushNamed(context, '/map');
+                break;
+              case 1:
+                Navigator.pushNamed(context, '/chatbot');
+                break;
+              case 2:
+                break;
+              case 3:
+                Navigator.pushNamed(context, '/disastermenu');
+                break;
+              case 4:
+                Navigator.pushNamed(context, '/user');
+                break;
+            }
+          },
+          selectedItemColor: Colors.redAccent,
+          unselectedItemColor: Colors.grey[300],
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          selectedIconTheme: const IconThemeData(size: 30),
+          unselectedIconTheme: const IconThemeData(size: 30),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)),
+              label: '지도',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)),
+              label: '채팅',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)),
+              label: '커뮤니티',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)),
+              label: '재난메뉴',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)),
+              label: '마이',
+            ),
+          ],
+        ),
       ),
     );
   }

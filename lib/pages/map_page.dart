@@ -405,7 +405,7 @@ class _MapPageState extends State<MapPage> {
           ],
         ),
         child: BottomNavigationBar(
-          backgroundColor: Colors.transparent, // Container에서 색 처리했으므로 투명
+          backgroundColor: Colors.transparent,
           elevation: 0, // 내부 elevation 제거
           type: BottomNavigationBarType.fixed,
           currentIndex: 0,
