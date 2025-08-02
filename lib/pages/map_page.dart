@@ -285,7 +285,7 @@ class _MapPageState extends State<MapPage> {
         await _controller!.clearOverlays();
         await _controller!.addOverlayAll(
           _hospitalMarkers.map((m) => m as NAddableOverlay).toSet(),
-        ); // ✅ hospitalMarkers로 바꿈
+        ); //hospitalMarkers로 바꿈
         await _zoomToFitMarkers(_hospitalMarkers);
       }
     }
@@ -368,7 +368,7 @@ class _MapPageState extends State<MapPage> {
                         },
                       ),
                       AnimatedPositioned(
-                        duration: const Duration(milliseconds: 300),
+                        duration: const Duration(milliseconds: 360),
                         curve: Curves.easeOut,
                         bottom: _selectedShelter != null ? 0 : -400,
                         left: 0,
@@ -376,7 +376,7 @@ class _MapPageState extends State<MapPage> {
                         child: _buildShelterDetailSheet(),
                       ),
                       AnimatedPositioned(
-                        duration: const Duration(milliseconds: 300),
+                        duration: const Duration(milliseconds: 360),
                         curve: Curves.easeOut,
                         bottom:
                             (_selectedMenu == 'disaster' && _showDisasterSheet)
@@ -387,7 +387,7 @@ class _MapPageState extends State<MapPage> {
                         child: _buildDisasterInfoSheet(),
                       ),
                       AnimatedPositioned(
-                        duration: const Duration(milliseconds: 300),
+                        duration: const Duration(milliseconds: 360),
                         curve: Curves.easeOut,
                         bottom: _selectedHospital != null ? 0 : -400,
                         left: 0,
