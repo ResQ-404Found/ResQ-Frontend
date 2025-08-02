@@ -21,14 +21,13 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
   final amountFormatter = NumberFormat("#,###", "ko_KR");
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
-
   Future<void> submitDonation(int sponsorId, int amount, String message) async {
     final token = await _secureStorage.read(key: 'accessToken');
 
     if (token == null || token.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('로그인이 필요합니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('로그인이 필요합니다.')));
       return;
     }
 
@@ -68,39 +67,22 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Stack(
-                    children: [
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: IconButton(
-                          icon: Icon(Icons.close, color: Colors.grey),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            Navigator.pushNamedAndRemoveUntil(
-                              context,
-                              '/donation',
-                                  (_) => false,
-                            );
-                          },
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: Text(
+                        '+${NumberFormat("#,###", "ko_KR").format(earnedPoint)} 포인트 적립!',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueAccent,
                         ),
+                        textAlign: TextAlign.center,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Align(
-                          alignment: Alignment.topCenter,
-                          child: Text(
-                            '+${NumberFormat("#,###", "ko_KR").format(earnedPoint)} 포인트 적립!',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueAccent,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
+
                   SizedBox(height: 20),
                   CircleAvatar(
                     radius: 30,
@@ -134,10 +116,7 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
                       ),
                       onPressed: () {
                         Navigator.of(context).pop();
-                        Navigator.pushReplacementNamed(
-                          context,
-                          '/disastermenu',
-                        );
+                        Navigator.pushReplacementNamed(context, '/donation');
                       },
                       child: Text(
                         '후원 목록으로 가기',
@@ -147,19 +126,16 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
                   ),
                 ],
               ),
-
             ),
           );
         },
-
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('후원 실패 ㅠㅠ')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('후원 실패 ㅠㅠ')));
     }
   }
-
 
   void handleSubmit(Donation donation) {
     final custom = int.tryParse(
@@ -191,7 +167,7 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
         title: Text('후원하기'),
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.chevron_left, size: 35),
           onPressed: () => Navigator.pop(context),
         ),
       ),
