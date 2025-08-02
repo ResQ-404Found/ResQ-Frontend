@@ -209,18 +209,31 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
                         children: [
                           _buildPostCard(),
                           const SizedBox(height: 20),
-                          const Text(
-                            '댓글',
-                            style: TextStyle(
+                          Text(
+                            '댓글 (${comments.length})',
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 10),
-                          ...comments.map<Widget>((c) => _buildCommentItem(c)),
+                          ...[
+                            if (comments.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20),
+                                child: Center(
+                                  child: Text(
+                                    '댓글이 없습니다',
+                                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                                  ),
+                                ),
+                              )
+                            else
+                              ...comments.map<Widget>((c) => _buildCommentItem(c)),
+                          ],
                           const SizedBox(height: 10),
                         ],
-                      ),
+                  ),
             ),
             SafeArea(
               child: Container(
@@ -320,29 +333,26 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
           ),
           const SizedBox(height: 8),
 
-          // 이미지 여러 개 표시
+
           if (widget.post['post_imageURLs'] != null &&
               widget.post['post_imageURLs'].isNotEmpty)
             Column(
-              children:
-                  (widget.post['post_imageURLs'] as List)
-                      .map<Widget>(
-                        (url) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10.0),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              url,
-                              errorBuilder:
-                                  (context, error, stackTrace) =>
-                                      const Text('이미지를 불러올 수 없습니다.'),
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
+              children: (widget.post['post_imageURLs'] as List)
+                  .map<Widget>(
+                    (url) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      url,
+                      errorBuilder: (context, error, stackTrace) =>
+                      const SizedBox.shrink(), // 이미지 불러오기 실패 시 아무것도 표시 안 함
+                    ),
+                  ),
+                ),
+              )
+                  .toList(),
             ),
-
           const SizedBox(height: 12),
           Text(
             widget.post['content'] ?? '',

@@ -96,13 +96,13 @@ class _PostCreatePageState extends State<PostCreatePage> {
 
     final uri = Uri.parse('http://54.253.211.96:8000/api/posts');
     final request =
-        http.MultipartRequest('POST', uri)
-          ..headers['Authorization'] = 'Bearer $accessToken'
-          ..fields['title'] = titleController.text
-          ..fields['content'] = contentController.text
-          ..fields['region_id'] = (regionIdMap[selectedRegion] ?? 0).toString()
-          ..fields['type'] =
-              selectedPostType == '재난 게시글' ? 'disaster' : 'normal';
+    http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $accessToken'
+      ..fields['title'] = titleController.text
+      ..fields['content'] = contentController.text
+      ..fields['region_id'] = (regionIdMap[selectedRegion] ?? 0).toString()
+      ..fields['type'] =
+      selectedPostType == '재난 게시글' ? 'disaster' : 'normal';
 
     for (final image in _images) {
       request.files.add(
@@ -152,44 +152,46 @@ class _PostCreatePageState extends State<PostCreatePage> {
   }
 
   Widget _buildImagePicker() {
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_images.isNotEmpty)
+          Expanded(
+            child: SizedBox(
+              height: 80,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _images.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      _images[index],
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        const SizedBox(width: 12),
         GestureDetector(
           onTap: _pickImages,
           child: Container(
-            width: 110,
-            height: 110,
+            width: 80,
+            height: 80,
             decoration: BoxDecoration(
               color: Colors.grey.shade300,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Center(
-              child: Icon(Icons.add_a_photo, size: 36, color: Colors.white),
+              child: Icon(Icons.add_a_photo, size: 28, color: Colors.white),
             ),
           ),
         ),
-        const SizedBox(height: 10),
-        if (_images.isNotEmpty)
-          SizedBox(
-            height: 80,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _images.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    _images[index],
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                  ),
-                );
-              },
-            ),
-          ),
       ],
     );
   }
@@ -249,11 +251,12 @@ class _PostCreatePageState extends State<PostCreatePage> {
               ),
             ),
             const SizedBox(height: 20),
-            _buildDropdown('게시판 선택', postTypes, selectedPostType, (val) {
+            _buildDropdown(
+                context, '게시판 선택', postTypes, selectedPostType, (val) {
               setState(() => selectedPostType = val);
             }),
             const SizedBox(height: 14),
-            _buildDropdown('지역 선택', regions, selectedRegion, (val) {
+            _buildDropdown(context, '지역 선택', regions, selectedRegion, (val) {
               setState(() => selectedRegion = val);
             }),
             const SizedBox(height: 20),
@@ -296,29 +299,37 @@ class _PostCreatePageState extends State<PostCreatePage> {
     );
   }
 
-  Widget _buildDropdown(
-    String hint,
-    List<String> items,
-    String? selectedValue,
-    ValueChanged<String?> onChanged,
-  ) {
+  Widget _buildDropdown(BuildContext context, // ✅ context 추가
+      String hint,
+      List<String> items,
+      String? selectedValue,
+      ValueChanged<String?> onChanged,) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Colors.white,
         border: Border.all(color: Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: selectedValue,
-          hint: Text(hint),
-          isExpanded: true,
-          items:
-              items.map((item) {
-                return DropdownMenuItem(value: item, child: Text(item));
-              }).toList(),
-          onChanged: onChanged,
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          canvasColor: Colors.white, // 드롭다운 배경
+          splashColor: Colors.transparent, // 클릭 효과 제거
+          highlightColor: Colors.transparent,
+          focusColor: Colors.transparent,
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: selectedValue,
+            hint: Text(hint),
+            isExpanded: true,
+            borderRadius: BorderRadius.circular(12),
+            icon: const Icon(Icons.arrow_drop_down),
+            items: items.map((item) {
+              return DropdownMenuItem(value: item, child: Text(item));
+            }).toList(),
+            onChanged: onChanged,
+          ),
         ),
       ),
     );

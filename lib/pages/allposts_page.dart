@@ -47,6 +47,47 @@ class _AllPostsPageState extends State<AllPostsPage> with TickerProviderStateMix
     loadTokenAndPosts();
   }
 
+  Widget _buildBadge(int point) {
+    String label = 'Bronze';
+    Color color = Colors.brown;
+    IconData icon = Icons.military_tech;
+    if (point >= 5000) {
+      label = 'Platinum';
+      color = Colors.blueGrey;
+      icon = Icons.workspace_premium;
+    } else if (point >= 3000) {
+      label = 'Gold';
+      color = Colors.amber;
+      icon = Icons.emoji_events;
+    } else if (point >= 1000) {
+      label = 'Silver';
+      color = Colors.grey;
+      icon = Icons.military_tech;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> loadTokenAndPosts() async {
     accessToken = await storage.read(key: 'accessToken');
     await fetchPosts();
@@ -241,6 +282,7 @@ class _AllPostsPageState extends State<AllPostsPage> with TickerProviderStateMix
                 imageUrl: postImageUrl,
                 profileImageUrl: profileImageUrl,
                 onLikePressed: () => toggleLike(index),
+                badgeWidget: _buildBadge(point),
               ),
             );
           },
@@ -264,6 +306,8 @@ class PostCard extends StatelessWidget {
   final String? imageUrl;
   final String? profileImageUrl;
   final VoidCallback onLikePressed;
+  final Widget badgeWidget;
+
 
   const PostCard({
     super.key,
@@ -280,6 +324,7 @@ class PostCard extends StatelessWidget {
     required this.imageUrl,
     required this.profileImageUrl,
     required this.onLikePressed,
+    required this.badgeWidget,
   });
 
   @override
@@ -320,15 +365,7 @@ class PostCard extends StatelessWidget {
                       Text(username,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.redAccent.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(badgeLabel,
-                            style: const TextStyle(fontSize: 10, color: Colors.redAccent, fontWeight: FontWeight.bold)),
-                      ),
+                      badgeWidget,
                     ],
                   ),
                   Text(timeAgo, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
@@ -347,20 +384,22 @@ class PostCard extends StatelessWidget {
             padding: const EdgeInsets.only(left: 12.0),
             child: Text(description, style: const TextStyle(fontSize: 13)),
           ),
-          if (imageUrl != null) ...[
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                imageUrl!,
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                const Icon(Icons.image_not_supported, size: 100, color: Colors.grey),
-              ),
+          if (imageUrl != null)
+            Column(
+              children: [
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    imageUrl!,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                  ),
+                ),
+              ],
             ),
-          ],
           const SizedBox(height: 12),
           Row(
             children: [

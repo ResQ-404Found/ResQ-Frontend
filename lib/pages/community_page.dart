@@ -142,6 +142,47 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
     );
   }
 
+  Widget _buildBadge(int point) {
+    String label = 'Bronze';
+    Color color = Colors.brown;
+    IconData icon = Icons.military_tech;
+    if (point >= 5000) {
+      label = 'Platinum';
+      color = Colors.blueGrey;
+      icon = Icons.workspace_premium;
+    } else if (point >= 3000) {
+      label = 'Gold';
+      color = Colors.amber;
+      icon = Icons.emoji_events;
+    } else if (point >= 1000) {
+      label = 'Silver';
+      color = Colors.grey;
+      icon = Icons.military_tech;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget buildPostList(List<dynamic> list) {
     return SizedBox(
       height: 260,
@@ -161,11 +202,15 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
           final commentCount = post['comment_count'] ?? 0;
           final time = post['created_at'] ?? '';
           final title = post['title'] ?? '';
+          final bool hasImage = postImageUrl != null;
 
           return Container(
             width: 200,
             margin: const EdgeInsets.only(right: 12),
             padding: const EdgeInsets.all(10),
+            constraints: hasImage
+                ? const BoxConstraints(minHeight: 260)
+                : const BoxConstraints(),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey[200]!),
               borderRadius: BorderRadius.circular(16),
@@ -179,6 +224,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
               ],
             ),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
@@ -189,9 +235,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
                   ),
                   child: Text(region,
                       style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.bold)),
+                          fontSize: 12, color: Colors.redAccent, fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(height: 4),
                 Text(parseTimeAgo(time),
@@ -200,34 +244,26 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
                 Text(title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15)),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                 const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: postImageUrl != null
-                      ? Image.network(
-                    postImageUrl,
-                    width: double.infinity,
-                    height: 100,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: double.infinity,
-                        height: 100,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.broken_image, color: Colors.grey),
-                      );
-                    },
-                  )
-                      : Container(
-                    width: double.infinity,
-                    height: 100,
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.image, color: Colors.grey),
+
+                if (hasImage)
+                  Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          postImageUrl!,
+                          width: double.infinity,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 6),
+
                 Row(
                   children: [
                     CircleAvatar(
@@ -238,35 +274,20 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
                       backgroundColor: Colors.grey[200],
                     ),
                     const SizedBox(width: 6),
-                    Text('by $username',
-                        style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                    Text('by $username', style: const TextStyle(fontSize: 12, color: Colors.black54)),
                     const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.redAccent.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        badgeLabel,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    _buildBadge(point),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    const Icon(Icons.favorite_border, size: 16),
+                    const Icon(Icons.favorite_border, size: 20, color: Colors.redAccent),
                     const SizedBox(width: 4),
                     Text('$likeCount', style: const TextStyle(fontSize: 12)),
                     const SizedBox(width: 10),
-                    const Icon(Icons.chat_bubble_outline, size: 16),
+                    const Icon(Icons.comment, size: 20, color: Colors.blueAccent),
                     const SizedBox(width: 4),
                     Text('$commentCount', style: const TextStyle(fontSize: 12)),
                   ],
@@ -354,7 +375,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           type: BottomNavigationBarType.fixed,
-          currentIndex: 2, // 커뮤니티 탭 활성화
+          currentIndex: 2,
           onTap: (index) {
             switch (index) {
               case 0:
