@@ -575,7 +575,7 @@ class _MapPageState extends State<MapPage> {
                 ),
               ),
             ),
-          ),
+
 
           IconButton(
             icon: const Icon(Icons.my_location, color: Colors.grey),
