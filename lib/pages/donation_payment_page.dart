@@ -21,13 +21,14 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
   final amountFormatter = NumberFormat("#,###", "ko_KR");
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
+
   Future<void> submitDonation(int sponsorId, int amount, String message) async {
     final token = await _secureStorage.read(key: 'accessToken');
 
     if (token == null || token.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('로그인이 필요합니다.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('로그인이 필요합니다.')),
+      );
       return;
     }
 
@@ -44,6 +45,8 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
     );
 
     if (response.statusCode == 200) {
+      final earnedPoint = (amount * 0.1).floor();
+
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -65,27 +68,45 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: IconButton(
-                      icon: Icon(Icons.close, color: Colors.grey),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/donation',
-                          (_) => false,
-                        );
-                      },
-                    ),
+                  Stack(
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: IconButton(
+                          icon: Icon(Icons.close, color: Colors.grey),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              '/donation',
+                                  (_) => false,
+                            );
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: Text(
+                            '+${NumberFormat("#,###", "ko_KR").format(earnedPoint)} 포인트 적립!',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueAccent,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  SizedBox(height: 20),
                   CircleAvatar(
                     radius: 30,
-                    backgroundColor: Colors.blueAccent,
-                    child: Icon(Icons.favorite, color: Colors.white, size: 28),
+                    backgroundColor: Colors.redAccent,
+                    child: Icon(Icons.favorite, color: Colors.white, size: 30),
                   ),
-                  SizedBox(height: 16),
-                  Icon(Icons.check_circle, color: Colors.redAccent, size: 60),
                   SizedBox(height: 16),
                   Text(
                     '후원 완료!',
@@ -126,16 +147,19 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
                   ),
                 ],
               ),
+
             ),
           );
         },
+
       );
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('후원 실패 ㅠㅠ')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('후원 실패 ㅠㅠ')),
+      );
     }
   }
+
 
   void handleSubmit(Donation donation) {
     final custom = int.tryParse(

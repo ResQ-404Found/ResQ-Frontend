@@ -482,7 +482,7 @@ class _MapPageState extends State<MapPage> {
                 padding: const EdgeInsets.only(left: 4),
                 child: Text(
                   _currentAddress ?? '주소 불러오는 중...',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500,color:Colors.grey),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500,color:Colors.grey),
                 ),
               ),
             ),
