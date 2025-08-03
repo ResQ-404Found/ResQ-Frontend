@@ -199,8 +199,6 @@ class _MapPageState extends State<MapPage> {
           setState(() {
             _selectedShelter =
             (_selectedShelter?.name == shelter.name) ? null : shelter;
-
-            _selectedMenu = '';
             _showDisasterSheet = false;
           });
         });
@@ -553,18 +551,17 @@ class _MapPageState extends State<MapPage> {
               child: GestureDetector(
                 onTap: () async {
                   setState(() {
-                    // 어떤 버튼을 누르든 우선 재난시트는 닫는다
-                    _showDisasterSheet = false;
-
                     if (_selectedMenu == b['value']) {
+                      // 이미 선택된 버튼 다시 누르면 → OFF
                       _selectedMenu = '';
                       _selectedHospital = null;
                       _selectedShelter = null;
+                      _showDisasterSheet = false;
                     } else {
                       _selectedMenu = b['value'] as String;
                       _selectedHospital = null;
-                      _selectedShelter = null;
-                      if (_selectedMenu == 'disaster') _showDisasterSheet = true;
+                      _selectedShelter = null; // ✅ 이 줄로 상세 시트도 OFF
+                      _showDisasterSheet = (_selectedMenu == 'disaster');
                     }
                   });
 
@@ -573,6 +570,7 @@ class _MapPageState extends State<MapPage> {
                   if (_selectedMenu == 'hospital') await _fetchNearbyHospitals(pos);
                   if (_selectedMenu == 'disaster') await _fetchDisasters();
                 },
+
 
 
                 child: Container(
