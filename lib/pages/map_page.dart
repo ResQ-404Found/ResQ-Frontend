@@ -546,16 +546,18 @@ class _MapPageState extends State<MapPage> {
               child: GestureDetector(
                 onTap: () async {
                   setState(() {
+                    // 어떤 버튼을 누르든 우선 재난시트는 닫는다
+                    _showDisasterSheet = false;
+
                     if (_selectedMenu == b['value']) {
                       _selectedMenu = '';
                       _selectedHospital = null;
                       _selectedShelter = null;
-                      _showDisasterSheet = false;
                     } else {
                       _selectedMenu = b['value'] as String;
                       _selectedHospital = null;
                       _selectedShelter = null;
-                      _showDisasterSheet = b['value'] == 'disaster';
+                      if (_selectedMenu == 'disaster') _showDisasterSheet = true;
                     }
                   });
 
@@ -564,6 +566,8 @@ class _MapPageState extends State<MapPage> {
                   if (_selectedMenu == 'hospital') await _fetchNearbyHospitals(pos);
                   if (_selectedMenu == 'disaster') await _fetchDisasters();
                 },
+
+
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
