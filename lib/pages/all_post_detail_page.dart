@@ -372,7 +372,7 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
     return Padding(
       padding: EdgeInsets.only(
         left: indent.toDouble(),
-        bottom: isReply ? 6 : 10,
+          bottom: isReply ? 4 : 12,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -448,8 +448,13 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
               ],
             ),
           ),
-          for (final reply in replies)
-            _buildCommentItem(reply, indent: indent + 12),
+          for (int i = 0; i < replies.length; i++)
+            Padding(
+              padding: EdgeInsets.only(top: i == 0 ? 6 : 2), // 첫 대댓글만 여백 좀 주고 나머지는 촘촘히
+              child: _buildCommentItem(replies[i], indent: indent + 24),
+            ),
+
+
         ],
       ),
     );
