@@ -21,11 +21,17 @@ class _ChatbotPageState extends State<ChatbotPage> {
   void initState() {
     super.initState();
     _loadChatHistory();
+
   }
 
   Future<void> _loadChatHistory() async {
     final token = await _storage.read(key: 'accessToken');
-    if (token == null) return;
+    if (token == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('로그인이 필요합니다')));
+      return;
+    }
 
     try {
       final response = await http.get(
