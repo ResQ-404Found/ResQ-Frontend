@@ -214,7 +214,7 @@ class _NewsPageState extends State<NewsPage> {
                     // 유튜브 슬라이드
                     const SizedBox(height: 16),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.fromLTRB(40, 0, 20, 4),
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
@@ -227,6 +227,7 @@ class _NewsPageState extends State<NewsPage> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 8),
                     SizedBox(
                       height: 200,
