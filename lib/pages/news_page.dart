@@ -37,6 +37,24 @@ class _NewsPageState extends State<NewsPage> {
     fetchDisasterNews();
     fetchYoutubeVideos();
   }
+  String _cleanedSummary(String summary) {
+    final hotKeywordIndex = summary.indexOf('HOT 키워드:');
+    return hotKeywordIndex == -1
+        ? summary
+        : summary.substring(0, hotKeywordIndex).trim();
+  }
+
+  List<String> _extractKeywords(String summary) {
+    final hotKeywordIndex = summary.indexOf('HOT 키워드:');
+    if (hotKeywordIndex == -1) return [];
+
+    final keywordString = summary.substring(hotKeywordIndex + 'HOT 키워드:'.length);
+    return keywordString
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+  }
 
   Future<void> fetchAISummary() async {
     setState(() {
@@ -204,10 +222,34 @@ class _NewsPageState extends State<NewsPage> {
                                   ? const Center(
                                     child: CircularProgressIndicator(),
                                   )
-                                  : Text(
-                                    aiSummary,
+                                  : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _cleanedSummary(aiSummary),
                                     style: const TextStyle(fontSize: 16),
                                   ),
+                                  const SizedBox(height: 12),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: _extractKeywords(aiSummary).map((keyword) {
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          keyword,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ],
+                              ),
+
                         ),
                       ),
 
