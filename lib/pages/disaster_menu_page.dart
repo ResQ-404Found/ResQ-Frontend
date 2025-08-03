@@ -57,112 +57,111 @@ class DisasterMenuPage extends StatelessWidget {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.separated(
-                itemCount: menuItems.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 20),
-                itemBuilder: (context, index) {
-                  final item = menuItems[index];
-                  final isFirst = index == 0;
-                  return GestureDetector(
-                    onTap: () {
-                      if (item['title'] == '전체 재난 정보') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const AllDisasterTypeDetailPage(),
+      body: Column(
+        children: [
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: menuItems.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 20),
+              itemBuilder: (context, index) {
+                final item = menuItems[index];
+                final isFirst = index == 0;
 
-                          ),
-                        );
-                      } else if (item['title'] == '대피 방법') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => DisasterGuidePage(initialIndex: 0),
-                          ),
-                        );
-                      } else if (item['title'] == '체크리스트') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const ChecklistPage(),
-                          ),
-                        );
-                      } else if (item['title'] == '뉴스') {
-                        Navigator.pushNamed(context, '/news');
-                      } else if (item['title'] == '후원') {
-                        Navigator.pushNamed(context, '/donation');
-                      }
-                    },
-                    child: Container(
-                      height: 100,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: item['color'] as Color,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              item['icon'] as IconData,
-                              color: Colors.white,
-                              size: isFirst ? 34 : 28,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item['title'] as String,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  item['subtitle'] as String,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.chevron_right, color: Colors.grey),
-                        ],
-                      ),
+                return GestureDetector(
+                  onTap: () {
+                    if (item['title'] == '전체 재난 정보') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AllDisasterTypeDetailPage(),
+                        ),
+                      );
+                    } else if (item['title'] == '대피 방법') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DisasterGuidePage(initialIndex: 0),
+                        ),
+                      );
+                    } else if (item['title'] == '체크리스트') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ChecklistPage(),
+                        ),
+                      );
+                    } else if (item['title'] == '뉴스') {
+                      Navigator.pushNamed(context, '/news');
+                    } else if (item['title'] == '후원') {
+                      Navigator.pushNamed(context, '/donation');
+                    }
+                  },
+                  child: Container(
+                    height: 95,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 8,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  );
-                },
-              ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: item['color'] as Color,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            item['icon'] as IconData,
+                            color: Colors.white,
+                            size: isFirst ? 34 : 28,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item['title'] as String,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                item['subtitle'] as String,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right, color: Colors.grey),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
