@@ -55,8 +55,19 @@ class WithdrawalConfirmationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFF3535), // 전체 배경을 빨간색으로 설정
-      body: Padding(
+      // backgroundColor: const Color(0xFFFF3535),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFFF3434), // 위쪽 진한 빨강
+              Color(0xFFFF9898), // 아래쪽 연한 분홍
+            ],
+          ),
+        ),
+        child: Padding(
         padding: const EdgeInsets.only(top: 0), // 위쪽 여백 추가 (조정 가능)
         child: Center(
           child: Container(
@@ -123,7 +134,7 @@ class WithdrawalConfirmationPage extends StatelessWidget {
                   children: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF3535),
+                        backgroundColor: const Color(0xFFFF3D3D),
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(
@@ -169,6 +180,6 @@ class WithdrawalConfirmationPage extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ),);
   }
 }
