@@ -15,6 +15,13 @@ class DonationDetailPage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
+        leading:
+            Navigator.canPop(context)
+                ? IconButton(
+                  icon: Icon(Icons.chevron_left, size: 35),
+                  onPressed: () => Navigator.pop(context),
+                )
+                : null,
         title: Text('후원 상세'),
         centerTitle: true,
       ),

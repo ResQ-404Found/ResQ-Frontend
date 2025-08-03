@@ -74,7 +74,7 @@ class _DonationListPageState extends State<DonationListPage> {
         leading:
             Navigator.canPop(context)
                 ? IconButton(
-                  icon: Icon(Icons.arrow_back),
+                  icon: Icon(Icons.chevron_left, size: 35),
                   onPressed: () => Navigator.pop(context),
                 )
                 : null,
