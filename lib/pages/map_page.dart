@@ -656,6 +656,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   Widget _buildShelterDetailSheet() {
+    if (_selectedShelter == null) return SizedBox.shrink();
     final shelter = _selectedShelter!;
     return Positioned(
       bottom: 0,
@@ -810,6 +811,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   Widget _buildHospitalDetailSheet() {
+    if (_selectedHospital == null) return SizedBox.shrink();
     final hospital = _selectedHospital!;
     return Positioned(
       bottom: 0,
