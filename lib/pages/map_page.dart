@@ -197,9 +197,14 @@ class _MapPageState extends State<MapPage> {
         );
         marker.setOnTapListener((m) {
           setState(() {
-            _selectedShelter = (_selectedShelter?.name == shelter.name) ? null : shelter;
+            _selectedShelter =
+            (_selectedShelter?.name == shelter.name) ? null : shelter;
+
+            _selectedMenu = '';
+            _showDisasterSheet = false;
           });
         });
+
         _shelterMarkers.add(marker);
       }
 
@@ -225,7 +230,9 @@ class _MapPageState extends State<MapPage> {
       setState(() {
         _disasterList = data.map((e) => Disaster.fromJson(e)).toList();
         _hasDisasterMessage = total > 0;
-        _showDisasterSheet = true;
+        if (_selectedMenu == 'disaster') {
+          _showDisasterSheet = true;
+        }
       });
     }
   }
@@ -340,14 +347,14 @@ class _MapPageState extends State<MapPage> {
                       AnimatedPositioned(
                         duration: const Duration(milliseconds: 360),
                         curve: Curves.easeOut,
-                        bottom:
-                            (_selectedMenu == 'disaster' && _showDisasterSheet)
-                                ? 0
-                                : -400,
+                        bottom: (_selectedMenu == 'disaster' && _showDisasterSheet) ? 0 : -400,
                         left: 0,
                         right: 0,
-                        child: _buildDisasterInfoSheet(),
+                        child: (_selectedMenu == 'disaster' && _showDisasterSheet)
+                            ? _buildDisasterInfoSheet()
+                            : const SizedBox.shrink(), // ✅ 조건 안 맞으면 위젯 자체 제거
                       ),
+
                       AnimatedPositioned(
                         duration: const Duration(milliseconds: 360),
                         curve: Curves.easeOut,
