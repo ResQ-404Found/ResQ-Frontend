@@ -133,6 +133,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Scaffold(
       appBar: AppBar(
         scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false,
         leading: null,
         title: const Text(
           '마이페이지',
