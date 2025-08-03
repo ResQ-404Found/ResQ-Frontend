@@ -258,7 +258,9 @@ class _MapPageState extends State<MapPage> {
 
       if (_controller != null) {
         await _controller!.clearOverlays();
-        await _controller!.addOverlayAll(_hospitalMarkers.map((m) => m as NAddableOverlay).toSet()); // ✅ hospitalMarkers로 바꿈
+        await _controller!.addOverlayAll(
+          _hospitalMarkers.map((m) => m as NAddableOverlay).toSet(),
+        ); //hospitalMarkers로 바꿈
         await _zoomToFitMarkers(_hospitalMarkers);
       }
     }
@@ -327,9 +329,33 @@ class _MapPageState extends State<MapPage> {
                           });
                         },
                       ),
-                      if (_selectedShelter != null) _buildShelterDetailSheet(),
-                      if (_selectedMenu == 'disaster' && _showDisasterSheet) _buildDisasterInfoSheet(),
-                      if (_selectedHospital != null) _buildHospitalDetailSheet(),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 360),
+                        curve: Curves.easeOut,
+                        bottom: _selectedShelter != null ? 0 : -400,
+                        left: 0,
+                        right: 0,
+                        child: _buildShelterDetailSheet(),
+                      ),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 360),
+                        curve: Curves.easeOut,
+                        bottom:
+                            (_selectedMenu == 'disaster' && _showDisasterSheet)
+                                ? 0
+                                : -400,
+                        left: 0,
+                        right: 0,
+                        child: _buildDisasterInfoSheet(),
+                      ),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 360),
+                        curve: Curves.easeOut,
+                        bottom: _selectedHospital != null ? 0 : -400,
+                        left: 0,
+                        right: 0,
+                        child: _buildHospitalDetailSheet(),
+                      ),
                       Positioned(
                         bottom: 16,
                         right: 16,
