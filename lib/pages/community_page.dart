@@ -46,20 +46,67 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
   Future<void> fetchDisasterPosts() async {
     final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts?type=disaster'));
     if (response.statusCode == 200) {
+      final List<dynamic> postsData = jsonDecode(response.body);
+
+      // 각 post에 like_count, comment_count 추가 fetch
+      for (var post in postsData) {
+        final postId = post['id'];
+        // 댓글 수
+        final commentRes = await http.get(Uri.parse('http://54.253.211.96:8000/api/comments/$postId'));
+        if (commentRes.statusCode == 200) {
+          post['comment_count'] = jsonDecode(commentRes.body).length;
+        }
+
+        // 좋아요 수
+        final likeStatusRes = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like/status'));
+        if (likeStatusRes.statusCode == 200) {
+          post['like_count'] = jsonDecode(likeStatusRes.body)['like_count'] ?? 0;
+        }
+      }
+
       setState(() {
-        popularPosts = jsonDecode(response.body);
+        popularPosts = postsData;
       });
     }
   }
 
+
   Future<void> fetchNormalPosts() async {
-    final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts?type=normal'));
+    final response = await http.get(
+      Uri.parse('http://54.253.211.96:8000/api/posts?type=normal'),
+    );
     if (response.statusCode == 200) {
+      final List<dynamic> postsData = jsonDecode(response.body);
+
+      for (var post in postsData) {
+        final postId = post['id'];
+
+        final commentRes = await http.get(
+          Uri.parse('http://54.253.211.96:8000/api/comments/$postId'),
+        );
+        if (commentRes.statusCode == 200) {
+          post['comment_count'] = jsonDecode(commentRes.body).length;
+        } else {
+          post['comment_count'] = 0;
+        }
+
+        final likeStatusRes = await http.get(
+          Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like/status'),
+        );
+        if (likeStatusRes.statusCode == 200) {
+          final status = jsonDecode(likeStatusRes.body);
+          post['like_count'] = status['like_count'] ?? 0;
+        } else {
+          post['like_count'] = 0;
+        }
+      }
+
       setState(() {
-        posts = jsonDecode(response.body);
+        posts = postsData;
       });
     }
   }
+
 
   Future<void> searchPosts(String term) async {
     if (term.trim().isEmpty) return;
@@ -161,10 +208,10 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -172,7 +219,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
-            label,
+            '',
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
@@ -204,101 +251,96 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
           final title = post['title'] ?? '';
           final bool hasImage = postImageUrl != null;
 
-          return Container(
-            width: 200,
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.all(10),
-            constraints: hasImage
-                ? const BoxConstraints(minHeight: 260)
-                : const BoxConstraints(),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[200]!),
-              borderRadius: BorderRadius.circular(16),
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                )
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(region,
+          return GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/allpostdetail', arguments: post);
+            },
+            child: Container(
+              width: 200,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  )
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      region,
                       style: const TextStyle(
-                          fontSize: 12, color: Colors.redAccent, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 4),
-                Text(parseTimeAgo(time),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                const SizedBox(height: 4),
-                Text(title,
+                        fontSize: 12,
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(parseTimeAgo(time), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 4),
+
+                  Text(
+                    title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                const SizedBox(height: 6),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  const SizedBox(height: 6),
 
-                if (hasImage)
-                  Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.network(
-                          postImageUrl!,
-                          width: double.infinity,
-                          height: 100,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-                        ),
+                  if (hasImage) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        postImageUrl!,
+                        width: double.infinity,
+                        height: 100,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                       ),
-                      const SizedBox(height: 6),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+
+                  const Spacer(),
+
+                  Row(
+                    children: [
+                      Text('by $username', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                      const SizedBox(width: 6),
+                      _buildBadge(point),
+                      const Spacer(),
+                      const Icon(Icons.favorite_border, size: 20, color: Colors.redAccent),
+                      const SizedBox(width: 4),
+                      Text('$likeCount', style: const TextStyle(fontSize: 12)),
+                      const SizedBox(width: 10),
+                      const Icon(Icons.comment, size: 20, color: Colors.blueAccent),
+                      const SizedBox(width: 4),
+                      Text('$commentCount', style: const TextStyle(fontSize: 12)),
                     ],
                   ),
-
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 10,
-                      backgroundImage: profileImageUrl != null
-                          ? NetworkImage(profileImageUrl)
-                          : const AssetImage('lib/asset/sample_profile.jpg') as ImageProvider,
-                      backgroundColor: Colors.grey[200],
-                    ),
-                    const SizedBox(width: 6),
-                    Text('by $username', style: const TextStyle(fontSize: 12, color: Colors.black54)),
-                    const SizedBox(width: 6),
-                    _buildBadge(point),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    const Icon(Icons.favorite_border, size: 20, color: Colors.redAccent),
-                    const SizedBox(width: 4),
-                    Text('$likeCount', style: const TextStyle(fontSize: 12)),
-                    const SizedBox(width: 10),
-                    const Icon(Icons.comment, size: 20, color: Colors.blueAccent),
-                    const SizedBox(width: 4),
-                    Text('$commentCount', style: const TextStyle(fontSize: 12)),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

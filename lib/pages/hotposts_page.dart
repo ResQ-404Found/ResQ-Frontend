@@ -260,14 +260,27 @@ class _HotPostsPageState extends State<HotPostsPage>
             ),
             tabs: const [Tab(text: '전체글'), Tab(text: '인기글')],
           ),
-          actions: [
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.tune, color: Colors.black),
-              onSelected: (selectedRegion) => fetchPosts(regionNames: selectedRegion),
-              itemBuilder: (context) => regionNames.values
-                  .map((region) => PopupMenuItem(value: region, child: Text(region)))
-                  .toList(),
-            ),
+            actions: [
+        Theme(
+        data: Theme.of(context).copyWith(
+          popupMenuTheme: const PopupMenuThemeData(
+            color: Colors.white,
+          ),
+        ),
+          child: PopupMenuButton<String>(
+            icon: const Icon(Icons.tune, color: Colors.black),
+            onSelected: (selectedRegion) =>
+                fetchPosts(regionNames: selectedRegion),
+            itemBuilder: (context) => regionNames.values
+                .map(
+                  (region) => PopupMenuItem(
+                value: region,
+                child: Text(region),
+              ),
+            )
+                .toList(),
+          ),
+        ),
           ],
         ),
         body: (posts.isEmpty || isLikedList.length != posts.length)

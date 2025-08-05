@@ -231,12 +231,19 @@ class _AllPostsPageState extends State<AllPostsPage> with TickerProviderStateMix
             onPressed: () => Navigator.pop(context),
           ),
           actions: [
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.tune, color: Colors.black),
-              onSelected: (selectedRegion) => fetchPosts(regionName: selectedRegion),
-              itemBuilder: (context) => regionNames.values
-                  .map((region) => PopupMenuItem(value: region, child: Text(region)))
-                  .toList(),
+            Theme(
+              data: Theme.of(context).copyWith(
+                popupMenuTheme: const PopupMenuThemeData(
+                  color: Colors.white,
+                ),
+              ),
+              child: PopupMenuButton<String>(
+                icon: const Icon(Icons.tune, color: Colors.black),
+                onSelected: (selectedRegion) => fetchPosts(regionName: selectedRegion),
+                itemBuilder: (context) => regionNames.values
+                    .map((region) => PopupMenuItem(value: region, child: Text(region)))
+                    .toList(),
+              ),
             ),
           ],
           bottom: TabBar(

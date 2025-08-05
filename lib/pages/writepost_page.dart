@@ -20,46 +20,20 @@ class _PostCreatePageState extends State<PostCreatePage> {
   String? selectedRegion;
   String? selectedPostType;
   List<File> _images = [];
+  final int maxContentLength = 1000;
 
   final List<String> regions = [
-    '서울',
-    '부산',
-    '대구',
-    '인천',
-    '광주',
-    '대전',
-    '울산',
-    '세종',
-    '경기',
-    '강원',
-    '충북',
-    '충남',
-    '전북',
-    '전남',
-    '경북',
-    '경남',
-    '제주',
+    '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종',
+    '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주',
   ];
 
   final List<String> postTypes = ['재난 게시글', '잡담 게시글'];
 
   final Map<String, int> regionIdMap = {
-    '서울': 1,
-    '부산': 2559,
-    '대구': 2784,
-    '인천': 2011,
-    '광주': 3235,
-    '대전': 3481,
-    '울산': 3664,
-    '세종': 3759,
-    '경기': 3793,
-    '강원': 5660,
-    '충북': 6129,
-    '충남': 6580,
-    '전북': 7376,
-    '전남': 8143,
-    '경북': 9073,
-    '경남': 10404,
+    '서울': 1, '부산': 2559, '대구': 2784, '인천': 2011,
+    '광주': 3235, '대전': 3481, '울산': 3664, '세종': 3759,
+    '경기': 3793, '강원': 5660, '충북': 6129, '충남': 6580,
+    '전북': 7376, '전남': 8143, '경북': 9073, '경남': 10404,
     '제주': 11977,
   };
 
@@ -88,15 +62,21 @@ class _PostCreatePageState extends State<PostCreatePage> {
 
   Future<void> submitPost(BuildContext context) async {
     if (accessToken == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('로그인이 필요합니다')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('로그인이 필요합니다')),
+      );
+      return;
+    }
+
+    if (contentController.text.length > maxContentLength) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('글자 수를 확인해주세요')),
+      );
       return;
     }
 
     final uri = Uri.parse('http://54.253.211.96:8000/api/posts');
-    final request =
-    http.MultipartRequest('POST', uri)
+    final request = http.MultipartRequest('POST', uri)
       ..headers['Authorization'] = 'Bearer $accessToken'
       ..fields['title'] = titleController.text
       ..fields['content'] = contentController.text
@@ -123,9 +103,8 @@ class _PostCreatePageState extends State<PostCreatePage> {
 
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
-        final Map<String, dynamic> createdPost = Map<String, dynamic>.from(
-          jsonResponse,
-        );
+        final Map<String, dynamic> createdPost =
+        Map<String, dynamic>.from(jsonResponse);
 
         Navigator.pushNamedAndRemoveUntil(
           context,
@@ -139,15 +118,15 @@ class _PostCreatePageState extends State<PostCreatePage> {
         );
         Navigator.pushReplacementNamed(context, '/login');
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('게시 실패: 데이터를 다시 확인해주세요.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('게시 실패: 데이터를 다시 확인해주세요.')),
+        );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('에러 발생: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('에러 발생: $e')),
+      );
     }
   }
 
@@ -252,17 +231,27 @@ class _PostCreatePageState extends State<PostCreatePage> {
             ),
             const SizedBox(height: 20),
             _buildDropdown(
-                context, '게시판 선택', postTypes, selectedPostType, (val) {
-              setState(() => selectedPostType = val);
-            }),
-            const SizedBox(height: 14),
-            _buildDropdown(context, '지역 선택', regions, selectedRegion, (val) {
-              setState(() => selectedRegion = val);
-            }),
+              context,
+              '게시판 선택',
+              postTypes,
+              selectedPostType,
+                  (val) => setState(() => selectedPostType = val),
+            ),
+            if (selectedPostType == '재난 게시글') ...[
+              const SizedBox(height: 14),
+              _buildDropdown(
+                context,
+                '지역 선택',
+                regions,
+                selectedRegion,
+                    (val) => setState(() => selectedRegion = val),
+              ),
+            ],
             const SizedBox(height: 20),
             TextField(
               controller: contentController,
               maxLines: 10,
+              onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 hintText: '내용을 입력하세요',
                 contentPadding: const EdgeInsets.all(16),
@@ -273,6 +262,11 @@ class _PostCreatePageState extends State<PostCreatePage> {
                   borderSide: BorderSide.none,
                 ),
               ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${contentController.text.length} / $maxContentLength',
+              style: const TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 30),
             SizedBox(
@@ -299,11 +293,13 @@ class _PostCreatePageState extends State<PostCreatePage> {
     );
   }
 
-  Widget _buildDropdown(BuildContext context, // ✅ context 추가
+  Widget _buildDropdown(
+      BuildContext context,
       String hint,
       List<String> items,
       String? selectedValue,
-      ValueChanged<String?> onChanged,) {
+      ValueChanged<String?> onChanged,
+      ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
@@ -313,8 +309,8 @@ class _PostCreatePageState extends State<PostCreatePage> {
       ),
       child: Theme(
         data: Theme.of(context).copyWith(
-          canvasColor: Colors.white, // 드롭다운 배경
-          splashColor: Colors.transparent, // 클릭 효과 제거
+          canvasColor: Colors.white,
+          splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
           focusColor: Colors.transparent,
         ),
