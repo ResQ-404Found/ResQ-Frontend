@@ -108,21 +108,31 @@ class _HotPostsPageState extends State<HotPostsPage>
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         posts = data;
-        likeCountList =
-            posts.map<int>((post) => post['like_count'] ?? 0).toList();
+
+        // 임시 데이터 초기화
+        likeCountList = posts.map<int>((post) => post['like_count'] ?? 0).toList();
         isLikedList = List.filled(posts.length, false);
         commentCountList = List.filled(posts.length, 0);
-        setState(() {});
+
+        setState(() {}); // 스켈레톤 or 로딩 상태 보여줄 수 있음
+
+        // 댓글 수와 좋아요 상태를 병렬로 가져오기
+        List<Future<void>> futures = [];
 
         for (int i = 0; i < posts.length; i++) {
-          final liked = await fetchLikeStatus(posts[i]['id']);
-          final commentCount = await fetchCommentCount(posts[i]['id']);
-          if (mounted) {
-            setState(() {
-              isLikedList[i] = liked;
-              commentCountList[i] = commentCount;
-            });
-          }
+          final postId = posts[i]['id'];
+          futures.add(fetchLikeStatus(postId).then((liked) {
+            isLikedList[i] = liked;
+          }));
+          futures.add(fetchCommentCount(postId).then((count) {
+            commentCountList[i] = count;
+          }));
+        }
+
+        await Future.wait(futures); // 모든 비동기 작업이 끝날 때까지 대기
+
+        if (mounted) {
+          setState(() {}); // 한 번만 setState로 갱신
         }
       } else {
         print('게시글 불러오기 실패: ${response.statusCode}');
@@ -131,6 +141,7 @@ class _HotPostsPageState extends State<HotPostsPage>
       print('오류 발생: $e');
     }
   }
+
 
   Future<int> fetchCommentCount(int postId) async {
     final url = Uri.parse('http://54.253.211.96:8000/api/comments/$postId');
@@ -411,7 +422,22 @@ class PostCard extends StatelessWidget {
                     height: 180,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return SizedBox(
+                        height: 180,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) =>
+                    const SizedBox.shrink(),
                   ),
                 ),
               ],

@@ -9,6 +9,7 @@ class CommunityMainPage extends StatefulWidget {
   State<CommunityMainPage> createState() => _CommunityMainPageState();
 }
 
+
 const Map<int, String> regionNames = {
   1: '서울특별시',
   2559: '부산광역시',
@@ -29,6 +30,8 @@ const Map<int, String> regionNames = {
   11977: '제주도',
 };
 
+// 생략: import, regionNames 그대로 유지
+
 class _CommunityMainPageState extends State<CommunityMainPage> {
   List<dynamic> posts = [];
   List<dynamic> popularPosts = [];
@@ -48,19 +51,19 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
     if (response.statusCode == 200) {
       final List<dynamic> postsData = jsonDecode(response.body);
 
-      // 각 post에 like_count, comment_count 추가 fetch
       for (var post in postsData) {
         final postId = post['id'];
-        // 댓글 수
+
         final commentRes = await http.get(Uri.parse('http://54.253.211.96:8000/api/comments/$postId'));
         if (commentRes.statusCode == 200) {
           post['comment_count'] = jsonDecode(commentRes.body).length;
         }
 
-        // 좋아요 수
         final likeStatusRes = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like/status'));
         if (likeStatusRes.statusCode == 200) {
-          post['like_count'] = jsonDecode(likeStatusRes.body)['like_count'] ?? 0;
+          final status = jsonDecode(likeStatusRes.body);
+          post['like_count'] = status['like_count'] ?? 0;
+          post['is_liked'] = status['is_liked'] ?? false;
         }
       }
 
@@ -70,34 +73,29 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
     }
   }
 
-
   Future<void> fetchNormalPosts() async {
-    final response = await http.get(
-      Uri.parse('http://54.253.211.96:8000/api/posts?type=normal'),
-    );
+    final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts?type=normal'));
     if (response.statusCode == 200) {
       final List<dynamic> postsData = jsonDecode(response.body);
 
       for (var post in postsData) {
         final postId = post['id'];
 
-        final commentRes = await http.get(
-          Uri.parse('http://54.253.211.96:8000/api/comments/$postId'),
-        );
+        final commentRes = await http.get(Uri.parse('http://54.253.211.96:8000/api/comments/$postId'));
         if (commentRes.statusCode == 200) {
           post['comment_count'] = jsonDecode(commentRes.body).length;
         } else {
           post['comment_count'] = 0;
         }
 
-        final likeStatusRes = await http.get(
-          Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like/status'),
-        );
+        final likeStatusRes = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like/status'));
         if (likeStatusRes.statusCode == 200) {
           final status = jsonDecode(likeStatusRes.body);
           post['like_count'] = status['like_count'] ?? 0;
+          post['is_liked'] = status['is_liked'] ?? false;
         } else {
           post['like_count'] = 0;
+          post['is_liked'] = false;
         }
       }
 
@@ -106,7 +104,6 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
       });
     }
   }
-
 
   Future<void> searchPosts(String term) async {
     if (term.trim().isEmpty) return;
@@ -137,7 +134,6 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         return urls;
       }
     }
-
     if (urls is List && urls.isNotEmpty) {
       final url = urls.first;
       if (url.startsWith('/static')) {
@@ -146,7 +142,6 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         return url;
       }
     }
-
     return null;
   }
 
@@ -154,7 +149,6 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
     final dateTime = DateTime.parse(time).toLocal();
     final now = DateTime.now();
     final diff = now.difference(dateTime);
-
     if (diff.inSeconds < 60) return '${diff.inSeconds}초 전';
     if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
     if (diff.inHours < 24) return '${diff.inHours}시간 전';
@@ -167,26 +161,6 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
     if (point >= 3000) return 'Gold';
     if (point >= 1000) return 'Silver';
     return 'Bronze';
-  }
-
-  Widget sectionHeader(String title, String route, IconData icon) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(children: [
-          Icon(icon, color: Colors.redAccent),
-          const SizedBox(width: 6),
-          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        ]),
-        InkWell(
-          onTap: () => Navigator.pushNamed(context, route),
-          child: const Padding(
-            padding: EdgeInsets.only(right: 10),
-            child: Icon(Icons.arrow_forward_ios, size: 16),
-          ),
-        )
-      ],
-    );
   }
 
   Widget _buildBadge(int point) {
@@ -206,7 +180,6 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
       color = Colors.grey;
       icon = Icons.military_tech;
     }
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
       decoration: BoxDecoration(
@@ -218,15 +191,29 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
-          Text(
-            '',
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
         ],
       ),
+    );
+  }
+
+  Widget sectionHeader(String title, String route, IconData icon) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(children: [
+          Icon(icon, color: Colors.redAccent),
+          const SizedBox(width: 6),
+          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        ]),
+        InkWell(
+          onTap: () => Navigator.pushNamed(context, route),
+          child: const Padding(
+            padding: EdgeInsets.only(right: 10),
+            child: Icon(Icons.arrow_forward_ios, size: 16),
+          ),
+        )
+      ],
     );
   }
 
@@ -252,9 +239,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
           final bool hasImage = postImageUrl != null;
 
           return GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, '/allpostdetail', arguments: post);
-            },
+            onTap: () => Navigator.pushNamed(context, '/allpostdetail', arguments: post),
             child: Container(
               width: 200,
               margin: const EdgeInsets.only(right: 12),
@@ -264,11 +249,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
                 borderRadius: BorderRadius.circular(16),
                 color: Colors.white,
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
-                  )
+                  BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 5, offset: const Offset(0, 2))
                 ],
               ),
               child: Column(
@@ -280,28 +261,14 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
                       color: Colors.redAccent.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(
-                      region,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.redAccent,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: Text(region, style: const TextStyle(fontSize: 12, color: Colors.redAccent, fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 4),
                   Text(parseTimeAgo(time), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                   const SizedBox(height: 4),
-
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
+                  Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                   const SizedBox(height: 6),
-
-                  if (hasImage) ...[
+                  if (hasImage)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: Image.network(
@@ -312,20 +279,41 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
                         errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                       ),
                     ),
-                    const SizedBox(height: 6),
-                  ],
-
                   const Spacer(),
-
                   Row(
                     children: [
                       Text('by $username', style: const TextStyle(fontSize: 12, color: Colors.black54)),
                       const SizedBox(width: 6),
                       _buildBadge(point),
                       const Spacer(),
-                      const Icon(Icons.favorite_border, size: 20, color: Colors.redAccent),
-                      const SizedBox(width: 4),
-                      Text('$likeCount', style: const TextStyle(fontSize: 12)),
+                      GestureDetector(
+                        onTap: () async {
+                          final postId = post['id'];
+                          final isLiked = post['is_liked'] ?? false;
+                          final url = 'http://54.253.211.96:8000/api/posts/$postId/like';
+                          final response = isLiked
+                              ? await http.delete(Uri.parse(url))
+                              : await http.post(Uri.parse(url));
+
+                          if (response.statusCode == 200 || response.statusCode == 204) {
+                            setState(() {
+                              post['is_liked'] = !isLiked;
+                              post['like_count'] = likeCount + (isLiked ? -1 : 1);
+                            });
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            Icon(
+                              post['is_liked'] == true ? Icons.favorite : Icons.favorite_border,
+                              size: 20,
+                              color: Colors.redAccent,
+                            ),
+                            const SizedBox(width: 4),
+                            Text('${post['like_count'] ?? 0}', style: const TextStyle(fontSize: 12)),
+                          ],
+                        ),
+                      ),
                       const SizedBox(width: 10),
                       const Icon(Icons.comment, size: 20, color: Colors.blueAccent),
                       const SizedBox(width: 4),
@@ -340,7 +328,6 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -373,14 +360,10 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         padding: const EdgeInsets.all(16),
         child: isSearching
             ? ListView(
-          children: searchResults
-              .map((post) => ListTile(
+          children: searchResults.map((post) => ListTile(
             title: Text(post['title'] ?? ''),
-            subtitle: Text(
-              regionNames[int.tryParse('${post['region_id']}')] ?? '',
-            ),
-          ))
-              .toList(),
+            subtitle: Text(regionNames[int.tryParse('${post['region_id']}')] ?? ''),
+          )).toList(),
         )
             : SingleChildScrollView(
           child: Column(
@@ -402,69 +385,30 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         backgroundColor: Colors.redAccent,
         child: const Icon(Icons.edit, color: Colors.white),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 2,
-              offset: const Offset(0, 0),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          currentIndex: 2,
-          onTap: (index) {
-            switch (index) {
-              case 0:
-                Navigator.pushNamed(context, '/map');
-                break;
-              case 1:
-                Navigator.pushNamed(context, '/chatbot');
-                break;
-              case 2:
-                break;
-              case 3:
-                Navigator.pushNamed(context, '/disastermenu');
-                break;
-              case 4:
-                Navigator.pushNamed(context, '/user');
-                break;
-            }
-          },
-          selectedItemColor: Colors.redAccent,
-          unselectedItemColor: Colors.grey[300],
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          selectedIconTheme: const IconThemeData(size: 30),
-          unselectedIconTheme: const IconThemeData(size: 30),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)),
-              label: '지도',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)),
-              label: '채팅',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)),
-              label: '커뮤니티',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)),
-              label: '재난메뉴',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)),
-              label: '마이',
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 2,
+        onTap: (index) {
+          switch (index) {
+            case 0: Navigator.pushNamed(context, '/map'); break;
+            case 1: Navigator.pushNamed(context, '/chatbot'); break;
+            case 2: break;
+            case 3: Navigator.pushNamed(context, '/disastermenu'); break;
+            case 4: Navigator.pushNamed(context, '/user'); break;
+          }
+        },
+        selectedItemColor: Colors.redAccent,
+        unselectedItemColor: Colors.grey[300],
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        selectedIconTheme: const IconThemeData(size: 30),
+        unselectedIconTheme: const IconThemeData(size: 30),
+        items: const [
+          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)), label: '지도'),
+          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)), label: '채팅'),
+          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)), label: '커뮤니티'),
+          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)), label: '재난메뉴'),
+          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)), label: '마이'),
+        ],
       ),
     );
   }

@@ -20,7 +20,7 @@ class _PostCreatePageState extends State<PostCreatePage> {
   String? selectedRegion;
   String? selectedPostType;
   List<File> _images = [];
-  final int maxContentLength = 1000;
+  final int maxContentLength = 500;
 
   final List<String> regions = [
     '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종',

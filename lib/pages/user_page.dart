@@ -22,10 +22,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
   String email = '';
   String profileImageUrl = '';
   int point = 2500;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+
     fetchUserInfo();
   }
 
@@ -45,11 +47,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
         email = data['email'] ?? '';
         profileImageUrl = data['profile_imageURL'] ?? '';
         point = data['point'] ?? 0;
+        isLoading = false;
       });
     } else {
       if (mounted) Navigator.pushReplacementNamed(context, '/login');
     }
   }
+
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -149,7 +153,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ),
       backgroundColor: Colors.grey.shade100,
       body: SafeArea(
-        child: SingleChildScrollView(
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
           child: Container(
             padding: const EdgeInsets.all(16),

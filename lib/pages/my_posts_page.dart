@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'all_post_detail_page.dart';
 import 'my_post_edit_page.dart';
 
 class MyPostsPage extends StatefulWidget {
@@ -42,7 +41,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
         isLoading = false;
       });
     } else {
-      print('게시글 요청 실패: ${response.statusCode}');
       setState(() => isLoading = false);
     }
   }
@@ -116,8 +114,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
           final createdAt = post['created_at'] ?? '';
           final images = post['post_imageURLs'] ?? [];
           final title = post['title'] ?? '(제목 없음)';
-          final likeCount = post['like_count'] ?? 0;
-          final commentCount = post['comment_count'] ?? 0;
 
           String? imageUrl;
           if (images.isNotEmpty) {
@@ -256,35 +252,9 @@ class _MyPostsPageState extends State<MyPostsPage> {
 
                   const SizedBox(height: 8),
 
-                  // 좋아요/댓글 수 + 원문 보기 버튼
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.favorite_border,
-                            size: 18,
-                            color: Colors.red,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$likeCount',
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                          const SizedBox(width: 16),
-                          const Icon(
-                            Icons.comment,
-                            size: 18,
-                            color: Colors.blue,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$commentCount',
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ],
-                      ),
                       TextButton(
                         onPressed: () {
                           Navigator.pushNamed(
