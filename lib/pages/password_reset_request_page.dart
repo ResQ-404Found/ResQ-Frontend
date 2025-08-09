@@ -26,7 +26,6 @@ class _PasswordResetRequestPageState extends State<PasswordResetRequestPage> {
     FocusScope.of(context).unfocus();
     final email = _emailController.text.trim();
 
-    // 기본 검증
     if (email.isEmpty) {
       _show("이메일을 입력해 주세요.");
       return;
@@ -57,7 +56,7 @@ class _PasswordResetRequestPageState extends State<PasswordResetRequestPage> {
       try {
         bodyJson = jsonDecode(bodyText);
       } catch (_) {
-        bodyJson = null; // JSON이 아닐 수도 있음
+        bodyJson = null; 
       }
 
       setState(() => isLoading = false);
@@ -73,9 +72,7 @@ class _PasswordResetRequestPageState extends State<PasswordResetRequestPage> {
         return;
       }
 
-      // 4xx (클라이언트 계열) 세분화
       if (res.statusCode == 404) {
-        // 가입되지 않은 이메일
         _show("입력하신 정보와 일치하는 계정을 찾을 수 없습니다.");
       } else if (res.statusCode == 400) {
         final msg =
