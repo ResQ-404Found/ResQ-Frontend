@@ -13,7 +13,8 @@ class DonationPaymentPage extends StatefulWidget {
 }
 
 class _DonationPaymentPageState extends State<DonationPaymentPage> {
-  int? selectedAmount;
+  int accumulatedAmount = 0;
+
   final TextEditingController customAmountController = TextEditingController();
   final TextEditingController messageController = TextEditingController();
   String selectedPaymentMethod = '신용카드';
@@ -21,13 +22,23 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
   final amountFormatter = NumberFormat("#,###", "ko_KR");
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
+  void _syncAmountField() {
+    final text =
+        accumulatedAmount == 0 ? '' : amountFormatter.format(accumulatedAmount);
+    customAmountController.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+    setState(() {}); 
+  }
+
   Future<void> submitDonation(int sponsorId, int amount, String message) async {
     final token = await _secureStorage.read(key: 'accessToken');
 
     if (token == null || token.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('로그인이 필요합니다.')));
+      ).showSnackBar(const SnackBar(content: Text('로그인이 필요합니다.')));
       return;
     }
 
@@ -73,7 +84,7 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
                       alignment: Alignment.topCenter,
                       child: Text(
                         '+${NumberFormat("#,###", "ko_KR").format(earnedPoint)} 포인트 적립!',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.blueAccent,
@@ -82,15 +93,14 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
                       ),
                     ),
                   ),
-
-                  SizedBox(height: 20),
-                  CircleAvatar(
+                  const SizedBox(height: 20),
+                  const CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.redAccent,
                     child: Icon(Icons.favorite, color: Colors.white, size: 30),
                   ),
-                  SizedBox(height: 16),
-                  Text(
+                  const SizedBox(height: 16),
+                  const Text(
                     '후원 완료!',
                     style: TextStyle(
                       fontSize: 22,
@@ -98,12 +108,12 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
                       color: Colors.black87,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 8),
+                  const Text(
                     '후원해주셔서 감사합니다.',
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -112,13 +122,13 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        padding: EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       onPressed: () {
                         Navigator.of(context).pop();
                         Navigator.pushReplacementNamed(context, '/donation');
                       },
-                      child: Text(
+                      child: const Text(
                         '후원 목록으로 가기',
                         style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
@@ -133,20 +143,19 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
     } else {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('후원 실패 ㅠㅠ')));
+      ).showSnackBar(const SnackBar(content: Text('후원 실패 ㅠㅠ')));
     }
   }
 
   void handleSubmit(Donation donation) {
-    final custom = int.tryParse(
-      customAmountController.text.replaceAll(',', ''),
-    );
-    final amount = selectedAmount ?? custom ?? 0;
+    final parsed =
+        int.tryParse(customAmountController.text.replaceAll(',', '')) ?? 0;
+    final amount = parsed > 0 ? parsed : accumulatedAmount;
 
     if (amount <= 0) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('후원 금액을 입력해주세요.')));
+      ).showSnackBar(const SnackBar(content: Text('후원 금액을 입력해주세요.')));
       return;
     }
 
@@ -164,10 +173,10 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Text('후원하기'),
+        title: const Text('후원하기'),
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.chevron_left, size: 35),
+          icon: const Icon(Icons.chevron_left, size: 35),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -181,16 +190,21 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
               decoration: BoxDecoration(
                 color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(10),
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                boxShadow: const [
+                  BoxShadow(color: Colors.black12, blurRadius: 4),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     donation.title,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     donation.sponsorName,
                     style: TextStyle(color: Colors.grey[600]),
@@ -198,66 +212,56 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
                 ],
               ),
             ),
-            SizedBox(height: 24),
-            Text(
+            const SizedBox(height: 24),
+
+            const Text(
               '후원 금액 선택',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Wrap(
               spacing: 12,
               runSpacing: 12,
               children:
                   amountOptions.map((amount) {
-                    return ChoiceChip(
-                      label: Text('${amountFormatter.format(amount)}원'),
-                      selected: selectedAmount == amount,
-                      selectedColor: Colors.redAccent,
+                    return ActionChip(
+                      label: Text('+ ${amountFormatter.format(amount)}원'),
                       backgroundColor: Colors.grey[200],
-                      labelStyle: TextStyle(
-                        color:
-                            selectedAmount == amount
-                                ? Colors.white
-                                : Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      onSelected: (_) {
+                      onPressed: () {
                         setState(() {
-                          selectedAmount = amount;
-                          customAmountController.clear();
+                          accumulatedAmount += amount;
+                          _syncAmountField();
                         });
                       },
                     );
                   }).toList(),
             ),
-            SizedBox(height: 16),
+
+            const SizedBox(height: 15),
+
             TextField(
               controller: customAmountController,
-              keyboardType: TextInputType.number,
+              readOnly: true,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.attach_money),
-                labelText: '직접 입력 (숫자만)',
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.attach_money),
+                labelText: '후원 금액',
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  tooltip: '금액 초기화',
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    setState(() {
+                      accumulatedAmount = 0;
+                      _syncAmountField(); 
+                    });
+                  },
+                ),
               ),
-              onChanged: (value) {
-                final digitsOnly = value.replaceAll(RegExp(r'[^0-9]'), '');
-                if (digitsOnly.isEmpty) {
-                  customAmountController.text = '';
-                  selectedAmount = null;
-                  return;
-                }
-                final formatted = amountFormatter.format(int.parse(digitsOnly));
-                customAmountController.value = TextEditingValue(
-                  text: formatted,
-                  selection: TextSelection.collapsed(offset: formatted.length),
-                );
-                setState(() {
-                  selectedAmount = null;
-                });
-              },
             ),
-            SizedBox(height: 24),
-            Text(
+
+            const SizedBox(height: 24),
+
+            const Text(
               '결제 방식 선택',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
@@ -277,24 +281,28 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
                     );
                   }).toList(),
             ),
-            SizedBox(height: 24),
-            Text(
+
+            const SizedBox(height: 24),
+
+            const Text(
               '응원 메시지 (선택사항)',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             TextField(
               controller: messageController,
               maxLines: 4,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: '응원 메시지를 남겨주세요',
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 80),
+
+            const SizedBox(height: 80),
           ],
         ),
       ),
+
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
         child: SizedBox(
@@ -309,8 +317,8 @@ class _DonationPaymentPageState extends State<DonationPaymentPage> {
             ),
             onPressed: () => handleSubmit(donation),
             child: Text(
-              '${amountFormatter.format(selectedAmount ?? int.tryParse(customAmountController.text.replaceAll(',', '')) ?? 0)}원 결제하기',
-              style: TextStyle(
+              '${amountFormatter.format(int.tryParse(customAmountController.text.replaceAll(',', '')) ?? 0)}원 결제하기',
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
                 color: Colors.white,
