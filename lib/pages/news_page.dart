@@ -23,6 +23,9 @@ class _NewsPageState extends State<NewsPage> {
   List<Map<String, dynamic>> newsList = [];
   List<Map<String, dynamic>> youtubeVideos = [];
 
+  final Map<int, String?> _imageCache = {};
+  final Set<int> _imageLoading = {};
+
   int currentPage = 0;
   final int itemsPerPage = 10;
   int get totalPages {
@@ -50,10 +53,7 @@ class _NewsPageState extends State<NewsPage> {
   }
 
   Future<void> _fetchInitial() async {
-    await Future.wait([
-      fetchAllNewsOnceSafe(), 
-      fetchYoutubeVideos(limit: 5),
-    ]);
+    await Future.wait([fetchAllNewsOnceSafe(), fetchYoutubeVideos(limit: 5)]);
     _applyPage(0);
   }
 
@@ -153,6 +153,7 @@ class _NewsPageState extends State<NewsPage> {
                   ' ',
                 ),
                 'origin_url': item['origin_url'],
+                'naver_url': item['naver_url'],
               };
             }).toList();
       });
@@ -230,9 +231,76 @@ class _NewsPageState extends State<NewsPage> {
       currentPage = clampedPage;
       newsList = _allNews.sublist(start, end);
     });
+
+    for (final n in newsList) {
+      _getImageForNews(n);
+    }
   }
 
   void goToPage(int page) => _applyPage(page);
+
+  Future<String?> _getImageForNews(Map<String, dynamic> news) async {
+    final int id = news['id'] is int ? news['id'] as int : -1;
+    if (id == -1) return null;
+
+    if (_imageCache.containsKey(id)) return _imageCache[id];
+
+    if (_imageLoading.contains(id)) return null;
+    _imageLoading.add(id);
+
+    final String? url = (news['origin_url'] ?? news['naver_url']) as String?;
+    String? img;
+    if (url != null && url.isNotEmpty) {
+      img = await _fetchOgImage(url);
+    }
+
+    _imageCache[id] = img; 
+    _imageLoading.remove(id);
+    if (mounted) setState(() {}); 
+    return img;
+  }
+
+  Future<String?> _fetchOgImage(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      final res = await http.get(uri).timeout(const Duration(seconds: 8));
+      if (res.statusCode != 200) return null;
+
+      final doc = html_parser.parse(utf8.decode(res.bodyBytes));
+
+      String? pick(List<String> selectors) {
+        for (final sel in selectors) {
+          final el = doc.querySelector(sel);
+          final content = el?.attributes['content']?.trim();
+          if (content != null && content.isNotEmpty) return content;
+        }
+        return null;
+      }
+
+      final og = pick(['meta[property="og:image"]', 'meta[name="og:image"]']);
+      if (og != null) return _absolutizeUrl(uri, og);
+
+      final tw = pick([
+        'meta[property="twitter:image"]',
+        'meta[name="twitter:image"]',
+      ]);
+      if (tw != null) return _absolutizeUrl(uri, tw);
+
+      final item = pick(['meta[itemprop="image"]']);
+      if (item != null) return _absolutizeUrl(uri, item);
+
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _absolutizeUrl(Uri pageUri, String imgUrl) {
+    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
+      return imgUrl;
+    }
+    return pageUri.resolve(imgUrl).toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -270,7 +338,7 @@ class _NewsPageState extends State<NewsPage> {
                         child: ElevatedButton.icon(
                           onPressed:
                               isSummaryLoading
-                                  ? null // 로딩 동안 비활성화
+                                  ? null
                                   : () {
                                     if (showSummary) {
                                       setState(() => showSummary = false);
@@ -530,8 +598,8 @@ class _NewsPageState extends State<NewsPage> {
   Widget _buildNewsTile(Map<String, dynamic> news) {
     return InkWell(
       onTap: () {
-        final url = news['origin_url'];
-        if (url != null && url is String && url.isNotEmpty) {
+        final url = (news['origin_url'] ?? news['naver_url']) as String?;
+        if (url != null && url.isNotEmpty) {
           launchUrlString(url);
         }
       },
@@ -551,19 +619,91 @@ class _NewsPageState extends State<NewsPage> {
           ],
           border: Border.all(color: Colors.grey[300]!),
         ),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              news['title'] ?? '제목 없음',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: FutureBuilder<String?>(
+                future: _getImageForNews(news),
+                builder: (context, snap) {
+                  final int id = news['id'] is int ? news['id'] as int : -1;
+                  final String? cached = _imageCache[id];
+                  final String? imgUrl = snap.data ?? cached;
+
+                  if (snap.connectionState == ConnectionState.waiting &&
+                      imgUrl == null) {
+                    return Container(
+                      width: 100,
+                      height: 80,
+                      color: Colors.grey[200],
+                      alignment: Alignment.center,
+                      child: const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    );
+                  }
+
+                  if (imgUrl == null || imgUrl.isEmpty) {
+                    return Container(
+                      width: 100,
+                      height: 80,
+                      color: Colors.grey[200],
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.image_not_supported,
+                        size: 30,
+                        color: Colors.grey,
+                      ),
+                    );
+                  }
+
+                  return Image.network(
+                    imgUrl,
+                    width: 100,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    cacheWidth: 400,
+                    errorBuilder:
+                        (_, __, ___) => Container(
+                          width: 100,
+                          height: 80,
+                          color: Colors.grey[200],
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.broken_image,
+                            size: 30,
+                            color: Colors.grey,
+                          ),
+                        ),
+                  );
+                },
+              ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              news['date'] ?? '',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    news['title'] ?? '제목 없음',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    news['date'] ?? '',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
