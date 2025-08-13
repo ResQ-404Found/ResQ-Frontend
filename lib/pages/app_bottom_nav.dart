@@ -1,0 +1,91 @@
+// app_bottom_nav.dart
+import 'package:flutter/material.dart';
+
+import 'map_page.dart';
+import 'chatbot_page.dart';
+import 'community_page.dart';
+import 'disaster_menu_page.dart';
+import 'user_page.dart';
+
+class AppBottomNav extends StatelessWidget {
+  const AppBottomNav({super.key, required this.currentIndex});
+  final int currentIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomNavigationBar(
+      backgroundColor: Colors.white,
+      type: BottomNavigationBarType.fixed,
+      currentIndex: currentIndex,
+      onTap: (i) {
+        if (i == currentIndex) return;
+        _go(context, i, from: currentIndex);
+      },
+      selectedItemColor: Colors.redAccent,
+      unselectedItemColor: Colors.grey,
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
+      selectedIconTheme: const IconThemeData(size: 30),
+      unselectedIconTheme: const IconThemeData(size: 30),
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.place), label: '지도'),
+        BottomNavigationBarItem(icon: Icon(Icons.chat), label: '채팅'),
+        BottomNavigationBarItem(icon: Icon(Icons.groups), label: '커뮤니티'),
+        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: '재난메뉴'),
+        BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: '마이'),
+      ],
+    );
+  }
+
+  static void _go(BuildContext context, int index, {required int from}) {
+    final Widget page = switch (index) {
+      0 => const MapPage(),
+      1 => const ChatbotPage(),
+      2 => const CommunityMainPage(),
+      3 => const DisasterMenuPage(),
+      4 => const UserProfilePage(),
+      _ => const MapPage(),
+    };
+
+    final bool slideFromRight = index > from;
+
+    Navigator.of(context).pushReplacement(
+      _TabSwitchRoute(page, fromRight: slideFromRight),
+    );
+  }
+}
+
+
+class _TabSwitchRoute extends PageRouteBuilder {
+  _TabSwitchRoute(Widget page, {required bool fromRight})
+      : super(
+    pageBuilder: (_, __, ___) => page,
+    transitionDuration: const Duration(milliseconds: 150),
+    reverseTransitionDuration: const Duration(milliseconds: 150),
+    transitionsBuilder: (_, anim, __, child) {
+
+      final begin = Offset(fromRight ? 0.08 : -0.08, 0);
+      final end = Offset.zero;
+
+      final curved = CurvedAnimation(
+        parent: anim,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+
+      final slideTween = Tween<Offset>(begin: begin, end: end)
+          .chain(CurveTween(curve: Curves.easeOutCubic));
+
+      final fadeTween = Tween<double>(begin: 0.0, end: 1.0)
+          .chain(CurveTween(curve: Curves.easeOutQuad));
+
+      return FadeTransition(
+        opacity: fadeTween.animate(curved),
+        child: SlideTransition(
+          position: slideTween.animate(curved),
+          child: child,
+        ),
+      );
+    },
+  );
+}

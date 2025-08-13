@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'app_bottom_nav.dart';
 class CommunityMainPage extends StatefulWidget {
   const CommunityMainPage({super.key});
 
@@ -164,19 +164,16 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
   }
 
   Widget _buildBadge(int point) {
-    String label = 'Bronze';
     Color color = Colors.brown;
     IconData icon = Icons.military_tech;
     if (point >= 5000) {
-      label = 'Platinum';
       color = Colors.blueGrey;
       icon = Icons.workspace_premium;
     } else if (point >= 3000) {
-      label = 'Gold';
+
       color = Colors.amber;
       icon = Icons.emoji_events;
     } else if (point >= 1000) {
-      label = 'Silver';
       color = Colors.grey;
       icon = Icons.military_tech;
     }
@@ -191,7 +188,6 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
-          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -385,31 +381,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         backgroundColor: Colors.redAccent,
         child: const Icon(Icons.edit, color: Colors.white),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2,
-        onTap: (index) {
-          switch (index) {
-            case 0: Navigator.pushNamed(context, '/map'); break;
-            case 1: Navigator.pushNamed(context, '/chatbot'); break;
-            case 2: break;
-            case 3: Navigator.pushNamed(context, '/disastermenu'); break;
-            case 4: Navigator.pushNamed(context, '/user'); break;
-          }
-        },
-        selectedItemColor: Colors.redAccent,
-        unselectedItemColor: Colors.grey[300],
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        selectedIconTheme: const IconThemeData(size: 30),
-        unselectedIconTheme: const IconThemeData(size: 30),
-        items: const [
-          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)), label: '지도'),
-          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)), label: '채팅'),
-          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)), label: '커뮤니티'),
-          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)), label: '재난메뉴'),
-          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)), label: '마이'),
-        ],
-      ),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 2),
     );
   }
 }

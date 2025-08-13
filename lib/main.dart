@@ -8,7 +8,6 @@ import 'pages/disaster_detail_page.dart';
 import 'pages/map_page.dart';
 import 'pages/initial_page.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'pages/main_scaffold_page.dart';
 
 final mockDisaster = Disaster(
   region: '부산광역시',
@@ -116,7 +115,6 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'My App',
-      home: const MainScaffoldPage(),
       initialRoute: '/initial',
       routes: {
         ...routes,

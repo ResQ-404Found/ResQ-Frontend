@@ -9,6 +9,13 @@ import 'withdrawl_page.dart';
 import 'my_comments_page.dart';
 import 'my_posts_page.dart';
 
+import 'app_bottom_nav.dart';
+
+import 'map_page.dart';
+import 'chatbot_page.dart';
+import 'community_page.dart';
+import 'disaster_menu_page.dart';
+
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
 
@@ -16,13 +23,20 @@ class UserProfilePage extends StatefulWidget {
   State<UserProfilePage> createState() => _UserProfilePageState();
 }
 
-class _UserProfilePageState extends State<UserProfilePage> {
+class _UserProfilePageState extends State<UserProfilePage>
+    with AutomaticKeepAliveClientMixin {
   File? _profileImage;
   String username = '';
   String email = '';
   String profileImageUrl = '';
   int point = 2500;
   bool isLoading = true;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  int _currentIndex = 4;
+  final PageStorageBucket _bucket = PageStorageBucket();
 
   @override
   void initState() {
@@ -69,13 +83,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final token = await storage.read(key: 'accessToken');
 
       if (token != null) {
-        final fileName = file.path.split('/').last;
-        final imageUrl = 'https://your-cdn.com/$fileName'; 
+        final fileName = file.path
+            .split('/')
+            .last;
+        final imageUrl = 'https://your-cdn.com/$fileName';
 
         final response = await HttpClient.uploadProfileImage(
           token: token,
           imageFile: file,
-          imageUrl: imageUrl, 
+          imageUrl: imageUrl,
         );
 
         print('서버 응답: $response');
@@ -134,6 +150,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         scrolledUnderElevation: 0,
@@ -153,9 +170,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ),
       backgroundColor: Colors.grey.shade100,
       body: SafeArea(
-          child: isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
           child: Container(
             padding: const EdgeInsets.all(16),
@@ -175,14 +192,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           child: CircleAvatar(
                             radius: 40,
                             backgroundImage:
-                                _profileImage != null
-                                    ? FileImage(_profileImage!)
-                                    : (profileImageUrl.isNotEmpty
-                                            ? NetworkImage(profileImageUrl)
-                                            : const AssetImage(
-                                              'lib/asset/sample_profile.jpg',
-                                            ))
-                                        as ImageProvider,
+                            _profileImage != null
+                                ? FileImage(_profileImage!)
+                                : (profileImageUrl.isNotEmpty
+                                ? NetworkImage(profileImageUrl)
+                                : const AssetImage(
+                              'lib/asset/sample_profile.jpg',
+                            ))
+                            as ImageProvider,
                           ),
                         ),
                         Positioned(
@@ -328,7 +345,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 4),
     );
   }
 
@@ -422,8 +439,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   String _formatPoint(int point) {
     return point.toString().replaceAllMapped(
-      RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'),
-      (match) => '${match[1]},',
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (match) => '${match[1]},',
     );
   }
 
@@ -460,42 +477,4 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  Widget _buildBottomNavigationBar() {
-    return BottomNavigationBar(
-      backgroundColor: Colors.white,
-      type: BottomNavigationBarType.fixed,
-      currentIndex: 4,
-      onTap: (index) {
-        switch (index) {
-          case 0:
-            Navigator.pushNamed(context, '/map');
-            break;
-          case 1:
-            Navigator.pushNamed(context, '/chatbot');
-            break;
-          case 2:
-            Navigator.pushNamed(context, '/community');
-            break;
-          case 3:
-            Navigator.pushNamed(context, '/disastermenu');
-            break;
-          case 4:
-            break;
-        }
-      },
-      selectedItemColor: Colors.redAccent,
-      unselectedItemColor: Colors.grey,
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
-      selectedIconTheme: const IconThemeData(size: 30),
-      unselectedIconTheme: const IconThemeData(size: 30),
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.place), label: '지도'),
-        BottomNavigationBarItem(icon: Icon(Icons.chat), label: '채팅'),
-        BottomNavigationBarItem(icon: Icon(Icons.groups), label: '커뮤니티'),
-        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: '재난메뉴'),
-        BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: '마이'),
-      ],
-    );
-  }
 }

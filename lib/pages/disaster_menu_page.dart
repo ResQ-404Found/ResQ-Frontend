@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'disaster_guide_page.dart';
 import 'checklist.dart';
 import 'all_disaster_type_detail_page.dart';
-import 'donation_list_page.dart';
+import 'app_bottom_nav.dart'; // ✅ 공통 바텀바 추가
+
 class DisasterMenuPage extends StatelessWidget {
   const DisasterMenuPage({super.key});
 
@@ -50,10 +52,7 @@ class DisasterMenuPage extends StatelessWidget {
           alignment: Alignment.center,
           child: const Text(
             '재난 대응 메뉴',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
         ),
       ),
@@ -62,6 +61,7 @@ class DisasterMenuPage extends StatelessWidget {
           const SizedBox(height: 16),
           Expanded(
             child: ListView.separated(
+              key: const PageStorageKey('DisasterMenuList'),
               padding: const EdgeInsets.symmetric(horizontal: 20),
               itemCount: menuItems.length,
               separatorBuilder: (_, __) => const SizedBox(height: 20),
@@ -71,30 +71,31 @@ class DisasterMenuPage extends StatelessWidget {
 
                 return GestureDetector(
                   onTap: () {
-                    if (item['title'] == '전체 재난 정보') {
+                    final title = item['title'] as String;
+                    if (title == '전체 재난 정보') {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => const AllDisasterTypeDetailPage(),
                         ),
                       );
-                    } else if (item['title'] == '대피 방법') {
+                    } else if (title == '대피 방법') {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => DisasterGuidePage(initialIndex: 0),
                         ),
                       );
-                    } else if (item['title'] == '체크리스트') {
+                    } else if (title == '체크리스트') {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => const ChecklistPage(),
                         ),
                       );
-                    } else if (item['title'] == '뉴스') {
+                    } else if (title == '뉴스') {
                       Navigator.pushNamed(context, '/news');
-                    } else if (item['title'] == '후원') {
+                    } else if (title == '후원') {
                       Navigator.pushNamed(context, '/donation');
                     }
                   },
@@ -161,86 +162,7 @@ class DisasterMenuPage extends StatelessWidget {
           ),
         ],
       ),
-
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          currentIndex: 3,
-          onTap: (index) {
-            switch (index) {
-              case 0:
-                Navigator.pushNamed(context, '/map');
-                break;
-              case 1:
-                Navigator.pushNamed(context, '/chatbot');
-                break;
-              case 2:
-                Navigator.pushNamed(context, '/community');
-                break;
-              case 3:
-                break;
-              case 4:
-                Navigator.pushNamed(context, '/user');
-                break;
-            }
-          },
-          selectedItemColor: Colors.redAccent,
-          unselectedItemColor: Colors.grey[300],
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          selectedIconTheme: const IconThemeData(size: 30),
-          unselectedIconTheme: const IconThemeData(size: 30),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Icon(Icons.place),
-              ),
-              label: '지도',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Icon(Icons.chat),
-              ),
-              label: '채팅',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Icon(Icons.groups),
-              ),
-              label: '커뮤니티',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Icon(Icons.dashboard),
-              ),
-              label: '재난메뉴',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Icon(Icons.favorite_border),
-              ),
-              label: '마이',
-            ),
-          ],
-        ),
-      ),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 3),
     );
   }
 }

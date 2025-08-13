@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
+import 'app_bottom_nav.dart';
 
 class ChatbotPage extends StatefulWidget {
   const ChatbotPage({super.key});
@@ -280,85 +281,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 2,
-              offset: const Offset(0, 0),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          currentIndex: 1,
-          onTap: (index) {
-            switch (index) {
-              case 0:
-                Navigator.pushNamed(context, '/map');
-                break;
-              case 1:
-                break;
-              case 2:
-                Navigator.pushNamed(context, '/community');
-                break;
-              case 3:
-                Navigator.pushNamed(context, '/disastermenu');
-                break;
-              case 4:
-                Navigator.pushNamed(context, '/user');
-                break;
-            }
-          },
-          selectedItemColor: Colors.redAccent,
-          unselectedItemColor: Colors.grey[300],
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          selectedIconTheme: const IconThemeData(size: 30),
-          unselectedIconTheme: const IconThemeData(size: 30),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Icon(Icons.place),
-              ),
-              label: '지도',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Icon(Icons.chat),
-              ),
-              label: '채팅',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Icon(Icons.groups),
-              ),
-              label: '커뮤니티',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Icon(Icons.dashboard),
-              ),
-              label: '재난메뉴',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Icon(Icons.favorite_border),
-              ),
-              label: '마이',
-            ),
-          ],
-        ),
-      ),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 1),
     );
   }
 }
