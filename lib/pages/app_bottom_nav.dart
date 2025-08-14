@@ -1,4 +1,3 @@
-// app_bottom_nav.dart
 import 'package:flutter/material.dart';
 
 import 'map_page.dart';
@@ -19,7 +18,7 @@ class AppBottomNav extends StatelessWidget {
       currentIndex: currentIndex,
       onTap: (i) {
         if (i == currentIndex) return;
-        _go(context, i, from: currentIndex);
+        _go(context, i);
       },
       selectedItemColor: Colors.redAccent,
       unselectedItemColor: Colors.grey,
@@ -37,7 +36,7 @@ class AppBottomNav extends StatelessWidget {
     );
   }
 
-  static void _go(BuildContext context, int index, {required int from}) {
+  static void _go(BuildContext context, int index) {
     final Widget page = switch (index) {
       0 => const MapPage(),
       1 => const ChatbotPage(),
@@ -47,45 +46,13 @@ class AppBottomNav extends StatelessWidget {
       _ => const MapPage(),
     };
 
-    final bool slideFromRight = index > from;
-
     Navigator.of(context).pushReplacement(
-      _TabSwitchRoute(page, fromRight: slideFromRight),
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => page,
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+        transitionsBuilder: (_, __, ___, child) => child,
+      ),
     );
   }
-}
-
-
-class _TabSwitchRoute extends PageRouteBuilder {
-  _TabSwitchRoute(Widget page, {required bool fromRight})
-      : super(
-    pageBuilder: (_, __, ___) => page,
-    transitionDuration: const Duration(milliseconds: 150),
-    reverseTransitionDuration: const Duration(milliseconds: 150),
-    transitionsBuilder: (_, anim, __, child) {
-
-      final begin = Offset(fromRight ? 0.08 : -0.08, 0);
-      final end = Offset.zero;
-
-      final curved = CurvedAnimation(
-        parent: anim,
-        curve: Curves.easeOutCubic,
-        reverseCurve: Curves.easeInCubic,
-      );
-
-      final slideTween = Tween<Offset>(begin: begin, end: end)
-          .chain(CurveTween(curve: Curves.easeOutCubic));
-
-      final fadeTween = Tween<double>(begin: 0.0, end: 1.0)
-          .chain(CurveTween(curve: Curves.easeOutQuad));
-
-      return FadeTransition(
-        opacity: fadeTween.animate(curved),
-        child: SlideTransition(
-          position: slideTween.animate(curved),
-          child: child,
-        ),
-      );
-    },
-  );
 }

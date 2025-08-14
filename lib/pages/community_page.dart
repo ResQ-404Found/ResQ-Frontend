@@ -38,14 +38,25 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
   final _searchController = TextEditingController();
   List<dynamic> searchResults = [];
   bool isSearching = false;
+  bool _loading = true;
+
 
   @override
   void initState() {
     super.initState();
     fetchDisasterPosts();
     fetchNormalPosts();
+    _loadAll();
   }
 
+  Future<void> _loadAll() async {
+    setState(() => _loading = true);
+    await Future.wait([
+      fetchDisasterPosts(),
+      fetchNormalPosts(),
+    ]);
+    if (mounted) setState(() => _loading = false);
+  }
   Future<void> fetchDisasterPosts() async {
     final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts?type=disaster'));
     if (response.statusCode == 200) {
@@ -164,7 +175,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
   }
 
   Widget _buildBadge(int point) {
-    Color color = Colors.brown;
+    Color color = Colors.transparent;
     IconData icon = Icons.military_tech;
     if (point >= 5000) {
       color = Colors.blueGrey;
@@ -327,6 +338,19 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          backgroundColor: Colors.white,
+          title: const Text('커뮤니티'),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+        bottomNavigationBar: const AppBottomNav(currentIndex: 2),
+      );
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
