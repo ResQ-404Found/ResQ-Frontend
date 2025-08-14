@@ -345,7 +345,6 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
           automaticallyImplyLeading: false,
           elevation: 0,
           backgroundColor: Colors.white,
-          title: const Text('커뮤니티'),
         ),
         body: const Center(child: CircularProgressIndicator()),
         bottomNavigationBar: const AppBottomNav(currentIndex: 2),
