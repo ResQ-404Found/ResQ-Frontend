@@ -24,16 +24,43 @@ flutter run
 project-root/
 │
 ├── lib/
-│   ├── main.dart     
+│   ├── main.dart
 │   ├── routes.dart
+│   ├── firebase_options.dart
+│   ├── api/
+│      ├── http_client.dart
+│   ├── asset/
+│      ├── 글자없는로고.png
 │   └── pages/
-│      ├── community_main_page.dart
-│      ├── news_page.dart
+│      ├── allposts_page.dart
+│      ├── chatbot_page.dart
+│      ├── coldwave_page.dart
+│      ├── community_page.dart
+│      ├── disaster_detail_page.dart
+│      ├── disaster_list_page.dart
+│      ├── disaster_menu_page.dart
+│      ├── disaster_text_only_page.dart
+│      ├── disastertype_filtering_page.dart
+│      ├── earthquake_page.dart
+│      ├── fire_page.dart
+│      ├── firebase_page.dart
+│      ├── flood_page.dart
+│      ├── hotposts_page.dart
+│      ├── landslide_page.dart
 │      ├── login_page.dart
-│      └── signup_page.dart
+│      ├── map_page.dart
+│      ├── password_reset_new_page.dart
+│      ├── password_reset_request_page.dart
+│      ├── password_reset_verify_page.dart
+│      ├── region_category_page.dart
+│      ├── signup_page.dart
+│      ├── typhoon_page.dart
+│      ├── user_page.dart
+│      ├── withdrawl_page.dart
+│      └── writepost_page.dart
 │
 ├── pubspec.yaml 
 ├── analysis_options.yaml
 ├── .gitignore
-├── README.md         
+├── README.md4    
 ```
