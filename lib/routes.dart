@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:resq_frontend/pages/all_post_detail_page.dart';
 import 'package:resq_frontend/pages/donation_list_page.dart';
+import 'package:resq_frontend/pages/quiz.dart';
+import 'package:resq_frontend/pages/quiz_start_page.dart';
 import 'pages/disaster_guide_page.dart';
 import 'pages/disastertype_filtering_page.dart';
 import 'pages/donation_detail_page.dart';
@@ -55,6 +57,16 @@ final Map<String, WidgetBuilder> routes = {
   '/postDetail': (context) => const PostDetailPage(),
   '/donation': (context) => DonationListPage(),
   '/detail': (context) => DonationDetailPage(),
+  '/quiz': (context) => const QuizPage(),
+  '/quiz/start': (context) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    return QuizStartPage(
+      quizId: args['id'],
+      title: args['title'],
+      timeMinutes: args['minutes'],
+      questions: args['questions'],
+    );
+  },
   '/payment': (context) => DonationPaymentPage(),
   '/allpostdetail': (context) {
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;

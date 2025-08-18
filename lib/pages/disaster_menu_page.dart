@@ -41,6 +41,13 @@ class DisasterMenuPage extends StatelessWidget {
         'icon': Icons.volunteer_activism,
         'color': Colors.purpleAccent,
       },
+      // ✅ 후원 밑에 추가된 항목
+      {
+        'title': '퀴즈',
+        'subtitle': '재난 상식 테스트',
+        'icon': Icons.quiz,
+        'color': Colors.indigoAccent,
+      },
     ];
 
     return Scaffold(
@@ -97,6 +104,8 @@ class DisasterMenuPage extends StatelessWidget {
                       Navigator.pushNamed(context, '/news');
                     } else if (title == '후원') {
                       Navigator.pushNamed(context, '/donation');
+                    } else if (title == '퀴즈') {
+                      Navigator.pushNamed(context, '/quiz'); // ✅ 퀴즈 라우트로 이동
                     }
                   },
                   child: Container(
