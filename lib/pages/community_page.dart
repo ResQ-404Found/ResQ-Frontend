@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'app_bottom_nav.dart';
 class CommunityMainPage extends StatefulWidget {
   const CommunityMainPage({super.key});
 
   @override
   State<CommunityMainPage> createState() => _CommunityMainPageState();
 }
+
 
 const Map<int, String> regionNames = {
   1: '서울특별시',
@@ -29,25 +30,56 @@ const Map<int, String> regionNames = {
   11977: '제주도',
 };
 
+// 생략: import, regionNames 그대로 유지
+
 class _CommunityMainPageState extends State<CommunityMainPage> {
   List<dynamic> posts = [];
   List<dynamic> popularPosts = [];
   final _searchController = TextEditingController();
   List<dynamic> searchResults = [];
   bool isSearching = false;
+  bool _loading = true;
+
 
   @override
   void initState() {
     super.initState();
     fetchDisasterPosts();
     fetchNormalPosts();
+    _loadAll();
   }
 
+  Future<void> _loadAll() async {
+    setState(() => _loading = true);
+    await Future.wait([
+      fetchDisasterPosts(),
+      fetchNormalPosts(),
+    ]);
+    if (mounted) setState(() => _loading = false);
+  }
   Future<void> fetchDisasterPosts() async {
     final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts?type=disaster'));
     if (response.statusCode == 200) {
+      final List<dynamic> postsData = jsonDecode(response.body);
+
+      for (var post in postsData) {
+        final postId = post['id'];
+
+        final commentRes = await http.get(Uri.parse('http://54.253.211.96:8000/api/comments/$postId'));
+        if (commentRes.statusCode == 200) {
+          post['comment_count'] = jsonDecode(commentRes.body).length;
+        }
+
+        final likeStatusRes = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like/status'));
+        if (likeStatusRes.statusCode == 200) {
+          final status = jsonDecode(likeStatusRes.body);
+          post['like_count'] = status['like_count'] ?? 0;
+          post['is_liked'] = status['is_liked'] ?? false;
+        }
+      }
+
       setState(() {
-        popularPosts = jsonDecode(response.body);
+        popularPosts = postsData;
       });
     }
   }
@@ -55,8 +87,31 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
   Future<void> fetchNormalPosts() async {
     final response = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts?type=normal'));
     if (response.statusCode == 200) {
+      final List<dynamic> postsData = jsonDecode(response.body);
+
+      for (var post in postsData) {
+        final postId = post['id'];
+
+        final commentRes = await http.get(Uri.parse('http://54.253.211.96:8000/api/comments/$postId'));
+        if (commentRes.statusCode == 200) {
+          post['comment_count'] = jsonDecode(commentRes.body).length;
+        } else {
+          post['comment_count'] = 0;
+        }
+
+        final likeStatusRes = await http.get(Uri.parse('http://54.253.211.96:8000/api/posts/$postId/like/status'));
+        if (likeStatusRes.statusCode == 200) {
+          final status = jsonDecode(likeStatusRes.body);
+          post['like_count'] = status['like_count'] ?? 0;
+          post['is_liked'] = status['is_liked'] ?? false;
+        } else {
+          post['like_count'] = 0;
+          post['is_liked'] = false;
+        }
+      }
+
       setState(() {
-        posts = jsonDecode(response.body);
+        posts = postsData;
       });
     }
   }
@@ -90,7 +145,6 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         return urls;
       }
     }
-
     if (urls is List && urls.isNotEmpty) {
       final url = urls.first;
       if (url.startsWith('/static')) {
@@ -99,7 +153,6 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         return url;
       }
     }
-
     return null;
   }
 
@@ -107,7 +160,6 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
     final dateTime = DateTime.parse(time).toLocal();
     final now = DateTime.now();
     final diff = now.difference(dateTime);
-
     if (diff.inSeconds < 60) return '${diff.inSeconds}초 전';
     if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
     if (diff.inHours < 24) return '${diff.inHours}시간 전';
@@ -120,6 +172,36 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
     if (point >= 3000) return 'Gold';
     if (point >= 1000) return 'Silver';
     return 'Bronze';
+  }
+
+  Widget _buildBadge(int point) {
+    Color color = Colors.transparent;
+    IconData icon = Icons.military_tech;
+    if (point >= 5000) {
+      color = Colors.blueGrey;
+      icon = Icons.workspace_premium;
+    } else if (point >= 3000) {
+
+      color = Colors.amber;
+      icon = Icons.emoji_events;
+    } else if (point >= 1000) {
+      color = Colors.grey;
+      icon = Icons.military_tech;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+        ],
+      ),
+    );
   }
 
   Widget sectionHeader(String title, String route, IconData icon) {
@@ -161,117 +243,92 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
           final commentCount = post['comment_count'] ?? 0;
           final time = post['created_at'] ?? '';
           final title = post['title'] ?? '';
+          final bool hasImage = postImageUrl != null;
 
-          return Container(
-            width: 200,
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[200]!),
-              borderRadius: BorderRadius.circular(16),
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                )
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
+          return GestureDetector(
+            onTap: () => Navigator.pushNamed(context, '/allpostdetail', arguments: post),
+            child: Container(
+              width: 200,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 5, offset: const Offset(0, 2))
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(region, style: const TextStyle(fontSize: 12, color: Colors.redAccent, fontWeight: FontWeight.bold)),
                   ),
-                  child: Text(region,
-                      style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 4),
-                Text(parseTimeAgo(time),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                const SizedBox(height: 4),
-                Text(title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15)),
-                const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: postImageUrl != null
-                      ? Image.network(
-                    postImageUrl,
-                    width: double.infinity,
-                    height: 100,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
+                  const SizedBox(height: 4),
+                  Text(parseTimeAgo(time), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 4),
+                  Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 6),
+                  if (hasImage)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        postImageUrl!,
                         width: double.infinity,
                         height: 100,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.broken_image, color: Colors.grey),
-                      );
-                    },
-                  )
-                      : Container(
-                    width: double.infinity,
-                    height: 100,
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.image, color: Colors.grey),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 10,
-                      backgroundImage: profileImageUrl != null
-                          ? NetworkImage(profileImageUrl)
-                          : const AssetImage('lib/asset/sample_profile.jpg') as ImageProvider,
-                      backgroundColor: Colors.grey[200],
-                    ),
-                    const SizedBox(width: 6),
-                    Text('by $username',
-                        style: const TextStyle(fontSize: 12, color: Colors.black54)),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.redAccent.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                       ),
-                      child: Text(
-                        badgeLabel,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.bold,
+                    ),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Text('by $username', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                      const SizedBox(width: 6),
+                      _buildBadge(point),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () async {
+                          final postId = post['id'];
+                          final isLiked = post['is_liked'] ?? false;
+                          final url = 'http://54.253.211.96:8000/api/posts/$postId/like';
+                          final response = isLiked
+                              ? await http.delete(Uri.parse(url))
+                              : await http.post(Uri.parse(url));
+
+                          if (response.statusCode == 200 || response.statusCode == 204) {
+                            setState(() {
+                              post['is_liked'] = !isLiked;
+                              post['like_count'] = likeCount + (isLiked ? -1 : 1);
+                            });
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            Icon(
+                              post['is_liked'] == true ? Icons.favorite : Icons.favorite_border,
+                              size: 20,
+                              color: Colors.redAccent,
+                            ),
+                            const SizedBox(width: 4),
+                            Text('${post['like_count'] ?? 0}', style: const TextStyle(fontSize: 12)),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    const Icon(Icons.favorite_border, size: 16),
-                    const SizedBox(width: 4),
-                    Text('$likeCount', style: const TextStyle(fontSize: 12)),
-                    const SizedBox(width: 10),
-                    const Icon(Icons.chat_bubble_outline, size: 16),
-                    const SizedBox(width: 4),
-                    Text('$commentCount', style: const TextStyle(fontSize: 12)),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 10),
+                      const Icon(Icons.comment, size: 20, color: Colors.blueAccent),
+                      const SizedBox(width: 4),
+                      Text('$commentCount', style: const TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -281,6 +338,18 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          backgroundColor: Colors.white,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+        bottomNavigationBar: const AppBottomNav(currentIndex: 2),
+      );
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -310,14 +379,10 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         padding: const EdgeInsets.all(16),
         child: isSearching
             ? ListView(
-          children: searchResults
-              .map((post) => ListTile(
+          children: searchResults.map((post) => ListTile(
             title: Text(post['title'] ?? ''),
-            subtitle: Text(
-              regionNames[int.tryParse('${post['region_id']}')] ?? '',
-            ),
-          ))
-              .toList(),
+            subtitle: Text(regionNames[int.tryParse('${post['region_id']}')] ?? ''),
+          )).toList(),
         )
             : SingleChildScrollView(
           child: Column(
@@ -339,70 +404,7 @@ class _CommunityMainPageState extends State<CommunityMainPage> {
         backgroundColor: Colors.redAccent,
         child: const Icon(Icons.edit, color: Colors.white),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 2,
-              offset: const Offset(0, 0),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          currentIndex: 2, // 커뮤니티 탭 활성화
-          onTap: (index) {
-            switch (index) {
-              case 0:
-                Navigator.pushNamed(context, '/map');
-                break;
-              case 1:
-                Navigator.pushNamed(context, '/chatbot');
-                break;
-              case 2:
-                break;
-              case 3:
-                Navigator.pushNamed(context, '/disastermenu');
-                break;
-              case 4:
-                Navigator.pushNamed(context, '/user');
-                break;
-            }
-          },
-          selectedItemColor: Colors.redAccent,
-          unselectedItemColor: Colors.grey[300],
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          selectedIconTheme: const IconThemeData(size: 30),
-          unselectedIconTheme: const IconThemeData(size: 30),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)),
-              label: '지도',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)),
-              label: '채팅',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)),
-              label: '커뮤니티',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)),
-              label: '재난메뉴',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)),
-              label: '마이',
-            ),
-          ],
-        ),
-      ),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 2),
     );
   }
 }

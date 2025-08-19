@@ -5,6 +5,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
+import 'app_bottom_nav.dart';
+
 const String kakaoRestApiKey = 'KakaoAK 6c70d9ab4ca17bdfa047539c7d8ec0a8';
 
 class Shelter {
@@ -197,9 +199,12 @@ class _MapPageState extends State<MapPage> {
         );
         marker.setOnTapListener((m) {
           setState(() {
-            _selectedShelter = (_selectedShelter?.name == shelter.name) ? null : shelter;
+            _selectedShelter =
+            (_selectedShelter?.name == shelter.name) ? null : shelter;
+            _showDisasterSheet = false;
           });
         });
+
         _shelterMarkers.add(marker);
       }
 
@@ -225,7 +230,9 @@ class _MapPageState extends State<MapPage> {
       setState(() {
         _disasterList = data.map((e) => Disaster.fromJson(e)).toList();
         _hasDisasterMessage = total > 0;
-        _showDisasterSheet = true;
+        if (_selectedMenu == 'disaster') {
+          _showDisasterSheet = true;
+        }
       });
     }
   }
@@ -258,7 +265,9 @@ class _MapPageState extends State<MapPage> {
 
       if (_controller != null) {
         await _controller!.clearOverlays();
-        await _controller!.addOverlayAll(_hospitalMarkers.map((m) => m as NAddableOverlay).toSet()); // ✅ hospitalMarkers로 바꿈
+        await _controller!.addOverlayAll(
+          _hospitalMarkers.map((m) => m as NAddableOverlay).toSet(),
+        ); //hospitalMarkers로 바꿈
         await _zoomToFitMarkers(_hospitalMarkers);
       }
     }
@@ -327,9 +336,33 @@ class _MapPageState extends State<MapPage> {
                           });
                         },
                       ),
-                      if (_selectedShelter != null) _buildShelterDetailSheet(),
-                      if (_selectedMenu == 'disaster' && _showDisasterSheet) _buildDisasterInfoSheet(),
-                      if (_selectedHospital != null) _buildHospitalDetailSheet(),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 360),
+                        curve: Curves.easeOut,
+                        bottom: _selectedShelter != null ? 0 : -400,
+                        left: 0,
+                        right: 0,
+                        child: _buildShelterDetailSheet(),
+                      ),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 360),
+                        curve: Curves.easeOut,
+                        bottom: (_selectedMenu == 'disaster' && _showDisasterSheet) ? 0 : -400,
+                        left: 0,
+                        right: 0,
+                        child: (_selectedMenu == 'disaster' && _showDisasterSheet)
+                            ? _buildDisasterInfoSheet()
+                            : const SizedBox.shrink(), // ✅ 조건 안 맞으면 위젯 자체 제거
+                      ),
+
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 360),
+                        curve: Curves.easeOut,
+                        bottom: _selectedHospital != null ? 0 : -400,
+                        left: 0,
+                        right: 0,
+                        child: _buildHospitalDetailSheet(),
+                      ),
                       Positioned(
                         bottom: 16,
                         right: 16,
@@ -395,67 +428,10 @@ class _MapPageState extends State<MapPage> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white, // 배경색
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1), // 그림자 색
-              blurRadius: 10, // 퍼짐 정도
-              offset: Offset(0, -2), // 위쪽으로 살짝 그림자
-            ),
-          ],
+          color: Colors.white,
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: Offset(0, -2))],
         ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0, // 내부 elevation 제거
-          type: BottomNavigationBarType.fixed,
-          currentIndex: 0,
-          onTap: (index) {
-            switch (index) {
-              case 0:
-                break;
-              case 1:
-                Navigator.pushNamed(context, '/chatbot');
-                break;
-              case 2:
-                Navigator.pushNamed(context, '/community');
-                break;
-              case 3:
-                Navigator.pushNamed(context, '/disastermenu');
-                break;
-              case 4:
-                Navigator.pushNamed(context, '/user');
-                break;
-            }
-          },
-          selectedItemColor: Colors.redAccent, // 선택된 아이콘 색
-          unselectedItemColor: Colors.grey[300], // 비선택 아이콘 색
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          selectedIconTheme: IconThemeData(size: 30),
-          unselectedIconTheme: IconThemeData(size: 30),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.place)),
-              label: '지도',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.chat)),
-              label: '채팅',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.groups)),
-              label: '커뮤니티',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.dashboard)),
-              label: '재난메뉴',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.favorite_border)),
-              label: '마이',
-            ),
-          ],
-        ),
+        child: const AppBottomNav(currentIndex: 0),
       ),
     );
   }
@@ -521,6 +497,7 @@ class _MapPageState extends State<MapPage> {
                 onTap: () async {
                   setState(() {
                     if (_selectedMenu == b['value']) {
+                      // 이미 선택된 버튼 다시 누르면 → OFF
                       _selectedMenu = '';
                       _selectedHospital = null;
                       _selectedShelter = null;
@@ -528,8 +505,8 @@ class _MapPageState extends State<MapPage> {
                     } else {
                       _selectedMenu = b['value'] as String;
                       _selectedHospital = null;
-                      _selectedShelter = null;
-                      _showDisasterSheet = b['value'] == 'disaster';
+                      _selectedShelter = null; // ✅ 이 줄로 상세 시트도 OFF
+                      _showDisasterSheet = (_selectedMenu == 'disaster');
                     }
                   });
 
@@ -538,6 +515,9 @@ class _MapPageState extends State<MapPage> {
                   if (_selectedMenu == 'hospital') await _fetchNearbyHospitals(pos);
                   if (_selectedMenu == 'disaster') await _fetchDisasters();
                 },
+
+
+
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
@@ -630,6 +610,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   Widget _buildShelterDetailSheet() {
+    if (_selectedShelter == null) return SizedBox.shrink();
     final shelter = _selectedShelter!;
     return Positioned(
       bottom: 0,
@@ -784,6 +765,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   Widget _buildHospitalDetailSheet() {
+    if (_selectedHospital == null) return SizedBox.shrink();
     final hospital = _selectedHospital!;
     return Positioned(
       bottom: 0,

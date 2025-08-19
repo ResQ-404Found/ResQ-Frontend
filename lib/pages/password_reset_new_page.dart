@@ -96,7 +96,6 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
             ),
             const SizedBox(height: 32),
 
-            // 🔐 새 비밀번호 입력 박스
             Container(
               width: 340,
               decoration: BoxDecoration(
@@ -136,7 +135,6 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
 
             const SizedBox(height: 10),
 
-            // 🔒 비밀번호 확인 박스
             Container(
               width: 340,
               decoration: BoxDecoration(

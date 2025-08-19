@@ -98,8 +98,8 @@ class _AllDisasterTypeDetailPageState extends State<AllDisasterTypeDetailPage> {
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.grey, // 그림자 색
-                blurRadius: 2, // 퍼짐 정도
+                color: Colors.grey,
+                blurRadius: 2,
                 offset: Offset(0, -2),
               ),
             ],
@@ -107,7 +107,7 @@ class _AllDisasterTypeDetailPageState extends State<AllDisasterTypeDetailPage> {
           child: AppBar(
             backgroundColor: Color(0xFFFFFFFF),
             scrolledUnderElevation: 0,
-            elevation: 0, // 기본 그림자 제거
+            elevation: 0,
             iconTheme: const IconThemeData(color: Colors.black),
             title: const Text(
               '전체 재난정보',
@@ -134,9 +134,9 @@ class _AllDisasterTypeDetailPageState extends State<AllDisasterTypeDetailPage> {
               color: const Color(0xFFFFFFFF),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1), // 그림자 색상 (연하게)
-                  blurRadius: 2, // 그림자 퍼짐 정도
-                  offset: const Offset(0, 0.1), // 아래로 약간 그림자
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 2,
+                  offset: const Offset(0, 0.1),
                 ),
               ],
             ),
@@ -183,14 +183,13 @@ class _AllDisasterTypeDetailPageState extends State<AllDisasterTypeDetailPage> {
                               child: Material(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
-                                clipBehavior: Clip.antiAlias, // 💥 꼭 추가
+                                clipBehavior: Clip.antiAlias,
                                 child: Container(
                                   constraints: const BoxConstraints(
                                     maxHeight: 500,
                                   ),
                                   decoration: const BoxDecoration(
                                     color: Colors.white,
-                                    // 여긴 borderRadius 필요 없음 (Material에 이미 있음)
                                   ),
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
@@ -214,7 +213,7 @@ class _AllDisasterTypeDetailPageState extends State<AllDisasterTypeDetailPage> {
                                             ),
                                             const SizedBox(
                                               height: 4,
-                                            ), // 텍스트와 Divider 사이 공백
+                                            ),
                                             // const Divider(height: 1, thickness: 0.5),
                                           ],
                                         ),
@@ -399,7 +398,7 @@ class _DisasterTypeDetailViewState extends State<DisasterTypeDetailView> {
         if (rawTime.contains('T')) {
           final parts = rawTime.split('T');
           final date = parts[0];
-          final time = parts[1].substring(0, 5); // '11:44' 형식
+          final time = parts[1].substring(0, 5);
           startTimeFormatted = '$date $time';
         }
 

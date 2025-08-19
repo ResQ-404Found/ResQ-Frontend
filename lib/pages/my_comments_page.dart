@@ -306,7 +306,7 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                                   const Icon(
                                     Icons.favorite_border,
                                     size: 18,
-                                    color: Colors.grey,
+                                    color: Colors.redAccent,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
@@ -315,9 +315,9 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                                   ),
                                   const SizedBox(width: 16),
                                   const Icon(
-                                    Icons.mode_comment_outlined,
-                                    size: 18,
-                                    color: Colors.grey,
+                                    Icons.comment,
+                                    size: 20,
+                                    color: Colors.blueAccent,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(

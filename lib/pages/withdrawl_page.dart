@@ -32,8 +32,8 @@ class WithdrawalConfirmationPage extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('탈퇴 완료되었습니다'), duration: Duration(seconds: 2)),
         );
-        await storage.deleteAll(); // 모든 토큰 삭제
-        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false); // 로그인 화면으로
+        await storage.deleteAll();
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       } else if (response.statusCode == 401) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('로그인 정보가 만료되었습니다. 다시 로그인해주세요')),
@@ -55,28 +55,39 @@ class WithdrawalConfirmationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFF3535), // 전체 배경을 빨간색으로 설정
-      body: Padding(
-        padding: const EdgeInsets.only(top: 0), // 위쪽 여백 추가 (조정 가능)
+      // backgroundColor: const Color(0xFFFF3535),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFFF3434),
+              Color(0xFFFF9898),
+            ],
+          ),
+        ),
+        child: Padding(
+        padding: const EdgeInsets.only(top: 0),
         child: Center(
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24), // 좌우 마진 추가하여 너비 제한
-            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24), // 안쪽 여백 조정 (이미지에 맞게 상하단 여백 증가)
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
             decoration: BoxDecoration(
-              color: Colors.white, // 내부 배경은 흰색
-              borderRadius: BorderRadius.circular(20), // 둥근 모서리 (이미지에 맞게 더 둥글게)
-              boxShadow: [ // 흰색 네모에 살짝 그림자 추가
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
                   spreadRadius: 2,
                   blurRadius: 5,
-                  offset: const Offset(0, 5), // 그림자의 위치 설정
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min, // 세로 크기를 최소화
-              mainAxisAlignment: MainAxisAlignment.start, // 위쪽에 배치
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 CircleAvatar(
                   radius: 40,
@@ -123,7 +134,7 @@ class WithdrawalConfirmationPage extends StatelessWidget {
                   children: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF3535),
+                        backgroundColor: const Color(0xFFFF3D3D),
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(
@@ -169,6 +180,6 @@ class WithdrawalConfirmationPage extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ),);
   }
 }

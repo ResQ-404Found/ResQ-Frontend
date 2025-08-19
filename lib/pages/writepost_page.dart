@@ -20,46 +20,20 @@ class _PostCreatePageState extends State<PostCreatePage> {
   String? selectedRegion;
   String? selectedPostType;
   List<File> _images = [];
+  final int maxContentLength = 500;
 
   final List<String> regions = [
-    '서울',
-    '부산',
-    '대구',
-    '인천',
-    '광주',
-    '대전',
-    '울산',
-    '세종',
-    '경기',
-    '강원',
-    '충북',
-    '충남',
-    '전북',
-    '전남',
-    '경북',
-    '경남',
-    '제주',
+    '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종',
+    '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주',
   ];
 
   final List<String> postTypes = ['재난 게시글', '잡담 게시글'];
 
   final Map<String, int> regionIdMap = {
-    '서울': 1,
-    '부산': 2559,
-    '대구': 2784,
-    '인천': 2011,
-    '광주': 3235,
-    '대전': 3481,
-    '울산': 3664,
-    '세종': 3759,
-    '경기': 3793,
-    '강원': 5660,
-    '충북': 6129,
-    '충남': 6580,
-    '전북': 7376,
-    '전남': 8143,
-    '경북': 9073,
-    '경남': 10404,
+    '서울': 1, '부산': 2559, '대구': 2784, '인천': 2011,
+    '광주': 3235, '대전': 3481, '울산': 3664, '세종': 3759,
+    '경기': 3793, '강원': 5660, '충북': 6129, '충남': 6580,
+    '전북': 7376, '전남': 8143, '경북': 9073, '경남': 10404,
     '제주': 11977,
   };
 
@@ -88,21 +62,27 @@ class _PostCreatePageState extends State<PostCreatePage> {
 
   Future<void> submitPost(BuildContext context) async {
     if (accessToken == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('로그인이 필요합니다')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('로그인이 필요합니다')),
+      );
+      return;
+    }
+
+    if (contentController.text.length > maxContentLength) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('글자 수를 확인해주세요')),
+      );
       return;
     }
 
     final uri = Uri.parse('http://54.253.211.96:8000/api/posts');
-    final request =
-        http.MultipartRequest('POST', uri)
-          ..headers['Authorization'] = 'Bearer $accessToken'
-          ..fields['title'] = titleController.text
-          ..fields['content'] = contentController.text
-          ..fields['region_id'] = (regionIdMap[selectedRegion] ?? 0).toString()
-          ..fields['type'] =
-              selectedPostType == '재난 게시글' ? 'disaster' : 'normal';
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $accessToken'
+      ..fields['title'] = titleController.text
+      ..fields['content'] = contentController.text
+      ..fields['region_id'] = (regionIdMap[selectedRegion] ?? 0).toString()
+      ..fields['type'] =
+      selectedPostType == '재난 게시글' ? 'disaster' : 'normal';
 
     for (final image in _images) {
       request.files.add(
@@ -123,9 +103,8 @@ class _PostCreatePageState extends State<PostCreatePage> {
 
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
-        final Map<String, dynamic> createdPost = Map<String, dynamic>.from(
-          jsonResponse,
-        );
+        final Map<String, dynamic> createdPost =
+        Map<String, dynamic>.from(jsonResponse);
 
         Navigator.pushNamedAndRemoveUntil(
           context,
@@ -139,57 +118,59 @@ class _PostCreatePageState extends State<PostCreatePage> {
         );
         Navigator.pushReplacementNamed(context, '/login');
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('게시 실패: 데이터를 다시 확인해주세요.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('게시 실패: 데이터를 다시 확인해주세요.')),
+        );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('에러 발생: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('에러 발생: $e')),
+      );
     }
   }
 
   Widget _buildImagePicker() {
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_images.isNotEmpty)
+          Expanded(
+            child: SizedBox(
+              height: 80,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _images.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      _images[index],
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        const SizedBox(width: 12),
         GestureDetector(
           onTap: _pickImages,
           child: Container(
-            width: 110,
-            height: 110,
+            width: 80,
+            height: 80,
             decoration: BoxDecoration(
               color: Colors.grey.shade300,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Center(
-              child: Icon(Icons.add_a_photo, size: 36, color: Colors.white),
+              child: Icon(Icons.add_a_photo, size: 28, color: Colors.white),
             ),
           ),
         ),
-        const SizedBox(height: 10),
-        if (_images.isNotEmpty)
-          SizedBox(
-            height: 80,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _images.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    _images[index],
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                  ),
-                );
-              },
-            ),
-          ),
       ],
     );
   }
@@ -249,17 +230,28 @@ class _PostCreatePageState extends State<PostCreatePage> {
               ),
             ),
             const SizedBox(height: 20),
-            _buildDropdown('게시판 선택', postTypes, selectedPostType, (val) {
-              setState(() => selectedPostType = val);
-            }),
-            const SizedBox(height: 14),
-            _buildDropdown('지역 선택', regions, selectedRegion, (val) {
-              setState(() => selectedRegion = val);
-            }),
+            _buildDropdown(
+              context,
+              '게시판 선택',
+              postTypes,
+              selectedPostType,
+                  (val) => setState(() => selectedPostType = val),
+            ),
+            if (selectedPostType == '재난 게시글') ...[
+              const SizedBox(height: 14),
+              _buildDropdown(
+                context,
+                '지역 선택',
+                regions,
+                selectedRegion,
+                    (val) => setState(() => selectedRegion = val),
+              ),
+            ],
             const SizedBox(height: 20),
             TextField(
               controller: contentController,
               maxLines: 10,
+              onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 hintText: '내용을 입력하세요',
                 contentPadding: const EdgeInsets.all(16),
@@ -270,6 +262,11 @@ class _PostCreatePageState extends State<PostCreatePage> {
                   borderSide: BorderSide.none,
                 ),
               ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${contentController.text.length} / $maxContentLength',
+              style: const TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 30),
             SizedBox(
@@ -297,28 +294,38 @@ class _PostCreatePageState extends State<PostCreatePage> {
   }
 
   Widget _buildDropdown(
-    String hint,
-    List<String> items,
-    String? selectedValue,
-    ValueChanged<String?> onChanged,
-  ) {
+      BuildContext context,
+      String hint,
+      List<String> items,
+      String? selectedValue,
+      ValueChanged<String?> onChanged,
+      ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Colors.white,
         border: Border.all(color: Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: selectedValue,
-          hint: Text(hint),
-          isExpanded: true,
-          items:
-              items.map((item) {
-                return DropdownMenuItem(value: item, child: Text(item));
-              }).toList(),
-          onChanged: onChanged,
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          canvasColor: Colors.white,
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          focusColor: Colors.transparent,
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: selectedValue,
+            hint: Text(hint),
+            isExpanded: true,
+            borderRadius: BorderRadius.circular(12),
+            icon: const Icon(Icons.arrow_drop_down),
+            items: items.map((item) {
+              return DropdownMenuItem(value: item, child: Text(item));
+            }).toList(),
+            onChanged: onChanged,
+          ),
         ),
       ),
     );

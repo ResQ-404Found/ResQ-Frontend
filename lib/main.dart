@@ -25,13 +25,13 @@ Future<void> requestNotificationPermission() async {
   }
 }
 
-// 🔔 로컬 알림 플러그인 초기화
+
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
 
-// 🔔 알림 채널 정의
+
 const AndroidNotificationChannel channel = AndroidNotificationChannel(
-  'default_channel_id', // AndroidManifest.xml과 일치
+  'default_channel_id',
   '기본 채널',
   description: '기본 알림 채널입니다.',
   importance: Importance.high,
@@ -47,16 +47,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await requestNotificationPermission();
-  // ✅ 백그라운드 핸들러 등록
+
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // ✅ 알림 채널 생성
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
       AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
-  // ✅ 로컬 알림 초기화
   await flutterLocalNotificationsPlugin.initialize(
     const InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
@@ -89,7 +87,6 @@ void main() async {
       print("❌ 알림이 없거나 android 설정이 null입니다");
     }
   });
-  // ✅ Initialize Naver Map
   final naverMap = FlutterNaverMap();
   await naverMap.init(
     clientId: 'p9nizolo1p',

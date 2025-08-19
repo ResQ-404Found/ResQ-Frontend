@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'all_post_detail_page.dart';
 import 'my_post_edit_page.dart';
 
 class MyPostsPage extends StatefulWidget {
@@ -42,7 +41,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
         isLoading = false;
       });
     } else {
-      print('게시글 요청 실패: ${response.statusCode}');
       setState(() => isLoading = false);
     }
   }
@@ -61,14 +59,14 @@ class _MyPostsPageState extends State<MyPostsPage> {
     );
 
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('게시글이 삭제되었습니다.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('게시글이 삭제되었습니다.')),
+      );
       fetchMyPosts();
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('게시글 삭제에 실패했습니다.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('게시글 삭제에 실패했습니다.')),
+      );
     }
   }
 
@@ -100,227 +98,194 @@ class _MyPostsPageState extends State<MyPostsPage> {
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      body:
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : posts.isEmpty
-              ? const Center(child: Text('작성한 글이 없습니다.'))
-              : ListView.builder(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                itemCount: posts.length,
-                itemBuilder: (context, index) {
-                  final post = posts[index];
-                  final content = post['content'] ?? '';
-                  final createdAt = post['created_at'] ?? '';
-                  final images = post['post_imageURLs'] ?? [];
-                  final title = post['title'] ?? '(제목 없음)';
-                  final likeCount = post['like_count'] ?? 0;
-                  final commentCount = post['comment_count'] ?? 0;
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : posts.isEmpty
+          ? const Center(child: Text('작성한 글이 없습니다.'))
+          : ListView.builder(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+        itemCount: posts.length,
+        itemBuilder: (context, index) {
+          final post = posts[index];
+          final content = post['content'] ?? '';
+          final createdAt = post['created_at'] ?? '';
+          final images = post['post_imageURLs'] ?? [];
+          final title = post['title'] ?? '(제목 없음)';
 
-                  // 이미지 URL 처리
-                  String? imageUrl;
-                  if (images.isNotEmpty) {
-                    final rawUrl = images[0];
-                    if (rawUrl.startsWith('http')) {
-                      imageUrl = rawUrl;
-                    } else {
-                      imageUrl = 'http://54.253.211.96:8000$rawUrl';
-                    }
-                  }
+          String? imageUrl;
+          if (images.isNotEmpty) {
+            final rawUrl = images[0];
+            if (rawUrl.startsWith('http')) {
+              imageUrl = rawUrl;
+            } else {
+              imageUrl = 'http://54.253.211.96:8000$rawUrl';
+            }
+          }
 
-                  return Card(
-                    color: Colors.white,
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 10,
-                    ),
-                    elevation: 1,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 18, 24, 18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 제목 + 시간 + 메뉴
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      title,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
+          return Card(
+            color: Colors.white,
+            margin: const EdgeInsets.symmetric(
+              horizontal: 6,
+              vertical: 10,
+            ),
+            elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 24, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 제목 + 시간 + 메뉴
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              formatTime(createdAt),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      PopupMenuButton<String>(
+                        color: Colors.white,
+                        onSelected: (value) {
+                          if (value == 'edit') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    PostEditPage(post: post),
+                              ),
+                            ).then((_) => fetchMyPosts());
+                          } else if (value == 'delete') {
+                            showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: const Text('게시글 삭제'),
+                                content: const Text('정말 삭제하시겠습니까?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context),
+                                    child: const Text('취소'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      deletePost(post['id']);
+                                    },
+                                    child: const Text(
+                                      '삭제',
+                                      style: TextStyle(
+                                        color: Colors.red,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      formatTime(createdAt),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuButton<String>(
-                                color: Colors.white,
-
-                                onSelected: (value) {
-                                  if (value == 'edit') {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (_) => PostEditPage(post: post),
-                                      ),
-                                    ).then((_) => fetchMyPosts());
-                                  } else if (value == 'delete') {
-                                    showDialog(
-                                      context: context,
-                                      builder:
-                                          (_) => AlertDialog(
-                                            title: const Text('게시글 삭제'),
-                                            content: const Text('정말 삭제하시겠습니까?'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed:
-                                                    () =>
-                                                        Navigator.pop(context),
-                                                child: const Text('취소'),
-                                              ),
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                  deletePost(post['id']);
-                                                },
-                                                child: const Text(
-                                                  '삭제',
-                                                  style: TextStyle(
-                                                    color: Colors.red,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                    );
-                                  }
-                                },
-                                itemBuilder:
-                                    (context) => const [
-                                      PopupMenuItem(
-                                        value: 'edit',
-                                        child: Text('수정'),
-                                      ),
-                                      PopupMenuItem(
-                                        value: 'delete',
-                                        child: Text('삭제'),
-                                      ),
-                                    ],
-                                icon: const Icon(Icons.more_vert),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 12),
-
-                          // 본문 + 이미지
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (imageUrl != null)
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    imageUrl,
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              if (imageUrl != null) const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  content,
-                                  style: const TextStyle(fontSize: 14),
-                                  maxLines: 4,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          // 좋아요/댓글 수 + 원문 보기 버튼
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.favorite_border,
-                                    size: 18,
-                                    color: Colors.grey,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '$likeCount',
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  const Icon(
-                                    Icons.mode_comment_outlined,
-                                    size: 18,
-                                    color: Colors.grey,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '$commentCount',
-                                    style: const TextStyle(fontSize: 14),
                                   ),
                                 ],
                               ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    '/allpostdetail',
-                                    arguments: post,
-                                  );
-                                },
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(0, 0),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: const Text(
-                                  '원문 보기',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blueAccent,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            );
+                          }
+                        },
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Text('수정'),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Text('삭제'),
                           ),
                         ],
+                        icon: const Icon(Icons.more_vert),
                       ),
-                    ),
-                  );
-                },
+                    ],
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // 본문 + 이미지
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (imageUrl != null)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            imageUrl,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      if (imageUrl != null) const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          content,
+                          style: const TextStyle(fontSize: 14),
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/allpostdetail',
+                            arguments: post,
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(0, 0),
+                          tapTargetSize:
+                          MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text(
+                          '원문 보기',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueAccent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

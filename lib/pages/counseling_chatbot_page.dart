@@ -3,15 +3,15 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import 'app_bottom_nav.dart';
-import 'counseling_chatbot_page.dart';
+import 'chatbot_page.dart';
 
-class ChatbotPage extends StatefulWidget {
-  const ChatbotPage({super.key});
+class CounselingChatbotPage extends StatefulWidget {
+  const CounselingChatbotPage({super.key});
   @override
-  State<ChatbotPage> createState() => _ChatbotPageState();
+  State<CounselingChatbotPage> createState() => _CounselingChatbotPageState();
 }
 
-class _ChatbotPageState extends State<ChatbotPage> with SingleTickerProviderStateMixin {
+class _CounselingChatbotPageState extends State<CounselingChatbotPage> with SingleTickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final List<Map<String, String>> _messages = [];
@@ -21,8 +21,8 @@ class _ChatbotPageState extends State<ChatbotPage> with SingleTickerProviderStat
   bool _isTyping = false;
 
   static const String baseUrl = 'http://54.253.211.96:8000';
-  static const String historyPath = '/api/chatbot/history';
-  static const String chatPath = '/api/chatbot/chat';
+  static const String historyPath = '/api/counseling/history';
+  static const String chatPath = '/api/counseling/chat';
 
   @override
   void initState() {
@@ -56,7 +56,7 @@ class _ChatbotPageState extends State<ChatbotPage> with SingleTickerProviderStat
         setState(() {
           _messages.add({
             "role": "bot",
-            "message": "안녕하세요 저는 재난 전문 챗봇입니다. 무엇을 도와드릴까요?",
+            "message": "안녕하세요, 심리상담 챗봇입니다. 편하게 고민을 남겨주세요.",
           });
           for (final item in ordered) {
             _messages.add({"role": "user", "message": item['user_message']});
@@ -112,7 +112,7 @@ class _ChatbotPageState extends State<ChatbotPage> with SingleTickerProviderStat
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({"message": message, "mode": "channel"}),
+        body: jsonEncode({"message": message, "mode": "counseling"}),
       );
 
       if (!mounted) return;
@@ -188,7 +188,7 @@ class _ChatbotPageState extends State<ChatbotPage> with SingleTickerProviderStat
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
-                  child: _chipBar(isCounseling: false),
+                  child: _chipBar(isCounseling: true),
                 ),
               ],
             ),
@@ -231,14 +231,14 @@ class _ChatbotPageState extends State<ChatbotPage> with SingleTickerProviderStat
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        chip('채널', !isCounseling, () {
+        chip('재난', !isCounseling, () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const ChatbotPage()),
+          );
         }),
         const SizedBox(width: 8),
         chip('심리상담', isCounseling, () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const CounselingChatbotPage()),
-          );
         }),
       ],
     );
@@ -285,7 +285,7 @@ class _ChatbotPageState extends State<ChatbotPage> with SingleTickerProviderStat
             ),
             const SizedBox(width: 12),
             const Text(
-              '재난 전문 챗봇',
+              '심리상담 챗봇',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF454545)),
             ),
           ],
@@ -354,9 +354,7 @@ class _ChatbotPageState extends State<ChatbotPage> with SingleTickerProviderStat
               padding: const EdgeInsets.fromLTRB(0, 8, 0, 16),
               itemCount: _messages.length + (_isTyping ? 1 : 0),
               itemBuilder: (context, index) {
-                if (_isTyping && index == _messages.length) {
-                  return _typingBubble();
-                }
+                if (_isTyping && index == _messages.length) return _typingBubble();
                 final msg = _messages[index];
                 final isUser = msg['role'] == 'user';
                 return isUser ? _bubble(text: msg['message'] ?? '', isUser: true) : _botMessage(msg['message'] ?? '');

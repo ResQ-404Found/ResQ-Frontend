@@ -46,6 +46,47 @@ class _HotPostsPageState extends State<HotPostsPage>
     loadTokenAndPosts();
   }
 
+  Widget _buildBadge(int point) {
+    String label = 'Bronze';
+    Color color = Colors.brown;
+    IconData icon = Icons.military_tech;
+    if (point >= 5000) {
+      label = 'Platinum';
+      color = Colors.blueGrey;
+      icon = Icons.workspace_premium;
+    } else if (point >= 3000) {
+      label = 'Gold';
+      color = Colors.amber;
+      icon = Icons.emoji_events;
+    } else if (point >= 1000) {
+      label = 'Silver';
+      color = Colors.grey;
+      icon = Icons.military_tech;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> loadTokenAndPosts() async {
     accessToken = await storage.read(key: 'accessToken');
     await fetchPosts();
@@ -67,21 +108,31 @@ class _HotPostsPageState extends State<HotPostsPage>
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         posts = data;
-        likeCountList =
-            posts.map<int>((post) => post['like_count'] ?? 0).toList();
+
+        // 임시 데이터 초기화
+        likeCountList = posts.map<int>((post) => post['like_count'] ?? 0).toList();
         isLikedList = List.filled(posts.length, false);
         commentCountList = List.filled(posts.length, 0);
-        setState(() {});
+
+        setState(() {}); // 스켈레톤 or 로딩 상태 보여줄 수 있음
+
+        // 댓글 수와 좋아요 상태를 병렬로 가져오기
+        List<Future<void>> futures = [];
 
         for (int i = 0; i < posts.length; i++) {
-          final liked = await fetchLikeStatus(posts[i]['id']);
-          final commentCount = await fetchCommentCount(posts[i]['id']);
-          if (mounted) {
-            setState(() {
-              isLikedList[i] = liked;
-              commentCountList[i] = commentCount;
-            });
-          }
+          final postId = posts[i]['id'];
+          futures.add(fetchLikeStatus(postId).then((liked) {
+            isLikedList[i] = liked;
+          }));
+          futures.add(fetchCommentCount(postId).then((count) {
+            commentCountList[i] = count;
+          }));
+        }
+
+        await Future.wait(futures); // 모든 비동기 작업이 끝날 때까지 대기
+
+        if (mounted) {
+          setState(() {}); // 한 번만 setState로 갱신
         }
       } else {
         print('게시글 불러오기 실패: ${response.statusCode}');
@@ -90,6 +141,7 @@ class _HotPostsPageState extends State<HotPostsPage>
       print('오류 발생: $e');
     }
   }
+
 
   Future<int> fetchCommentCount(int postId) async {
     final url = Uri.parse('http://54.253.211.96:8000/api/comments/$postId');
@@ -219,14 +271,27 @@ class _HotPostsPageState extends State<HotPostsPage>
             ),
             tabs: const [Tab(text: '전체글'), Tab(text: '인기글')],
           ),
-          actions: [
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.tune, color: Colors.black),
-              onSelected: (selectedRegion) => fetchPosts(regionNames: selectedRegion),
-              itemBuilder: (context) => regionNames.values
-                  .map((region) => PopupMenuItem(value: region, child: Text(region)))
-                  .toList(),
-            ),
+            actions: [
+        Theme(
+        data: Theme.of(context).copyWith(
+          popupMenuTheme: const PopupMenuThemeData(
+            color: Colors.white,
+          ),
+        ),
+          child: PopupMenuButton<String>(
+            icon: const Icon(Icons.tune, color: Colors.black),
+            onSelected: (selectedRegion) =>
+                fetchPosts(regionNames: selectedRegion),
+            itemBuilder: (context) => regionNames.values
+                .map(
+                  (region) => PopupMenuItem(
+                value: region,
+                child: Text(region),
+              ),
+            )
+                .toList(),
+          ),
+        ),
           ],
         ),
         body: (posts.isEmpty || isLikedList.length != posts.length)
@@ -257,7 +322,8 @@ class _HotPostsPageState extends State<HotPostsPage>
                 profileImageUrl: profileImageUrl,
                 postImageUrl: postImageUrl,
                 onLikePressed: () => toggleLike(index),
-                badgeLabel: getBadgeLabel(point),
+                badgeWidget: _buildBadge(point),
+
               ),
             );
           },
@@ -268,12 +334,14 @@ class _HotPostsPageState extends State<HotPostsPage>
 }
 
 class PostCard extends StatelessWidget {
-  final String username, timeAgo, description, location, badgeLabel;
+  final String username, timeAgo, description, location;
   final int likes, comments, point;
   final bool isLiked;
   final String? profileImageUrl;
   final String? postImageUrl;
   final VoidCallback onLikePressed;
+  final Widget badgeWidget;
+
 
   const PostCard({
     super.key,
@@ -288,7 +356,7 @@ class PostCard extends StatelessWidget {
     required this.postImageUrl,
     required this.onLikePressed,
     required this.point,
-    required this.badgeLabel,
+    required this.badgeWidget,
   });
 
   @override
@@ -328,14 +396,7 @@ class PostCard extends StatelessWidget {
                     children: [
                       Text(username, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.redAccent.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(badgeLabel, style: const TextStyle(fontSize: 10, color: Colors.redAccent, fontWeight: FontWeight.bold)),
-                      ),
+                      badgeWidget,
                     ],
                   ),
                   Text(timeAgo, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
@@ -348,23 +409,39 @@ class PostCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: Text(description, style: const TextStyle(fontSize: 14)),
           ),
-          if (postImageUrl != null) ...[
-            const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                postImageUrl!,
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => const Icon(
-                  Icons.image_not_supported,
-                  size: 100,
-                  color: Colors.grey,
+
+          // 이미지 있을 때만 표시
+          if (postImageUrl != null)
+            Column(
+              children: [
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    postImageUrl!,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return SizedBox(
+                        height: 180,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) =>
+                    const SizedBox.shrink(),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
           const SizedBox(height: 12),
           Row(
             children: [
