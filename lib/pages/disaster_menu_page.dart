@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:resq_frontend/pages/quiz.dart';
 
 import 'disaster_guide_page.dart';
 import 'checklist.dart';
 import 'all_disaster_type_detail_page.dart';
-import 'app_bottom_nav.dart'; // ✅ 공통 바텀바 추가
+import 'app_bottom_nav.dart';
+import 'donation_list_page.dart';
+import 'news_page.dart'; // ✅ 공통 바텀바 추가
 
 class DisasterMenuPage extends StatelessWidget {
   const DisasterMenuPage({super.key});
@@ -101,11 +104,26 @@ class DisasterMenuPage extends StatelessWidget {
                         ),
                       );
                     } else if (title == '뉴스') {
-                      Navigator.pushNamed(context, '/news');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NewsPage(),
+                        ),
+                      );
                     } else if (title == '후원') {
-                      Navigator.pushNamed(context, '/donation');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const DonationListPage(),
+                        ),
+                      );
                     } else if (title == '퀴즈') {
-                      Navigator.pushNamed(context, '/quiz'); // ✅ 퀴즈 라우트로 이동
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const QuizPage(),
+                        ),
+                      );
                     }
                   },
                   child: Container(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// 공통 행동요령 레이아웃
 Widget buildDisasterInstructions({
   required String disasterName,
   required IconData icon,
@@ -72,7 +71,6 @@ Widget buildDisasterInstructions({
   );
 }
 
-/// 개별 행동요령 카드
 Widget _buildInstructionCard({
   required IconData icon,
   required String title,
