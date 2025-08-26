@@ -162,7 +162,7 @@ class _AllPostDetailPageState extends State<AllPostDetailPage> {
                     TextButton(
                       onPressed: () => setState(() {
                         replyingToCommentId = comment['id'];
-                        replyController.text = '@${comment['author']['username']} ';
+                        replyController.text = '';
                       }),
                       child: const Text('댓글 달기',
                           style: TextStyle(color: Colors.red)),

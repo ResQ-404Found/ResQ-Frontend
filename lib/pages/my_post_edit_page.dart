@@ -103,7 +103,13 @@ class _PostEditPageState extends State<PostEditPage> {
     final post = widget.post;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('게시글 수정'), centerTitle: true),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+          title: const Text('게시글 수정'),
+          centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -125,6 +131,7 @@ class _PostEditPageState extends State<PostEditPage> {
             const SizedBox(height: 20),
             TextField(
               controller: titleController,
+              cursorColor: Colors.white,
               decoration: const InputDecoration(
                 hintText: '제목을 입력해주세요.',
                 border: UnderlineInputBorder(),
@@ -159,6 +166,7 @@ class _PostEditPageState extends State<PostEditPage> {
             const SizedBox(height: 20),
             TextField(
               controller: contentController,
+              cursorColor: Colors.white,
               maxLines: 10,
               decoration: const InputDecoration(
                 hintText: '내용을 입력해주세요',
