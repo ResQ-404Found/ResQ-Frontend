@@ -20,8 +20,8 @@ class _ChatbotPageState extends State<ChatbotPage> with SingleTickerProviderStat
   bool _isTyping = false;
 
   static const String baseUrl = 'http://54.253.211.96:8000';
-  static const String historyPath = '/api/chatbot/history';
-  static const String chatPath = '/api/chatbot/chat';
+  static const String historyPath = '/api/chatbot/disaster/history';
+  static const String chatPath = '/api/chatbot/disaster';
 
   @override
   void initState() {
