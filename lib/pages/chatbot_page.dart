@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import 'app_bottom_nav.dart';
-import 'counseling_chatbot_page.dart';
 
 class ChatbotPage extends StatefulWidget {
   const ChatbotPage({super.key});
@@ -188,59 +187,12 @@ class _ChatbotPageState extends State<ChatbotPage> with SingleTickerProviderStat
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
-                  child: _chipBar(isCounseling: false),
                 ),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _chipBar({required bool isCounseling}) {
-    Widget chip(String label, bool selected, VoidCallback onTap) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xFFFFE6EA) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: selected ? Colors.pinkAccent : const Color(0xFFE6E6E6),
-              width: 1.2,
-            ),
-            boxShadow: selected
-                ? [BoxShadow(color: Colors.pinkAccent.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 3))]
-                : null,
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
-              color: selected ? Colors.pinkAccent : const Color(0xFF7B7B7B),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        chip('채널', !isCounseling, () {
-        }),
-        const SizedBox(width: 8),
-        chip('심리상담', isCounseling, () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const CounselingChatbotPage()),
-          );
-        }),
-      ],
     );
   }
 

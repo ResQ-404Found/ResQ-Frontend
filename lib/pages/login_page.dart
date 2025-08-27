@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
-import 'dart:async'; 
+import 'dart:async';
+import 'package:flutter/services.dart'; // ✅ 뒤로가기 종료를 위해 추가
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -64,7 +65,6 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
 
-
     print('자동 로그인 실패 → 로그인 페이지 유지');
   }
 
@@ -72,9 +72,9 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final res = await http
           .get(
-            Uri.parse('http://54.253.211.96:8000/api/users/me'),
-            headers: {'Authorization': 'Bearer $accessToken'},
-          )
+        Uri.parse('http://54.253.211.96:8000/api/users/me'),
+        headers: {'Authorization': 'Bearer $accessToken'},
+      )
           .timeout(_httpTimeout);
 
       return res.statusCode == 200;
@@ -93,12 +93,12 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final res = await http
           .post(
-            Uri.parse('http://54.253.211.96:8000/api/refresh'),
-            headers: {
-              'Authorization': 'Bearer $refreshToken',
-              'Content-Type': 'application/json',
-            },
-          )
+        Uri.parse('http://54.253.211.96:8000/api/refresh'),
+        headers: {
+          'Authorization': 'Bearer $refreshToken',
+          'Content-Type': 'application/json',
+        },
+      )
           .timeout(_httpTimeout);
 
       final bodyText = res.body;
@@ -139,13 +139,13 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final res = await http
           .post(
-            Uri.parse('http://54.253.211.96:8000/api/users/signin'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'login_id': loginId, 'password': password}),
-          )
+        Uri.parse('http://54.253.211.96:8000/api/users/signin'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'login_id': loginId, 'password': password}),
+      )
           .timeout(_httpTimeout);
 
-      final bodyText = res.body; 
+      final bodyText = res.body;
       Map<String, dynamic>? bodyJson;
       try {
         bodyJson = jsonDecode(bodyText);
@@ -173,8 +173,8 @@ class _LoginPageState extends State<LoginPage> {
       } else if (res.statusCode >= 400 && res.statusCode < 500) {
         final msg =
             bodyJson?['message'] ??
-            bodyJson?['detail'] ??
-            '요청이 올바르지 않습니다. (코드 ${res.statusCode})';
+                bodyJson?['detail'] ??
+                '요청이 올바르지 않습니다. (코드 ${res.statusCode})';
         _show(msg);
       } else if (res.statusCode >= 500) {
         _show('서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요. (코드 ${res.statusCode})');
@@ -270,8 +270,7 @@ class _LoginPageState extends State<LoginPage> {
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton(
-        onPressed:
-            () => Navigator.pushNamed(context, '/password_reset_request'),
+        onPressed: () => Navigator.pushNamed(context, '/password_reset_request'),
         child: const Text(
           '비밀번호 찾기',
           style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
@@ -294,24 +293,23 @@ class _LoginPageState extends State<LoginPage> {
           backgroundColor: Colors.red,
           elevation: 5,
         ),
-        child:
-            isLoading
-                ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                )
-                : const Text(
-                  '로그인',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+        child: isLoading
+            ? const SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 2,
+          ),
+        )
+            : const Text(
+          '로그인',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
@@ -349,52 +347,58 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 80),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                '로그인',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.red,
+    return WillPopScope( // ✅ 뒤로가기 눌렀을 때 앱 종료
+      onWillPop: () async {
+        SystemNavigator.pop(); // 앱 종료
+        return false; // 라우트 pop 막기
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFFAFAFA),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 80),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  '로그인',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.red,
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 30),
-                    buildEmail(),
-                    const SizedBox(height: 16),
-                    buildPassword(),
-                    const SizedBox(height: 3),
-                    buildForgotPasswordButton(),
-                    buildLoginBtn(),
-                    buildSignUpBtn(),
-                    const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap:
-                          () => Navigator.pushReplacementNamed(context, '/map'),
-                      child: const Text(
-                        '비회원 로그인',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 30),
+                      buildEmail(),
+                      const SizedBox(height: 16),
+                      buildPassword(),
+                      const SizedBox(height: 3),
+                      buildForgotPasswordButton(),
+                      buildLoginBtn(),
+                      buildSignUpBtn(),
+                      const SizedBox(height: 12),
+                      GestureDetector(
+                        onTap: () =>
+                            Navigator.pushReplacementNamed(context, '/map'),
+                        child: const Text(
+                          '비회원 로그인',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:resq_frontend/pages/quiz.dart';
+
 
 import 'disaster_guide_page.dart';
 import 'checklist.dart';
@@ -44,13 +44,7 @@ class DisasterMenuPage extends StatelessWidget {
         'icon': Icons.volunteer_activism,
         'color': Colors.purpleAccent,
       },
-      // ✅ 후원 밑에 추가된 항목
-      {
-        'title': '퀴즈',
-        'subtitle': '재난 상식 테스트',
-        'icon': Icons.quiz,
-        'color': Colors.indigoAccent,
-      },
+
     ];
 
     return Scaffold(
@@ -115,13 +109,6 @@ class DisasterMenuPage extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (_) => const DonationListPage(),
-                        ),
-                      );
-                    } else if (title == '퀴즈') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const QuizPage(),
                         ),
                       );
                     }
