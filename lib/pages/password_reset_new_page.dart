@@ -113,7 +113,7 @@ class _PasswordResetNewPageState extends State<PasswordResetNewPage> {
                 controller: _passwordController,
                 obscureText: !showPassword,
                 decoration: InputDecoration(
-                  hintText: "새 비밀번호 (8자 이상)",
+                  hintText: "새 비밀번호",
                   hintStyle: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 14),
                   prefixIcon: const Icon(Icons.lock, color: Colors.grey), // 자물쇠 아이콘
                   suffixIcon: IconButton(
